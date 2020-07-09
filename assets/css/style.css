@@ -280,6 +280,9 @@ ul.list-check li{
 ul.list-check li.docker::after {
    content: url('../images/ico/docker.png');
    }
+ul.list-check li.misp::after {
+   content: url('../images/ico/misp.png');
+   }
 ul.list-check li.ubuntu::after {
   content: url('../images/ico/ubuntu.png');
   }

@@ -353,14 +353,27 @@ ul.list-check li.ansible::after {
 
 
 #home {
-	background: url(../images/home3.jpg) no-repeat center center;
-	-webkit-background-attachment: fixed;
+    background: url(../images/home.jpg)  center center;
+    -webkit-background-attachment: fixed;
     background-attachment: fixed;
-	background-color: #222;
-	background-size: cover;
-	padding: 0;
-	position: relative;
+    background-color: #222;
+    background-size: cover;
+    padding: 0;
+    position: relative;
 }
+
+#home2 {
+    background: url(../images/home2.jpg)  center center;
+    -webkit-background-attachment: fixed;
+    background-attachment: fixed;
+    background-color: #222;
+    background-size: cover;
+    padding: 0;
+    position: relative;
+}
+
+
+
 #home:before {
 	content: "";
 	background-color: rgba(26, 30, 35, 0.85);

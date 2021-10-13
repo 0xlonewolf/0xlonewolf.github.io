@@ -1,371 +1,789 @@
-<!DOCTYPE html>
-<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
-<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
-<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
-<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en">
-<!--<![endif]-->
+﻿<!DOCTYPE html>
+<html lang="en">
+
 <head>
-<meta charset="utf-8"/>
-<!-- Set the viewport width to device width for mobile -->
-<meta name="viewport" content="width=device-width"/>
-<title>EY - Network Security Monitoring</title>
-<!-- CSS Files-->
-<link rel="stylesheet" href="stylesheets/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> Lokesh Singh</title>
 
-<link rel="stylesheet" href="stylesheets/skins/blue.css">
-<!-- skin color -->
-<link rel="stylesheet" href="stylesheets/responsive.css">
-<!-- IE Fix for HTML5 Tags -->
-<!--[if lt IE 9]>
-    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
+  <!-- Web Fonts -->
+  <!-- <link href='https://gfonts.googleapis.com/css?family=Roboto:400,300,500,700' rel='stylesheet' type='text/css'> -->
+  <!-- Bootstrap core CSS -->
+  <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <!-- Font Awesome CSS -->
+  <link href="assets/css/font-awesome.min.css" rel="stylesheet" media="screen">
+  <!-- Animate css -->
+  <link href="assets/css/animate.css" rel="stylesheet">
+  <!-- Magnific css -->
+  <link href="assets/css/magnific-popup.css" rel="stylesheet">
+  <!-- Custom styles CSS -->
+  <link href="assets/css/style.css" rel="stylesheet" media="screen">
+  <!-- Responsive CSS -->
+  <link href="assets/css/responsive.css" rel="stylesheet">
+
+  <link rel="shortcut icon" href="assets/images/ico/favicon.png">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/images/ico/favicon.png">
+  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/images/ico/favicon.png">
+  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="assets/images/ico/favicon.png">
+  <link rel="apple-touch-icon-precomposed" href="assets/images/ico/favicon.png">
+
 </head>
-<body>
-<!-- HIDDEN PANEL 
-================================================== -->
-<div id="panel">
-	<div class="row">
-		<div class="twelve columns">
-			<img src="http://www.wowthemes.net/demo/studiofrancesca/images/info.png" class="pics" alt="info">
-			<div class="infotext">
-				 Thank you for visiting our page! The page is developed by SilentSoul & 0xlonewolf and Kakashi.
-			</div>
-		</div>
-	</div>
-</div>
-<p class="slide">
-	<a href="#" class="btn-slide"></a>
-</p>
-<!-- HEADER
-================================================== -->
-<div class="row">
-	<div class="headerlogo four columns">
-		<div class="logo">
-			<a href="index.html">
-			<!--<h4>Ernst & Young LLP</h4>-->
-			<img src="https://logos-download.com/wp-content/uploads/2016/08/EY_logo_slogan.png" alt="EY logo" width="80" height="80">
-			</a>
-		</div>
-	</div>
-	<div class="headermenu eight columns noleftmarg">
-		<nav id="nav-wrap">
-		<ul id="main-menu" class="nav-bar sf-menu">
-			<li class="current">
-			<a href="index.html">Home</a>
-			<!----<ul>
-				<li><a href="index2.html">sadfsa slider</a></li>
-			</ul>
-			</li>---->
-			<li>
-			<a href="#">Services</a>
-			<ul>
-				<li><a href="portofolio2.html">Network Security Monitoring</a></li>
-				<!--<li><a href="portofolio3.html">Threat Intelligence</a></li>
-				<li><a href="portofolio4.html">Malware - IOC's</a></li>
-				<li><a href="portofoliodetail.html">Download Datasheet - IOC's</a></li>-->
-			</ul>
-			</li>
-			<li>
-			<a href="#">Blog</a>
-			<ul>
-				<li><a href="blogpage1.html">Network Security</a></li>
-				<!--<li><a href="blogpage2.html">Threat Intelligence</a></li>
-				<li><a href="blogpage3.html">Inceident Management</a></li>
-				<li><a href="blogsinglepost.html">Latest Cyber News</a></li>--->
-			</ul>
-			</li>
-			<li>
-			<a href="#">Pages</a>
-			<ul>
-				<li><a href="about.html">About us</a></li>
-				<li><a href="contact.html">Locate Us</a></li>
-			</ul>
-			</li>
-			<li>
-			<a href="#">Features</a>
-			<ul>
-				<li><!--<a href="columns.html">-->Cloud Sensor</a></li>
-				<li><!--<a href="elements.html">-->Appliance Sensor</a></li>
-				<li><!--<a href="typography.html">--->On-premise Sensor</a></li>
-			</ul>
-			</li>
-			<li>
-			<a href="contact.html">Contact</a>
-			</li>
-		</ul>
-		</nav>
-	</div>
-</div>
-<div class="clear">
-</div>
-<!-- SLIDER 
-================================================== -->
-<div id="ei-slider" class="ei-slider">
-	<ul class="ei-slider-large">
-		<li>
-		<img src="https://www.computerweekly.com/visuals/ezines/carousel/ezine_security_04.png" alt="image01" class="responsiveslide">
-		<div class="ei-title">
-			<h2>Dare to</h2>
-			<h3>Detect</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://i1.wp.com/carpaeducation.com/wp-content/uploads/2019/04/cyber-security-banner-image-131934038865165455.jpg?fit=1200%2C450" alt="image02" class="responsiveslide">
-		<div class="ei-title">
-			<h2>Dare to </h2>
-			<h3>Analyze</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://assets.ey.com/content/dam/ey-sites/ey-com/en_in/topics/forensic-integrity-services/2021/ey-man-presenting-digital-charts.jpg" alt="image03" class="responsiveslide">
-		<div class="ei-title">
-			<h2>Dare to</h2>
-			<h3>Respond</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://www.dotmagazine.online/_Resources/Persistent/1090f59b08e4d1a1365b53517b609265227eb6a8/iStock-690772190%20web-720x405.jpg" alt="image04" class="responsiveslide">
-		<div class="ei-title">
-			<h2>Dare to</h2>
-			<h3>Eliminate</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://assets.ey.com/content/dam/ey-sites/ey-com/en_gl/topics/assurance/ey-forensics-virtual-analytics-infrastructure.jpg.rendition.3840.2560.jpg" alt="image05" class="responsiveslide">
-		<div class="ei-title">
-			<h2>A Vision of</h2>
-			<h3>Enterprise Security</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://fcw.com/-/media/GIG/EDIT_SHARED/Cyber/security.png" alt="image06" class="responsiveslide">
-		<div class="ei-title">
-			<h2>Protect your</h2>
-			<h3>Infrastructure</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://www.dotmagazine.online/_Resources/Persistent/1090f59b08e4d1a1365b53517b609265227eb6a8/iStock-690772190%20web-720x405.jpg" alt="image07" class="responsiveslide">
-		<div class="ei-title">
-			<h2>One</h2>
-			<h3>Dashboard</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://cyberchasse.com/wp-content/uploads/Career-In-Cyber-Security-%E2%80%93-Resume-Writing-Tips.jpg" alt="image08" class="responsiveslide">
-		<div class="ei-title">
-			<h2>One</h2>
-			<h3>View</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://cdn.pmi.it/uidKwK8PrwEt-6VkYJSK5u-yQA4=/650x350/smart/https://www.pmi.it/app/uploads/2018/11/cybersecurity.jpg" alt="image09" class="responsiveslide">
-		<div class="ei-title">
-			<h2>One</h2>
-			<h3>Platform</h3>
-		</div>
-		</li>
-		<li>
-		<img src="https://www.commercialintegrator.com/wp-content/uploads/2019/10/Network-hacking-1400x650.jpeg" alt="image10" class="responsiveslide">
-		<div class="ei-title">
-			<h2>Sieze the</h2>
-			<h3>Threats</h3>
-		</div>
-		</li>
-	</ul>
-	<!-- slider-thumbs -->
-	<ul class="ei-slider-thumbs">
-		<li class="ei-slider-element">Current</li>
-		<li><a href="#">Slide 1</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb01"/></li>
-		<li><a href="#">Slide 2</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb02"/></li>
-		<li><a href="#">Slide 3</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb03"/></li>
-		<li><a href="#">Slide 4</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb04"/></li>
-		<li><a href="#">Slide 5</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb05"/></li>
-		<li><a href="#">Slide 6</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb06"/></li>
-		<li><a href="#">Slide 7</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb07"/></li>
-		<li><a href="#">Slide 8</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb08"/></li>
-		<li><a href="#">Slide 9</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb09"/></li>
-		<li><a href="#">Slide 10</a><img src="http://placehold.it/150x59/444" class="slideshowthumb" alt="thumb10"/></li>
-	</ul>
-</div>
-<div class="minipause">
-</div>
-<!-- SUBHEADER
-================================================== -->
-<div id="subheader">
-	<div class="row">
-		<div class="twelve columns">
-			<p class="text-center">
-				 "Secure the infrastructure with D.A.R.E model" - EYOptimus
-			</p>
-		</div>
-	</div>
-</div>
-<!-- ANIMATED COLUMNS 
-================================================== -->
-<div class="row">
-	<div class="twelve columns">
-		<ul class="ca-menu">
-			<li>
-			<a href="#">
-			<span class="ca-icon"><i class="fa fa-crosshairs"></i></span>
-			<div class="ca-content">
-				<h2 class="ca-main">Network<br/>Monitoring System</h2>
-				<h3 class="ca-sub">Network Monitoring - EYOptimous</h3>
-			</div>
-			</a>
-			</li>
-			<li>
-			<a href="#">
-			<span class="ca-icon"><i class="fa fa-user-secret"></i></span>
-			<div class="ca-content">
-				<h2 class="ca-main">Network<br/>Intrusion Detection</h2>
-				<h3 class="ca-sub">Straight to the point</h3>
-			</div>
-			</a>
-			</li>
-			<li>
-			<a href="#">
-			<span class="ca-icon"><i class="fa fa-wrench"></i></span>
-			<div class="ca-content">
-				<h2 class="ca-main">Automated<br/>Analysis</h2>
-				<h3 class="ca-sub">One click analysis</h3>
-			</div>
-			</a>
-			</li>
-			<li>
-			<a href="#">
-			<span class="ca-icon"><i class="fa fa-eye"></i></span>
-			<div class="ca-content">
-				<h2 class="ca-main">Threat<br/>Monitoring</h2>
-				<h3 class="ca-sub">Easy visiblity to threats</h3>
-			</div>
-			</a>
-			</li>
-		</ul>
-	</div>
-</div>
-<!-- CONTENT 
-================================================== -->
-<div class="row">
-	<div class="twelve columns">
-		<div class="centersectiontitle">
-			<h4>What we do</h4>
-		</div>
-	</div>
-	<div class="four columns">
-		<h5>Network Security</h5>
-		<p>
-			 If your distinctive response to incident involves delving through PCAP files or trying to piece together data through NetFlow records, there's a better way. Its's EYOptimus. Put defenders on top with alerts integrated into evidence. Answer for any alert nto network..
-		</p>
-		<p>
-			<a href="#" class="readmore">Learn more</a>
-		</p>
-	</div>
-	<div class="four columns">
-		<h5>Threat Intelligence</h5>
-		<p>
-			 Looking for threats before you can stop it. EYOptimus's scalable network flow collection framework gives visiblity into every security event accross organisation.
-		</p>
-		<p>
-			<a href="#" class="readmore">Learn more</a>
-		</p>
-	</div>
-	<div class="four columns">
-		<h5>Automated Analysis</h5>
-		<p>
-			 Co-ordinating a rapid response to threats is critical for flexible security operations. Automated responses and workflow processing keep the SOC efficient. Packet Analysis, providing packet details captured are properly detailed, and can replay entire network traffic again..
-		</p>
-		<p>
-			<a href="#" class="readmore">Learn more</a>
-		</p>
-	</div>
-</div>
-<div class="hr">
-</div>
-<!-- TESTIMONIALS 
-================================================== -->
-<div class="row">
-	<div class="twelve columns">
-		<div id="testimonials">
-			<blockquote>
-				<p>
-					 "If we change our own approach and thinking about what we have available to us, that is what will unlock our ability to truly excel in security" <cite>EY Optimus</cite>
-				</p>
-			</blockquote>
-			<blockquote>
-				<p>
-					 "Notes-pending to write" <cite>EY Optimus</cite>
-				</p>
-			</blockquote>
-			<blockquote>
-				<p>
-					 "Notes-Pending to write." <cite>EY Optimus</cite>
-				</p>
-			</blockquote>
-		</div>
-		<!--end testimonials-->
-	</div>
-</div>
 
-<!-- FOOOTER 
-================================================== -->
-<div id="footer">
-	<footer class="row">
-	<p class="back-top floatright">
-		<a href="#top"><span></span></a>
-	</p>
-	<div class="four columns">
-		<h1>ABOUT US</h1>
-		 Our goal is to keep our clients secure and safe!
-	</div>
-	<div class="four columns">
-		<h1>GET SOCIAL</h1>
-		<a class="social facebook" href="https://www.facebook.com/EY/"></a>
-		<a class="social twitter" href="https://twitter.com/EY_India?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor"></a>
-		<!--<a class="social deviantart" href="#"></a>
-		<a class="social flickr" href="#"></a>
-		<a class="social dribbble" href="#"></a>-->
-	</div>
-	<div class="four columns">
-		<h1 class="newsmargin">NEWSLETTER</h1>
-		<div class="row collapse newsletter floatright">
-			<div class="ten mobile-three columns">
-				<input type="text" class="nomargin" placeholder="Enter your e-mail address...">
-			</div>
-			<div class="two mobile-one columns">
-				<a href="" class="postfix button expand">GO</a>
-			</div>
-		</div>
-	</div>
-	</footer>
-</div>
-<div class="copyright">
-	<div class="row">
-		<div class="six columns">
-			 &copy;<span class="small"> Rights reserved with EY</span>
-		</div>
-		<div class="six columns">
-			<span class="small floatright">Design by <a target="_blank" href="https://www.ey.com/en_in">we.cf.team</a> </span>
-		</div>
-	</div>
-</div>
-<!-- JAVASCRIPTS 
-================================================== -->
-<!-- Javascript files placed here for faster loading -->
-<script src="javascripts/foundation.min.js"></script>   
-<script src="javascripts/jquery.easing.1.3.js"></script>
-<script src="javascripts/elasticslideshow.js"></script>
-<script src="javascripts/jquery.carouFredSel-6.0.5-packed.js"></script>
-<script src="javascripts/jquery.cycle.js"></script>
-<script src="javascripts/app.js"></script>
-<script src="javascripts/modernizr.foundation.js"></script>
-<script src="javascripts/slidepanel.js"></script>
-<script src="javascripts/scrolltotop.js"></script>
-<script src="javascripts/hoverIntent.js"></script>
-<script src="javascripts/superfish.js"></script>
-<script src="javascripts/responsivemenu.js"></script>
+<body>
+  <!-- Preloader -->
+  <div id="tt-preloader">
+    <div id="pre-status">
+      <div class="preload-placeholder"></div>
+    </div>
+  </div>
+
+  <!-- Home Section -->
+ <section id="home" class="tt-fullHeight" data-stellar-vertical-offset="50" data-stellar-background-ratio="0.2">
+    <div class="intro">
+      <div class="intro-sub">Lokesh Singh</div>
+      <h4>Threat Intelligence | Malware Dissection | Digital Forensics</h4>
+      <p> A zealous technocrat finding out the path to work and grow with professionals </p>
+ 
+  
+      <div class="social-icons">
+        <ul class="Cyber">
+   <li><a href="https://in.linkedin.com/in/lonewolf-lokesh"><i class="fa fa-linkedin"></i></li>
+   <li><a href="https://twitter.com/lokeshsinghs76"><i class="fa fa-twitter"></i></a></li>
+   <li><a href="https://github.com/0xlonewolf"><i class="fa fa-github"></i></a></li>
+           </ul>
+      </div> <!-- /.social-icons -->
+    </div>
+
+    <div class="mouse-icon">
+      <div class="wheel"></div>
+    </div>
+  </section><!-- End Home Section -->
+
+
+
+
+  <!-- Navigation -->
+  <header class="header">
+    <nav class="navbar navbar-custom" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#custom-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html"><img src="assets/images/logo.png" alt=""></a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="custom-collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#resume">Resume</a></li>
+            <li><a href="#skills">Skills</a></li>
+            <li><a href="#certificates">Certificates</a></li>
+            <li><a href="#cc">Co-curricular</a></li>
+            </ul>
+        </div>
+      </div><!-- .container -->
+    </nav>
+  </header><!-- End Navigation -->
+
+
+    <!-- About Section -->
+    <section id="about" class="about-section section-padding">
+      <div class="container">
+        <h2 class="section-title wow fadeInUp">About Me</h2>
+
+        <div class="row">
+
+          <div class="col-md-4 col-md-push-8">
+            <div class="biography">
+              <div class="myphoto">
+                <img src="assets/images/bg.png" alt="">
+              </div>
+              <table style="width:100%">
+                <tr>
+                <td><strong>Name:</strong></td> 
+                 <td>Lokesh Singh</td>
+                </tr>
+                <tr>
+                  <td>
+                <strong>Email Address </strong> </td><td>lokeshsinghs76@gmail.com
+            </td>
+                </tr>
+                <tr>
+                <td><strong>Address:</strong> </td>
+             <td>New Delhi ,India </td>
+            </tr>
+            <tr>
+                <td><strong>Nationality:</strong></td>
+                <td> Indian</td>
+            </tr>
+               </table>
+                
+              </ul>
+            </div>
+          </div> <!-- col-md-4 -->
+
+          <div class="col-md-8 col-md-pull-4">
+            <div class="short-info wow fadeInUp">
+              <h3>Objective</h3>
+              <p><font size="4">• Suitable use of technical knowledge to analyze complex processes and develop solutions for challenges.</font></p>
+
+              <p><font size="4">• Implementation of programs and coordinating the work between different labs and phases of the project for efficient progress while maintaining confidentiality.
+              </font></p>
+
+              <p><font size="4">• Adept at interdepartmental coordination and communication.</font></p>
+
+              <p><font size="4">• Certain abilities of dedication, work division and leadership.</font>
+              </p>
+              
+            </div>
+
+            <div class="short-info wow fadeInUp">
+              <h3>What I Know ?</h3>
+              
+              <p style="font-size: 18px; font-family: 'Roboto', sans-serif">How to learn new technologies and its implementation with minimal guidance</p>
+            
+              <ul class="list-check" style="list-style: square">
+                <li class="misp">Misp</li>
+                <li class="python">Python</li>
+                <li class="linux">Linux</li>
+                <li class="docker">Docker</li>
+               
+              </ul>
+            <!-- </br>
+              <p style="font-size: 20px"><b>Looking forward to work upon the various  technologies</b> </p>
+              <ul style="list-style-type:circle">
+              <li>Cloud Computing </li>
+              <li> BlockChain Technology</li>
+              <li>DevSecops </li>
+              <li>Linux Administration</li>
+              </ul> -->
+            </div> 
+
+
+            <!-- <div class="download-button"> -->
+              <!-- <a class="btn btn-info btn-lg" href="#contact"><i class="fa fa-paper-plane"></i>Get In Touch</a> -->
+              <!-- <a class="btn btn-primary btn-lg" href="#"><i class="fa fa-download"></i>download my cv</a> -->
+            <!-- </div> -->
+          </div>
+
+
+        </div> <!-- /.row -->
+      </div> <!-- /.container -->
+    </section><!-- End About Section -->
+
+
+    <!-- Video Section -->
+    <!-- <section id="video" class="video-section"> 
+      <div class="tf-bg-overlay">
+
+        <div class="container">
+
+          <div class="video-intro">
+             <a class="popup-video" href="#"> <i class="fa fa-play"></i>  </a>
+             <h2>Video Introducing</h2>
+          </div>
+
+        </div>
+-->
+        <!--/.container-->
+      <!-- </div> -->
+      <!--/.overlay-->
+    <!-- </section> -->
+    <!-- /.Video Section -->
+
+
+    <!-- Resume Section -->
+    <section id="resume" class="resume-section section-padding">
+        <div class="container">
+            <h2 class="section-title wow fadeInUp">Resume</h2>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="resume-title">
+                        <h3>Education</h3>
+                    </div>
+                    <div class="resume">
+                        <ul class="timeline">
+                            <li>
+                                <div class="posted-date">
+                                    <span class="month">2013-2016</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                            <h3>Bachelor Of Technology E.C.E</h3>
+                                            <span>KURUKSHETRA UNIVERSITY</span>
+                                        </div><!-- /timeline-heading -->
+
+                                        <div class="timeline-body">
+                                            <p>Completed Engineering from U.I.E.T. college Kurukshetra University majors in Electronics Engineering </p>                                           
+                                        </div><!-- /timeline-body -->
+                                    </div> <!-- /timeline-content -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+
+                            <li class="timeline-inverted">
+                                <div class="posted-date">
+                                    <span class="month">2010-2013</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                            <h3>Diploma in Electronics Engineering</h3>
+                                            <span>CHANDIGARH COLLEGE OF ENGINEERING AND TECHNOLOGY</span>
+                                        </div><!-- /timeline-heading -->
+
+                                        <div class="timeline-body">
+                                            <p>Completed Diploma from CCET Chandigarh  in Electronics Engineering</p>
+                                        </div><!-- /timeline-body -->
+                                    </div> <!-- /timeline-content -->
+                                </div> <!-- /timeline-panel -->
+                            </li>
+
+                            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="resume-title">
+                        <h3>Experience</h3>
+                    </div>
+                    <div class="resume">
+                        <!-- <ul class="timeline"></ul> -->
+                            <!-- <li class="timeline-inverted"> -->
+                                <div class="posted-date">
+                                  <span class="month"><u>Feb 2019-Present</u></span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                            <h3>Sr. Cyber Security Analyst</h3>
+                                            <span><a href="https://www.niiconsulting.com/">Network Intelligence ,Mumbai </a></span>
+                                        </div><!-- /timeline-heading -->
+
+                                        <div class="timeline-body">
+                                            <ul style="list-style-type:circle;">Key responsibilities :
+                                              <li>Perform Static Malware Analysis and Dynamic Malware Analysis.</li>
+                                              <li>Perform Forensic Investigation including Memory Analysis using Volatility, FireEye Mandiant Redline and extracting malicious binaries for analysis.</li>
+                                              <li>Familiarization with Threat Intelligence Life Cycle, Diamond Threat Model, MITRE attack pattern.</li>
+                                              <li>Deployment of <a href="https://www.misp-project.org/">MISP</a> for various clients (on premise as well as on AWS Cloud- Docker form) </li>
+                                              <li>Integration of MISP with ELK to ensure automated Threat Intelligence </li>
+                                              <li>Writing Bash and Python scripts for achieving the sense of automation</li>
+                                              <li>Produce and share actionable intelligence for SOC, IR and Forensic (Malware) team based on their priority information requirement.</li>                                              
+                                              <li>Static Android Application Analysis with Mobasf Framework on both docker and normal installation.</li>
+                                              <h4 style="padding-top: 27px">International Project - Deployment of Threat Intelligence Sharing Platform</h4>
+                                              <ul style="list-style-type:square;">
+                                                Key responsibilities :
+                                              <li>Cyber Threat Information Sharing Platform (MISP) system deployed onsite at national level for the Army, operation for multiple defense units for sharing threat intelligence.</li>
+                                              <li>Implemented TheHive and Cortex to be used for DFIR cases and SOC’s ticket management system.</li>
+                                              <li>Basic Static and Dynamic Analysis of Malware, capturing basic IOCs of malware and enriching its information using the CTI platform.</li>
+                                            </ul>
+                                        </div><!-- /timeline-body -->
+                                    </div> <!-- /timeline-content -->
+                                </div> <!-- /timeline-panel -->
+                            <!-- </li> -->
+                            <!-- <li class="timeline"> -->
+                                <div class="posted-date">
+                                  <span class="month"><u>February 2018 - February 2019 </u></span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                            <h3>Cyber Security Analyst </h3>
+                                            <span> <a href="https://www.wipro.com/en-IN/">Wipro Limited</a></span>
+                                        </div><!-- /timeline-heading -->
+                                        <div class="timeline-body">
+                                            <ul style="list-style-type:circle;">Key responsibilities :
+                                              <li>Incident Responder in NIC Computer Emergency Response Team (NIC-CERT).</li>
+                                              <li>Data collection, monitoring, threat analysis from logs and creation of custom reports in Cisco Products.</li>
+                                              <li>Cisco Products- Logs management, DNS, Malware and Intrusion based event detection and analysis to the root cause with the use of Splunk search.</li>
+                                              <h7><b>Hard Disk Forensics</b>
+                                                <ul style="list-style-type: square;">
+                                                <li>Disk Imaging through FTK Imager and WinHex in Expert Witness Format (E01), Advanced Forensic Format (AFF), and RAW (dd) evidence formats.</li>
+                                                <li>Analysis according to evidence i.e., Timeline Analysis, Keyword Search, Web Artifacts, Registry Analysis, Email Analysis, Hash Set Filtering, and others.</li></ul></h7>
+                                              <h7><b>Memory Forensics</b>
+                                                <ul style="list-style-type: square;">
+                                                <li>Imaging through Belkasoft Live RAM Capturer and FTK Imager.</li>
+                                                <li>Extraction of digital artefacts such as process, DLL, certificate, and registry dumps from volatile memory with Volatility, Redline.</li>
+                                              </h7>
+                                          </div><!-- /timeline-body -->
+                                    </div> <!-- /timeline-content -->
+                                    
+                                </div> <!-- /timeline-panel -->
+                            <!-- </li> -->
+                            <!-- <li class="timeline"> -->
+                                <div class="posted-date">
+                                  <span class="month"><u>September 2016 - September 2017 </u></span>
+                                </div><!-- /posted-date -->
+
+                                <!-- <div class="timeline-panel wow fadeInUp"> -->
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                            <h3> Scientific Assistant </h3>
+                                            <span> <a href="https://ecil.co.in">Electronics Corporation of India Limited</a> </span>
+                                        </div><!-- /timeline-heading -->
+                                        <div class="timeline-body" align="left">
+                                          <ul style="list-style-type:circle;">Key responsibilities :
+                                          <ul style="list-style-type:circle">
+                                            <li><b>Surveillance Project for DELHI POLICE</b></li>
+                                            <li>Server interfacing with different applications, system users to make a successful operation of end-user requests.
+                                            <li>Setting up a GHIRO environment for image forensics.
+                                            <li>Searching Social Media for an individual for posts and videos.
+                                            <li>Equipment installation, cabling, and labelling decommissioning of systems and documentation updates.
+                                            <li>Handling DELL Power Edge R510, HP DL385 G7, and G8 Servers.</li>
+                                            </ul>
+                                          </div><!-- /timeline-body -->
+                                    </div> <!-- /timeline-content -->
+                                <!-- </div> /timeline-panel -->
+                            <!-- </li> -->
+                          </div> <!-- /timeline-content -->
+                               </div><!-- /timeline-panel -->
+                            <!-- </li> -->
+                        <!-- </ul> -->
+                    </div>
+                </div>
+            </div><!-- /row -->
+        </div><!-- /.container -->
+    </section><!-- End Resume Section -->
+<br>
+<br>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills-section section-padding">
+      <div class="container">
+        <h2 class="section-title wow fadeInUp">Skills</h2>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="skill-progress">
+              <div class="skill-title"><h5>Hard Disk Forensics</h5></div> 
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+            <div class="skill-progress">
+                <div class="skill-title"><h5>Memory Forensics</h5></div> 
+                <div class="progress">
+                  <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                  </div>
+                </div><!-- /.progress -->
+              </div><!-- /.skill-progress -->
+              <div class="skill-progress">
+                  <div class="skill-title"><h5> Malware Analysis</h5></div> 
+                  <div class="progress">
+                    <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                    </div>
+                  </div><!-- /.progress -->
+                </div><!-- /.skill-progress -->
+            <div class="skill-progress">
+              <div class="skill-title"><h5>OSINT</h5></div> 
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+            <div class="skill-progress">
+              <div class="skill-title"><h5>Threat Intelligence</h5></div>  
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+          </div><!-- /.col-md-6 -->
+
+          <div class="col-md-6">
+            <div class="skill-progress">
+              <div class="skill-title"><h5>Product Deployment</h5></div> 
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+            <div class="skill-progress">
+              <div class="skill-title"><h5><a href="https://www.misp-project.org/">MISP </a></h5></div>  
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+            <div class="skill-progress">
+              <div class="skill-title"><h5><a href="https://www.ibm.com/in-en/marketplace/ibm-qradar-siem">QRADAR </a></h5></div> 
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+            <div class="skill-progress">
+              <div class="skill-title"><h5>Incident Response</h5></div>  
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+            <div class="skill-progress">
+              <div class="skill-title"><h5>Static Android Application Analysis        </h5></div>
+              <div class="progress">
+                <div class="progress-bar six-sec-ease-in-out" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" ><span></span>
+                </div>
+              </div><!-- /.progress -->
+            </div><!-- /.skill-progress -->
+          </div><!-- /.col-md-6 -->
+        </div><!-- /.row -->
+
+        <div class="skill-chart text-center">
+          <h3>More skills</h3>
+        </div>
+          
+        <div class="row more-skill text-center">
+          <div class="col-xs-4 col-sm-10 col-md-2">
+              <div class="chart" data-percent="40" data-color="e74c3c">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Server Hardening</span>
+                    </div>
+                </div>
+            </div>
+          <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="45" data-color="e74c3c">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Bash</span>
+                    </div>
+                </div>
+            </div>
+    
+          <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="33" data-color="e74c3c">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Python</span>
+                    </div>
+                </div>
+            </div>
+    <!--
+            <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="33" data-color="2ecc71">
+                    <span class"percent"></span>
+                    <div class="chart-text">
+                      <span>Bash Scripting</span>
+                    </div>
+                </div>
+            </div>
+             -->
+            <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="45" data-color="3498db">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Dockers</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="45" data-color="3498db">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Threat Hunting</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="45" data-color="3498db">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span> TheHive & Cortex</span>
+                    </div>
+                </div>
+            </div>
+            <div style=" margin-left: 206px" class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="60" data-color="3498db">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Communication Skills</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="33" data-color="3498db">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Photoshop</span>
+                    </div>
+                </div>
+            </div>
+          <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="60" data-color="e74c3c">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Analytic Mindset</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-4 col-md-2">
+              <div class="chart" data-percent="40" data-color="3498db">
+                    <span class="percent"></span>
+                    <div class="chart-text">
+                      <span>Motivation</span>
+                    </div>
+                </div>
+
+      </div><!-- /.container -->
+    </section><!-- End Skills Section -->
+    
+ <br>
+ <br>
+ 
+
+    <!-- Certificates  Section -->
+    <section id="certificates" class="resume-section section-padding">
+        <div class="container">
+            <h2 class="section-title wow fadeInUp">Certificates</h2>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="resume-title">
+                        
+                    </div>
+                    <div class="Certificates">
+                        <ul class="timeline">
+                            <li class="timeline">
+                                <div class="posted-date">
+                                    <span class="month">AccessData</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="https://drive.google.com/file/d/1NuXmFxaHFjGZL5eOzpdu_M9A-TwqtNCr/view">AccessData Certified Investigator</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline-inverted">
+                                <div class="posted-date">
+                                    <span class="month">Basis Technology</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="https://www.credential.net/eb4e3879-e87b-4272-add8-faea3667e751#gs.ab79uc"> Autopsy - Digital Forensics</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline">
+                                <div class="posted-date">
+                                    <span class="month">IBM</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="https://www.youracclaim.com/badges/576efc49-44b8-42ff-b1b7-5d14cc18c7dc/public_url">IBM Docker Essentials</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline-inverted">
+                                <div class="posted-date">
+                                    <span class="month">BlackBag Technologies</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="https://drive.google.com/file/d/1XBlzoRKXXWBEyWfQm4qmUoQc_USQvzaf/view">Certified Mobilyze Operator</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline">
+                                <div class="posted-date">
+                                    <span class="month">OSINT-I1</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="https://osint-i1.thinkific.com/certificates/f5tzbhcovm"> OSINT Mini</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline-inverted">
+                                <div class="posted-date">
+                                    <span class="month">ICSI</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="https://www.credential.net/8ee76b3a-ca5e-460f-a1f6-405702809338#gs.ab5fo9">CNSS Certified Network Security Specialist</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline">
+                                <div class="posted-date">
+                                    <span class="month">Active CounterMeasures</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="https://drive.google.com/file/d/1sFZAxgO-oNLrpD35KdYJ9MldV2qGtC9X/view?usp=sharing">Cyber Threat Hunting</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline-inverted">
+                                <div class="posted-date">
+                                    <span class="month">EC-Council (Purusing)</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-heading">
+                                       <h3>     
+                                       <a href="">CTIA | Cyber Threat Intelligence Analyst</a></</h3>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            </ul>
+                    </div>
+                </div>
+            </div><!-- /row -->
+        </div><!-- /.container -->
+    </section><!-- End RCertificates Section -->
+
+
+<!-- Co-Curricular  Section -->
+    <section id="cc" class="resume-section section-padding">
+        <div class="container">
+            <h2 class="section-title wow fadeInUp">Co-curricular</h2>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="resume-title">
+                        
+                    </div>
+                    <div class="Certificates">
+                        <ul class="timeline">
+                            <li class="timeline-inverted">
+                                <div class="posted-date">
+                                    <span class="month">2016</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-body" align="left">
+                                       <h4><b>
+                                       <span><a href="" >Organizer - Excelsior'16 </span>
+                                   </b></h4>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline">
+                                <div class="posted-date">
+                                    <span class="month">2015</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-body" align="left">
+                                       <h4><b>
+                                       <span><a href="" >Head coordinator - Excelsior'15 techno-cultural fest, Media and Designing Team 
+                                       </span>
+                                   </b></h4>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline-inverted">
+                                <div class="posted-date">
+                                    <span class="month">2014</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-body" align="left">
+                                       <h4><b>
+                                       <span>
+                                        <a href="" > Coordinator - Talent Hunt Media Team </span>
+                                   </b></h4>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            <li class="timeline">
+                                <div class="posted-date">
+                                    <span class="month">2013</span>
+                                </div><!-- /posted-date -->
+
+                                <div class="timeline-panel wow fadeInUp">
+                                    <div class="timeline-content">
+                                        <div class="timeline-body" align="left">
+                                       <h4><b>
+                                       <span>
+                                         <a href="">Coordinator - Anusandhan'13  Media Team, Technical Festival</a>
+                                       </span>
+                                   </b></h4>
+                                        </div><!-- /timeline-heading -->
+                                </div><!-- /timeline-panel -->
+                            </li>
+                            
+                            </ul>
+                    </div>
+                </div>
+            </div><!-- /row -->
+        </div><!-- /.container -->
+    </section><!-- End Cocurricular Section -->
+
+
+  <!-- Footer Section -->
+    <footer class="footer-wrapper">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="copyright text-center">
+              <p>&copy; Lokesh Singh 2020 All rights reserved. </p>
+              <a href="https://drive.google.com/file/d/1Q7eN-eweMsC0tUCf3vs9rvAUooJdHmlR/view?usp=sharing"><img style="width:100px" src="assets/images/Resume-qr-code.png" alt=""></a>
+              <p>Scan or Click to download Resume.</p>
+              <img style="width:73px" src="https://visitor-badge.glitch.me/badge?page_id=index.html" alt="visitor badge"/>
+               
+            
+            </div>
+          </div>
+        </div>
+      </div>
+
+              </footer><!-- End Footer Section -->
+
+
+  <!-- Scroll-up -->
+  <div class="scroll-up">
+    <a href="#home"><i class="fa fa-angle-up"></i></a>
+  </div>
+
+  <!-- Javascript files -->
+  <script src="assets/js/jquery.js"></script>
+  <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+  <script src="assets/js/jquery.stellar.min.js"></script>
+  <script src="assets/js/jquery.sticky.js"></script>
+  <script src="assets/js/smoothscroll.js"></script>
+  <script src="assets/js/wow.min.js"></script>
+  <script src="assets/js/jquery.countTo.js"></script>
+  <script src="assets/js/jquery.inview.min.js"></script> 
+  <script src="assets/js/jquery.easypiechart.js"></script>
+  <script src="assets/js/jquery.shuffle.min.js"></script>
+  <script src="assets/js/jquery.magnific-popup.min.js"></script>
+  <script type="text/javascript" src="assets/js/modernizr.custom.86080.js"></script>
+    <!-- <script src="https://ga.vimeocdn.com/js/froogaloop2.min.js"></script> -->
+  <script src="assets/js/jquery.fitvids.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&amp;sensor=true"></script>
+  <script src="assets/js/scripts.js"></script>
 </body>
 </html>

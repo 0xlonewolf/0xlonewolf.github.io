@@ -1,18 +1,7 @@
-# Spends marketing site
+# Spends — github.io
 
-Static site for **Spends** — published at **https://0xlonewolf.github.io/**
+Live site: https://0xlonewolf.github.io/
 
-Built with Next.js (static export) from the source in
-[`0xlonewolf/Finance`](https://github.com/0xlonewolf/Finance) under `website/`.
+Source: `0xlonewolf/Finance` → `website-redesign/` (built with `NEXT_PUBLIC_BASE_PATH=""`).
 
-## Deploy
-
-From the Finance repo:
-
-```bash
-cd website
-NEXT_PUBLIC_BASE_PATH="" npm ci && NEXT_PUBLIC_BASE_PATH="" npm run build
-# then copy website/out/* into this repo root (preserving .git) and push to main
-```
-
-GitHub Pages source: branch `main` / root. `.nojekyll` is committed so `_next/` assets are served.
+`/finance` redirects to `/` for older links.

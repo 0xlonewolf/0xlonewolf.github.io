@@ -15,6 +15,4 @@ NEXT_PUBLIC_BASE_PATH="" npm ci && NEXT_PUBLIC_BASE_PATH="" npm run build
 # then copy website/out/* into this repo root (preserving .git) and push to main
 ```
 
-Or run the helper: `TARGET=user bash website/scripts/deploy-github-pages.sh`.
-
 GitHub Pages source: branch `main` / root. `.nojekyll` is committed so `_next/` assets are served.

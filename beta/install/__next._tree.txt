@@ -5,4 +5,4 @@
 :HL["/beta/shots/onboarding-02.png","image"]
 2:[["children",{"s":"__PAGE__","h":160}]]
 1:[["children",{"s":"install","h":96,"c":"$Q2"}]]
-0:{"b":"Ud-bsRuThKhL7XAMXlhRN","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
+0:{"b":"ul_k7doq2rkHa7X0YMlrC","t":{"t":{"s":"","h":80,"c":"$Q1"}}}

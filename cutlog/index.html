@@ -237,7 +237,11 @@ ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 0.
         cache: "no-store",
       });
       if (r.status === 401) throw new Error("The token was refused (expired or revoked). Make a new one in Settings.");
-      if (r.status === 404) throw new Error("Repo or app/data.json not found. Check the repo name and that the token can read it.");
+      if (r.status === 404) {
+        const probe = await fetch(`https://api.github.com/repos/${cfg.repo}`, { headers: { Authorization: `Bearer ${cfg.token}`, "X-GitHub-Api-Version": "2022-11-28" }, cache: "no-store" }).catch(() => null);
+        if (probe && probe.ok) throw new Error("The token can see the repo but can't read files. On GitHub, edit the token: Repository permissions → Contents → Read-only.");
+        throw new Error(`The token can't see "${cfg.repo}". Check the name (owner/repo) and edit the token: Repository access → Only select repositories → pick the repo.`);
+      }
       if (!r.ok) throw new Error(`GitHub answered ${r.status}. Try again in a minute.`);
       DATA = await r.json();
       store.set({ ...store.get(), cache: DATA, cachedAt: Date.now() });

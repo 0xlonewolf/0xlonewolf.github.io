@@ -219,6 +219,31 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .tpl button { display: grid; justify-items: center; gap: 6px; padding: 12px 4px 10px; border-radius: 16px; background: var(--surface-2); font: 500 0.72rem var(--f); color: var(--ink); }
 .tpl button i { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 18%, transparent); }
 .tpl button svg { width: 18px; height: 18px; stroke: var(--c); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.lgx { display: grid; gap: 10px; }
+.lgx .exh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.lgx .exh b { font-size: 1.02rem; }
+.tgt { display: flex; gap: 6px; flex-wrap: wrap; }
+.setrow { display: grid; grid-template-columns: 34px 1fr 1fr 64px 46px; gap: 8px; align-items: center; }
+.setrow .sn { font: 500 0.75rem var(--f-mono); color: var(--faint); }
+.setrow input { width: 100%; min-width: 0; font: 600 1.05rem var(--f-mono); text-align: center; padding: 11px 4px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); }
+.setrow input::placeholder { color: var(--faint); font-weight: 500; }
+.setrow .ok { height: 44px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; border: 1px solid var(--line-2); }
+.setrow .ok svg { width: 20px; height: 20px; stroke: var(--faint); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.setrow.done .ok { background: var(--ok); border-color: var(--ok); }
+.setrow.done .ok svg { stroke: #08110b; }
+.setrow.done input { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+.colh { display: grid; grid-template-columns: 34px 1fr 1fr 64px 46px; gap: 8px; font: 500 0.64rem var(--f-mono); color: var(--faint); text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+.addset { justify-self: start; font: 600 0.8rem var(--f); color: var(--steps); padding: 4px 2px; }
+.rest { position: fixed; z-index: 35; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); background: var(--steps); color: #fff;
+  padding: 10px 18px; border-radius: 999px; font: 600 0.95rem var(--f-mono); box-shadow: 0 10px 30px rgb(0 0 0 / .35); }
+.field2 { display: grid; gap: 6px; }
+.field2 label { font: 500 0.75rem var(--f); color: var(--muted); }
+.field2 input { font: 500 0.95rem var(--f); padding: 12px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); width: 100%; }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); }
+.toggle .sw { width: 50px; height: 30px; border-radius: 99px; background: var(--line-2); position: relative; flex: none; }
+.toggle .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .2s; }
+.toggle[aria-pressed="true"] .sw { background: var(--ok); }
+.toggle[aria-pressed="true"] .sw::after { left: 23px; }
 .toast { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); top: calc(14px + env(safe-area-inset-top, 0px)); background: var(--ink); color: var(--bg);
   padding: 10px 16px; border-radius: 14px; font: 600 0.85rem var(--f); box-shadow: 0 10px 30px rgb(0 0 0 / .3); max-width: calc(100% - 32px); }
 .sheet { position: fixed; z-index: 50; inset: 0; background: rgb(0 0 0 / .5); display: grid; align-items: end; }
@@ -265,6 +290,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 </div>
 
 <div class="toast" id="toast" role="status" hidden></div>
+<button class="rest" id="rest" hidden aria-label="Rest timer, tap to dismiss"></button>
 <div class="sheet" id="sheet" hidden><div class="panel">
   <div class="card-h" style="margin:0"><h2 id="sheet-title">Check in</h2><button class="pill" id="sheet-close">Close</button></div>
   <label class="muted" for="sheet-text" style="font-size:.8rem">Fill the blanks, then copy and paste into Claude. Blank lines are fine.</label>
@@ -294,6 +320,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   const nice = (s) => String(s || "").replace(/_/g, " ");
   const stripId = (s) => String(s || "").replace(/^SUB-\d{4} /, "").replace(/ \(\d+ g P\)$/, "");
   const pOf = (s) => (String(s || "").match(/\((\d+) g P\)/) || [])[1];
+  let TAB_LOGGING = false;
   let D = null, TAB = "today", RANGE = 30, SEL = null, FOODSEL = null, TRAINSEL = null;
 
   const dubaiISO = (d = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Dubai", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
@@ -566,7 +593,75 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   }
 
   // ---------- TRAIN ----------
+  // ---------- gym logger ----------
+  const DK = KEY + ".draft";
+  const loadDraft = () => { try { return JSON.parse(localStorage.getItem(DK)); } catch { return null; } };
+  const saveDraft = (d) => { try { d ? localStorage.setItem(DK, JSON.stringify(d)) : localStorage.removeItem(DK); } catch {} };
+  const draftFor = (sid) => { const d = loadDraft(); return d && d.sid === sid ? d : null; };
+  let LOG = loadDraft();
+  function startLog(i) {
+    const s = D.program[i]; if (!s) return;
+    if (!draftFor(s.id)) {
+      LOG = { sid: s.id, i, date: dubaiISO(), start: Date.now(), sessRpe: "", cardio: /upper/.test(s.id) ? "incline walk 20 min" : "", pain: "none", shake: true,
+        ex: Object.fromEntries(s.exercises.map((e) => {
+          const kg = e.next && e.next.kg != null ? e.next.kg : e.last && e.last.sets.length ? Math.max(...e.last.sets.map((x) => x.kg || 0)) : "";
+          return [e.id, Array.from({ length: e.sets }, () => ({ kg, reps: "", rpe: "", done: false }))];
+        })) };
+      saveDraft(LOG);
+    } else LOG = draftFor(s.id);
+    $("#v-train").innerHTML = wrapV(viewLogger());
+    window.scrollTo({ top: 0 });
+  }
+  function viewLogger() {
+    const s = D.program.find((p) => p.id === LOG.sid), mins = Math.round((Date.now() - LOG.start) / 60000);
+    return `
+      <div class="card session"><div class="row"><div><div class="eyebrow">Logging · ${longDate(LOG.date)}</div>
+        <div style="margin-top:6px;font:600 1.45rem/1.1 var(--f);letter-spacing:-.03em">${esc(s.name.split(" (")[0])}</div></div>
+        <span style="display:flex;gap:6px"><span class="pill" id="elapsed">${mins} min</span><button class="pill" data-logback>Plan</button></span></div>
+        <p class="note" style="margin-top:10px">Weights are pre-filled with your next target. Change anything, tap ✓ after each set: a rest timer starts.</p></div>
+      ${s.exercises.map((e) => {
+        const rr = /\d+-\d+/.test(e.reps) ? e.reps.split("-")[0] + "–" + e.reps.split("-")[1].split(" ")[0] : e.reps;
+        return `<div class="card lgx" data-ex="${e.id}">
+          <div class="exh"><b>${esc(nice(e.id))}</b><span class="muted mono" style="font-size:.75rem">rest ${e.rest_s}s</span></div>
+          <div class="tgt">${e.next ? `<span class="pill ${e.next.action === "add" ? "ok" : e.next.action === "reduce" ? "warn" : ""}">${e.next.kg ? "Target " + e.next.kg + " kg × " + esc(rr) : e.next.action === "start" ? "Find your weight: " + esc(rr) + " reps @ RPE 7" : esc(rr)}</span>` : ""}${e.last ? `<span class="pill">Last ${esc(e.last.text)}</span>` : ""}</div>
+          <div class="colh"><span>Set</span><span>kg</span><span>Reps</span><span>RPE</span><span></span></div>
+          ${LOG.ex[e.id].map((st, k) => `<div class="setrow ${st.done ? "done" : ""}" data-set="${k}">
+            <span class="sn">${k + 1}</span>
+            <input inputmode="decimal" data-f="kg" value="${esc(st.kg)}" placeholder="kg" aria-label="${esc(nice(e.id))} set ${k + 1} kg">
+            <input inputmode="numeric" data-f="reps" value="${esc(st.reps)}" placeholder="${esc(rr)}" aria-label="set ${k + 1} reps">
+            <input inputmode="decimal" data-f="rpe" value="${esc(st.rpe)}" placeholder="RPE" aria-label="set ${k + 1} RPE">
+            <button class="ok" data-done="${e.id}:${k}:${e.rest_s}" aria-label="Set done"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button></div>`).join("")}
+          <button class="addset" data-addset="${e.id}">+ Add set</button>
+        </div>`;
+      }).join("")}
+      <div class="card" style="display:grid;gap:12px">
+        <div class="field2"><label for="lg-cardio">Cardio (type, minutes, avg HR)</label><input id="lg-cardio" data-top="cardio" value="${esc(LOG.cardio)}"></div>
+        <div class="field2"><label for="lg-pain">Pain (where, 0–10)</label><input id="lg-pain" data-top="pain" value="${esc(LOG.pain)}"></div>
+        <div class="field2"><label for="lg-rpe">Whole session RPE (1–10)</label><input id="lg-rpe" data-top="sessRpe" inputmode="decimal" value="${esc(LOG.sessRpe)}"></div>
+        <button class="toggle" data-shake aria-pressed="${LOG.shake}"><span>Shake: 2 scoops Isopure + 3 g creatine</span><span class="sw"></span></button>
+        <button class="cta" data-finish style="width:100%">Finish · copy for Claude</button>
+        <button class="cta ghost" data-discard style="width:100%">Discard workout</button>
+      </div>`;
+  }
+  function logMessage() {
+    const s = D.program.find((p) => p.id === LOG.sid), mins = Math.round((Date.now() - LOG.start) / 60000);
+    const lines = [`GYM ${LOG.date} · ${s.name.split(" (")[0]}`, `Duration (min): ${mins}`, `Session RPE (1-10): ${LOG.sessRpe}`];
+    s.exercises.forEach((e) => {
+      const sets = LOG.ex[e.id].filter((x) => x.reps !== "" && x.reps != null);
+      lines.push(`${nice(e.id)}: ${sets.map((x) => `${x.kg}x${x.reps}${x.rpe !== "" ? " @" + x.rpe : ""}`).join(", ")}`);
+    });
+    lines.push(`Cardio (type, min, avg HR): ${LOG.cardio}`, `Pain (where, 0-10): ${LOG.pain}`, `Shake: 2 scoops Isopure + creatine: ${LOG.shake ? "yes" : "no"}`, "(logged in Cut Log)");
+    return lines.join("\n");
+  }
+  let restT = null;
+  function startRest(sec) {
+    const el = $("#rest"); let left = +sec || 90; clearInterval(restT);
+    const tick = () => { el.textContent = `Rest ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`; if (left-- <= 0) { clearInterval(restT); el.textContent = "Go: next set"; setTimeout(() => (el.hidden = true), 4000); } };
+    el.hidden = false; tick(); restT = setInterval(tick, 1000);
+  }
+
   function viewTrain() {
+    if (LOG && TAB_LOGGING) return viewLogger();
     const prog = D.program || [], days = D.gym_days || [], today = dubaiISO();
     let next = null;
     for (let i = 0; i < 7 && !next; i++) { const iso = addDays(today, i); if (isGym(iso)) next = { iso, s: sessionFor(iso) }; }
@@ -580,8 +675,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         <div class="eyebrow">${isNext ? (next.iso === today ? "Today · after 18:00" : "Next · " + longDate(next.iso)) : (days[TRAINSEL] || "") + " · after 18:00"}</div>
         <div style="margin:8px 0 2px;font:600 1.55rem/1.15 var(--f);letter-spacing:-.03em">${esc(s.name.split(" (")[0])}</div>
         <div class="muted" style="font-size:.85rem">${esc((s.name.match(/\((.+)\)/) || [])[1] || "")} · ${s.exercises.length} exercises · ${esc(s.duration)} min${/upper/.test(s.id) ? " · then 20 min incline walk" : ""}</div>
-        <div class="exlist" style="margin-top:14px">${s.exercises.map((e, i) => `<div class="ex"><span class="n">${String(i + 1).padStart(2, "0")}</span><span>${esc(nice(e.id))}</span><span class="m">${e.sets}×${esc(e.reps)}${e.rpe ? ` · RPE ${esc(e.rpe)}` : ""}</span></div>`).join("")}</div>
+        <div class="exlist" style="margin-top:14px">${s.exercises.map((e, i) => `<div class="ex"><span class="n">${String(i + 1).padStart(2, "0")}</span><span>${esc(nice(e.id))}</span><span class="m">${e.sets}×${esc(e.reps)}${e.rpe ? ` · RPE ${esc(e.rpe)}` : ""}</span>${e.next ? `<span></span><span class="muted mono" style="grid-column:2/-1;font-size:.72rem;margin-top:-4px">${e.last ? "last " + esc(e.last.text) + " · " : ""}next ${e.next.kg ? e.next.kg + " kg × " + esc(e.next.reps) : e.next.action === "start" ? "find your weight" : esc(e.next.reps)}</span>` : ""}</div>`).join("")}</div>
         <p class="note">Every set at the top of the range at RPE 8 or easier → add weight next time.</p>
+        <button class="cta" data-logstart="${TRAINSEL}" style="width:100%;margin-top:14px;background:var(--steps);color:#fff">${draftFor(s.id) ? "Resume workout" : "Start workout"}</button>
       </div>
       <div class="card"><div class="card-h"><h2>Strength</h2><span class="pill">estimated 1RM</span></div>
         ${D.lifts && D.lifts.length ? `<div class="list">${D.lifts.map((l) => `<div class="li"><div><b>${esc(nice(l.exercise))}</b><div class="muted mono" style="font-size:.76rem">${fmt(l.e1rm, 1)} kg · ${l.e1rm - l.first >= 0 ? "+" : ""}${fmt(l.e1rm - l.first, 1)} since start</div></div><div style="width:110px">${spark(l.points.map((p) => p.e1rm), "var(--steps)", 110, 34)}</div></div>`).join("")}</div>`
@@ -657,8 +753,23 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const r = e.target.closest("[data-range]"); if (r) { RANGE = +r.dataset.range; $("#v-trend").innerHTML = wrapV(viewTrend()); return; }
     const f = e.target.closest("[data-food]"); if (f) { FOODSEL = f.dataset.food; $("#v-food").innerHTML = wrapV(viewFood()); return; }
     const s = e.target.closest("[data-sess]"); if (s) { TRAINSEL = +s.dataset.sess; $("#v-train").innerHTML = wrapV(viewTrain()); return; }
-    const t = e.target.closest("[data-tpl]"); if (t) { openSheet(t.dataset.tpl); }
+    const t = e.target.closest("[data-tpl]"); if (t) { openSheet(t.dataset.tpl); return; }
+    const ls = e.target.closest("[data-logstart]"); if (ls) { TAB_LOGGING = true; startLog(+ls.dataset.logstart); return; }
+    const dn = e.target.closest("[data-done]"); if (dn) { const [id, k, rest] = dn.dataset.done.split(":"); const st = LOG.ex[id][+k]; st.done = !st.done; saveDraft(LOG); dn.closest(".setrow").classList.toggle("done", st.done); if (st.done) startRest(rest); return; }
+    const as = e.target.closest("[data-addset]"); if (as) { const arr = LOG.ex[as.dataset.addset], prev = arr[arr.length - 1] || {}; arr.push({ kg: prev.kg ?? "", reps: "", rpe: "", done: false }); saveDraft(LOG); $("#v-train").innerHTML = wrapV(viewLogger()); return; }
+    const sh = e.target.closest("[data-shake]"); if (sh) { LOG.shake = !LOG.shake; sh.setAttribute("aria-pressed", String(LOG.shake)); saveDraft(LOG); return; }
+    if (e.target.closest("[data-finish]")) { $("#sheet-title").textContent = "Workout ready"; $("#sheet-text").value = logMessage(); $("#sheet").hidden = false; copyText(logMessage()); return; }
+    if (e.target.closest("[data-discard]")) { if (e.target.closest("[data-discard]").dataset.sure) { saveDraft(null); LOG = null; TAB_LOGGING = false; $("#v-train").innerHTML = wrapV(viewTrain()); } else { const b = e.target.closest("[data-discard]"); b.dataset.sure = "1"; b.textContent = "Tap again to discard"; } return; }
+    if (e.target.closest("[data-logback]")) { TAB_LOGGING = false; $("#v-train").innerHTML = wrapV(viewTrain()); return; }
+    if (e.target.closest("#rest")) { clearInterval(restT); $("#rest").hidden = true; }
   });
+  document.addEventListener("input", (e) => {
+    if (!LOG) return;
+    const f = e.target.dataset.f, top = e.target.dataset.top;
+    if (f) { const id = e.target.closest("[data-ex]").dataset.ex, k = +e.target.closest("[data-set]").dataset.set; LOG.ex[id][k][f] = e.target.value.trim(); saveDraft(LOG); }
+    else if (top) { LOG[top] = e.target.value; saveDraft(LOG); }
+  });
+  setInterval(() => { const el = $("#elapsed"); if (el && LOG) el.textContent = Math.round((Date.now() - LOG.start) / 60000) + " min"; }, 30000);
   $("#sheet-copy").addEventListener("click", () => copyText($("#sheet-text").value));
   $("#sheet-close").addEventListener("click", () => ($("#sheet").hidden = true));
   $("#sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") $("#sheet").hidden = true; });
@@ -675,6 +786,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && store.get().token) load({ quiet: true }); });
 
   try { TAB = localStorage.getItem(KEY + ".tab") || "today"; } catch {}
+  if (LOG) TAB_LOGGING = true;
   const c = store.get();
   if (c.cache) { D = c.cache; render(); }
   load();

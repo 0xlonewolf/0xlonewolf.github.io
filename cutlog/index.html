@@ -215,6 +215,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .field input { font: 500 0.95rem var(--f-mono); padding: 14px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); width: 100%; }
 .err { color: var(--bad); font-size: 0.86rem; margin: 0; }
 
+.tpl { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.tpl button { display: grid; justify-items: center; gap: 6px; padding: 12px 4px 10px; border-radius: 16px; background: var(--surface-2); font: 500 0.72rem var(--f); color: var(--ink); }
+.tpl button i { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 18%, transparent); }
+.tpl button svg { width: 18px; height: 18px; stroke: var(--c); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.toast { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); top: calc(14px + env(safe-area-inset-top, 0px)); background: var(--ink); color: var(--bg);
+  padding: 10px 16px; border-radius: 14px; font: 600 0.85rem var(--f); box-shadow: 0 10px 30px rgb(0 0 0 / .3); max-width: calc(100% - 32px); }
+.sheet { position: fixed; z-index: 50; inset: 0; background: rgb(0 0 0 / .5); display: grid; align-items: end; }
+.sheet .panel { background: var(--surface); border-radius: 24px 24px 0 0; padding: 18px max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; max-width: 560px; width: 100%; margin: 0 auto; }
+.sheet textarea { width: 100%; min-height: 260px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); font: 0.85rem/1.5 var(--f-mono); padding: 12px; resize: vertical; }
 .fade { animation: fade .45s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
@@ -254,6 +263,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   <section id="v-train" hidden></section>
   <section id="v-health" hidden></section>
 </div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="sheet" id="sheet" hidden><div class="panel">
+  <div class="card-h" style="margin:0"><h2 id="sheet-title">Check in</h2><button class="pill" id="sheet-close">Close</button></div>
+  <label class="muted" for="sheet-text" style="font-size:.8rem">Fill the blanks, then copy and paste into Claude. Blank lines are fine.</label>
+  <textarea id="sheet-text" spellcheck="false"></textarea>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="cta" id="sheet-copy">Copy</button><a class="cta ghost" href="https://claude.ai/code" target="_blank" rel="noopener">Open Claude</a></div>
+</div></div>
 
 <nav class="tabbar" id="tabs" role="tablist" hidden>
   <button role="tab" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Today</button>
@@ -413,6 +430,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         <div class="rings">${ringSVG(rings)}<div class="legend">${rings.map((r) => `<div class="lg"><span class="k"><i style="background:${r.c}"></i>${r.k}</span>
           <span class="v">${r.v != null ? fmt(r.v) : "—"}<small> / ${r.t}${r.u ? " " + r.u : ""}</small></span></div>`).join("")}</div></div>
       </div>
+      <div class="card"><div class="card-h"><h2>Check in</h2><span class="muted" style="font-size:.75rem">fill · copy · send to Claude</span></div>
+        <div class="tpl">
+          <button data-tpl="morning" style="--c:var(--kcal)"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="4"/><path d="M12 3v3M4.9 7.9l2 2M19.1 7.9l-2 2M3 17h18"/></svg></i>Morning</button>
+          <button data-tpl="meal" style="--c:var(--protein)"><i><svg viewBox="0 0 24 24"><path d="M5 11h14a7 7 0 0 1-14 0z"/></svg></i>Meal</button>
+          <button data-tpl="gym" style="--c:var(--steps)"><i><svg viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 10v4M20.5 10v4M6.5 12h11"/></svg></i>Gym</button>
+          <button data-tpl="night" style="--c:var(--sleep)"><i><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></i>Night</button>
+          <button data-tpl="day" style="--c:var(--ink)"><i><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></i>Full day</button>
+        </div></div>
       <div class="bento">
         <div class="tile wide">
           <div class="row"><span class="eyebrow">Trend weight</span>${tr.change != null ? `<span class="pill ${inBand ? "ok" : "warn"}">${tr.change > 0 ? "+" : ""}${tr.change.toFixed(2)} kg / week</span>` : `<span class="pill">trend after 2 weeks</span>`}</div>
@@ -584,6 +609,31 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       ${D.missing_info.length ? `<div class="card"><div class="card-h"><h2>Coach still needs</h2></div><div class="list">${D.missing_info.map((m) => `<div class="li"><span style="font-size:.88rem">${esc(m)}</span></div>`).join("")}</div></div>` : ""}`;
   }
 
+  // ---------- check-in templates ----------
+  function template(kind) {
+    const iso = SEL || dubaiISO(), m = menuMap()[menuLabel(iso)], s = sessionFor(iso), sup = supMap();
+    const plan = (x) => x ? `plan meal (${stripId(x)})` : "describe it";
+    const h = dubaiHour(), mealGuess = h < 16 ? "lunch" : "dinner";
+    const exLines = s ? s.exercises.map((e) => `${nice(e.id)}:`).join("\n") : "exercise: kg x reps, kg x reps @RPE";
+    const T = {
+      morning: `MORNING ${iso}\nWeight (kg):\nFeel (1-5):\n${dowOf(iso) === "Sun" ? "Waist navel / midpoint (cm):\n" : ""}Notes:\n+ attach Zepp: sleep, resting HR, HRV`,
+      meal: `MEAL ${iso} ${mealGuess}\nWhat: ${plan(m && (mealGuess === "lunch" ? m.lunch : m.dinner))}\nAte: all / most / half\nExtras (oil, sauce, sides, drinks):\nAdd-on eaten:${m && m.addon && mealGuess === "dinner" ? " (" + m.addon.items + ")" : ""}\n+ attach photo`,
+      gym: `GYM ${iso} · ${s ? s.name.split(" (")[0] : "session"}\nDuration (min):\nSession RPE (1-10):\n${exLines}\nCardio (type, min, avg HR):${s && /upper/.test(s.id) ? " incline walk 20 min," : ""}\nPain (where, 0-10): none\nShake: 2 scoops Isopure${sup.creatine ? " + creatine" : ""}: yes/no`,
+      night: `NIGHT ${iso}\nSteps:\nWater (L):\nTea cups:\nSupplements (brahmi / D3 / multivitamin): all / missed:\nOther food or drinks not logged yet:\nAll food logged today: yes/no\nNotes:\n+ attach Zepp steps screenshot`,
+      day: `DAY ${iso}\nWeight (kg):\nFeel (1-5):\nLunch: ${plan(m && m.lunch)}, ate all/most/half, extras:\nDinner: ${plan(m && m.dinner)}, ate all/most/half, extras:\nAdd-on / snacks:${m && m.addon ? " (" + m.addon.items + ")" : ""}\n${s ? `Gym: ${s.name.split(" (")[0]}, duration, RPE, sets per exercise:\nShake: yes/no\n` : ""}Steps:\nWater (L):\nTea cups:\nSupplements: all / missed:\nAll food logged: yes/no\nNotes:\n+ attach Zepp + food photos`,
+    };
+    return T[kind];
+  }
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 2600); }
+  function openSheet(kind) {
+    $("#sheet-title").textContent = { morning: "Morning check-in", meal: "Meal", gym: "Gym session", night: "Night check-in", day: "Full day" }[kind];
+    $("#sheet-text").value = template(kind); $("#sheet").hidden = false;
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into Claude and send."); return true; }
+    catch { const ta = $("#sheet-text"); ta.focus(); ta.select(); toast("Selected. Tap Copy in the menu."); return false; }
+  }
+
   // ---------- render ----------
   const wrapV = (html) => `<div style="display:grid;gap:16px">${html}</div>`;
   function render() {
@@ -606,8 +656,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const d = e.target.closest("[data-day]"); if (d) { SEL = d.dataset.day; $("#v-today").innerHTML = wrapV(viewToday()); requestAnimationFrame(() => requestAnimationFrame(animateRings)); return; }
     const r = e.target.closest("[data-range]"); if (r) { RANGE = +r.dataset.range; $("#v-trend").innerHTML = wrapV(viewTrend()); return; }
     const f = e.target.closest("[data-food]"); if (f) { FOODSEL = f.dataset.food; $("#v-food").innerHTML = wrapV(viewFood()); return; }
-    const s = e.target.closest("[data-sess]"); if (s) { TRAINSEL = +s.dataset.sess; $("#v-train").innerHTML = wrapV(viewTrain()); }
+    const s = e.target.closest("[data-sess]"); if (s) { TRAINSEL = +s.dataset.sess; $("#v-train").innerHTML = wrapV(viewTrain()); return; }
+    const t = e.target.closest("[data-tpl]"); if (t) { openSheet(t.dataset.tpl); }
   });
+  $("#sheet-copy").addEventListener("click", () => copyText($("#sheet-text").value));
+  $("#sheet-close").addEventListener("click", () => ($("#sheet").hidden = true));
+  $("#sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") $("#sheet").hidden = true; });
   $("#refresh").addEventListener("click", () => load());
   $("#settings").addEventListener("click", () => showSetup());
   $("#setup-form").addEventListener("submit", (e) => {

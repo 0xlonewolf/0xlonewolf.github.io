@@ -223,8 +223,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .lgx .exh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .lgx .exh b { font-size: 1.02rem; }
 .tgt { display: flex; gap: 6px; flex-wrap: wrap; }
-.setrow { display: grid; grid-template-columns: 34px 1fr 1fr 64px 46px; gap: 8px; align-items: center; }
-.setrow .sn { font: 500 0.75rem var(--f-mono); color: var(--faint); }
+.setrow { display: grid; grid-template-columns: 40px 1fr 1fr 60px 46px; gap: 8px; align-items: center; }
 .setrow input { width: 100%; min-width: 0; font: 600 1.05rem var(--f-mono); text-align: center; padding: 11px 4px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); }
 .setrow input::placeholder { color: var(--faint); font-weight: 500; }
 .setrow .ok { height: 44px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; border: 1px solid var(--line-2); }
@@ -232,10 +231,31 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .setrow.done .ok { background: var(--ok); border-color: var(--ok); }
 .setrow.done .ok svg { stroke: #08110b; }
 .setrow.done input { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
-.colh { display: grid; grid-template-columns: 34px 1fr 1fr 64px 46px; gap: 8px; font: 500 0.64rem var(--f-mono); color: var(--faint); text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+.colh { display: grid; grid-template-columns: 40px 1fr 1fr 60px 46px; gap: 8px; font: 500 0.64rem var(--f-mono); color: var(--faint); text-transform: uppercase; letter-spacing: .06em; text-align: center; }
 .addset { justify-self: start; font: 600 0.8rem var(--f); color: var(--steps); padding: 4px 2px; }
 .rest { position: fixed; z-index: 35; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); background: var(--steps); color: #fff;
-  padding: 10px 18px; border-radius: 999px; font: 600 0.95rem var(--f-mono); box-shadow: 0 10px 30px rgb(0 0 0 / .35); }
+  padding: 6px; border-radius: 999px; box-shadow: 0 10px 30px rgb(0 0 0 / .35); display: flex; align-items: center; gap: 4px; }
+.rest button { color: #fff; font: 600 0.8rem var(--f-mono); padding: 9px 12px; border-radius: 999px; background: rgb(255 255 255 / .16); min-width: 44px; }
+.rest .clock { font: 600 1.05rem var(--f-mono); padding: 0 10px; min-width: 64px; text-align: center; }
+.rest.go { background: var(--ok); }
+.rest.go button { color: #08110b; } .rest.go .clock { color: #08110b; }
+.setrow .sn { height: 44px; border-radius: 12px; display: grid; place-items: center; font: 600 0.8rem var(--f-mono); color: var(--muted); background: transparent; border: 1px dashed var(--line-2); }
+.setrow.warm .sn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
+.setrow input.need { border-color: var(--bad); animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.exh .more { width: 44px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); font: 700 1.1rem var(--f); letter-spacing: 1px; margin: -6px -8px -6px 0; }
+.lgx.skipped { opacity: .55; }
+.lgx.collapsed .sum { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lgx .sum .tick { width: 26px; height: 26px; border-radius: 50%; background: var(--ok); display: grid; place-items: center; flex: none; }
+.lgx .sum .tick svg { width: 15px; height: 15px; stroke: #08110b; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.menu .panel { gap: 6px; }
+.menu .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 15px 14px; border-radius: 14px; background: var(--surface-2); font: 500 0.95rem var(--f); text-align: left; }
+.menu .opt.danger { color: var(--bad); }
+.menu .opt small { color: var(--muted); font-size: .78rem; }
+.toast { display: flex; align-items: center; gap: 14px; }
+.toast button { font: 700 0.85rem var(--f); color: var(--bg); text-decoration: underline; padding: 4px 2px; }
+.pill.btn { padding: 8px 14px; font-weight: 600; color: var(--ink); }
+.stale { color: var(--warn); }
 .field2 { display: grid; gap: 6px; }
 .field2 label { font: 500 0.75rem var(--f); color: var(--muted); }
 .field2 input { font: 500 0.95rem var(--f); padding: 12px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); width: 100%; }
@@ -289,13 +309,15 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   <section id="v-health" hidden></section>
 </div>
 
-<div class="toast" id="toast" role="status" hidden></div>
-<button class="rest" id="rest" hidden aria-label="Rest timer, tap to dismiss"></button>
+<div class="toast" id="toast" role="status" hidden><span id="toast-msg"></span><button id="toast-act" hidden></button></div>
+<div class="rest" id="rest" hidden role="timer" aria-label="Rest timer"><button data-rest="-15" aria-label="15 seconds less">−15</button><span class="clock" id="rest-clock">0:00</span><button data-rest="15" aria-label="15 seconds more">+15</button><button data-rest="skip">Skip</button></div>
+<div class="sheet menu" id="menu" hidden><div class="panel" id="menu-panel"></div></div>
 <div class="sheet" id="sheet" hidden><div class="panel">
   <div class="card-h" style="margin:0"><h2 id="sheet-title">Check in</h2><button class="pill" id="sheet-close">Close</button></div>
   <label class="muted" for="sheet-text" style="font-size:.8rem">Fill the blanks, then copy and paste into Claude. Blank lines are fine.</label>
   <textarea id="sheet-text" spellcheck="false"></textarea>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="cta" id="sheet-copy">Copy</button><a class="cta ghost" href="https://claude.ai/code" target="_blank" rel="noopener">Open Claude</a></div>
+  <button class="cta ghost" id="sheet-clear" hidden style="width:100%">Sent it · clear this workout from the phone</button>
 </div></div>
 
 <nav class="tabbar" id="tabs" role="tablist" hidden>
@@ -598,39 +620,62 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   const loadDraft = () => { try { return JSON.parse(localStorage.getItem(DK)); } catch { return null; } };
   const saveDraft = (d) => { try { d ? localStorage.setItem(DK, JSON.stringify(d)) : localStorage.removeItem(DK); } catch {} };
   const draftFor = (sid) => { const d = loadDraft(); return d && d.sid === sid ? d : null; };
-  let LOG = loadDraft();
+  let LOG = loadDraft(), WAKE = null;
+  const num = (v) => String(v ?? "").trim().replace(",", ".");
+  const exOf = (id) => D.program.find((p) => p.id === LOG.sid).exercises.find((e) => e.id === id);
+  const nameOf = (id) => nice(LOG.swap && LOG.swap[id] ? LOG.swap[id] : id);
+  const working = (id) => LOG.ex[id].filter((x) => !x.warm);
+  const exDone = (id) => (LOG.skip && LOG.skip[id]) || (working(id).length > 0 && working(id).every((x) => x.done));
+  async function keepAwake() { try { if ("wakeLock" in navigator && !WAKE) { WAKE = await navigator.wakeLock.request("screen"); WAKE.addEventListener("release", () => (WAKE = null)); } } catch {} }
   function startLog(i) {
     const s = D.program[i]; if (!s) return;
     if (!draftFor(s.id)) {
-      LOG = { sid: s.id, i, date: dubaiISO(), start: Date.now(), sessRpe: "", cardio: /upper/.test(s.id) ? "incline walk 20 min" : "", pain: "none", shake: true,
+      LOG = { sid: s.id, i, date: dubaiISO(), start: Date.now(), sessRpe: "", cardio: /upper/.test(s.id) ? "incline walk 20 min" : "", pain: "none", shake: true, swap: {}, skip: {}, open: {},
         ex: Object.fromEntries(s.exercises.map((e) => {
           const kg = e.next && e.next.kg != null ? e.next.kg : e.last && e.last.sets.length ? Math.max(...e.last.sets.map((x) => x.kg || 0)) : "";
-          return [e.id, Array.from({ length: e.sets }, () => ({ kg, reps: "", rpe: "", done: false }))];
+          return [e.id, Array.from({ length: e.sets }, () => ({ kg, reps: "", rpe: "", done: false, warm: false }))];
         })) };
       saveDraft(LOG);
     } else LOG = draftFor(s.id);
-    $("#v-train").innerHTML = wrapV(viewLogger());
-    window.scrollTo({ top: 0 });
+    LOG.swap = LOG.swap || {}; LOG.skip = LOG.skip || {}; LOG.open = LOG.open || {};
+    keepAwake(); redrawLog(); window.scrollTo({ top: 0 });
+  }
+  function redrawLog() { const y = window.scrollY; $("#v-train").innerHTML = wrapV(viewLogger()); window.scrollTo({ top: y }); }
+  const rrOf = (reps) => /\d+-\d+/.test(reps) ? reps.split("-")[0] + "–" + reps.split("-")[1].split(" ")[0] : reps;
+  function setRow(e, st, k, rr) {
+    let n = 0; for (let j = 0; j <= k; j++) if (!LOG.ex[e.id][j].warm) n++;
+    return `<div class="setrow ${st.done ? "done" : ""} ${st.warm ? "warm" : ""}" data-set="${k}">
+      <button class="sn" data-setmenu="${e.id}:${k}" aria-label="Set ${k + 1} options">${st.warm ? "W" : n}</button>
+      <input inputmode="decimal" data-f="kg" value="${esc(st.kg)}" placeholder="kg" aria-label="${esc(nameOf(e.id))} set ${k + 1} kg">
+      <input inputmode="numeric" data-f="reps" value="${esc(st.reps)}" placeholder="${st.warm ? "reps" : esc(rr)}" aria-label="set ${k + 1} reps">
+      <input inputmode="decimal" data-f="rpe" value="${esc(st.rpe)}" placeholder="RPE" aria-label="set ${k + 1} RPE">
+      <button class="ok" data-done="${e.id}:${k}" aria-label="Set ${k + 1} done"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button></div>`;
   }
   function viewLogger() {
     const s = D.program.find((p) => p.id === LOG.sid), mins = Math.round((Date.now() - LOG.start) / 60000);
+    const doneN = s.exercises.filter((e) => exDone(e.id)).length;
     return `
       <div class="card session"><div class="row"><div><div class="eyebrow">Logging · ${longDate(LOG.date)}</div>
         <div style="margin-top:6px;font:600 1.45rem/1.1 var(--f);letter-spacing:-.03em">${esc(s.name.split(" (")[0])}</div></div>
-        <span style="display:flex;gap:6px"><span class="pill" id="elapsed">${mins} min</span><button class="pill" data-logback>Plan</button></span></div>
-        <p class="note" style="margin-top:10px">Weights are pre-filled with your next target. Change anything, tap ✓ after each set: a rest timer starts.</p></div>
+        <span style="display:flex;gap:6px;align-items:center"><span class="pill" id="elapsed">${mins} min</span><button class="pill btn" data-logback>Plan</button></span></div>
+        <div class="goalbar" style="margin-top:14px"><i style="width:${(doneN / s.exercises.length) * 100}%"></i></div>
+        <p class="note" style="margin-top:8px">${doneN} of ${s.exercises.length} exercises done · tap a set number for warm-up / copy / delete, ⋯ to swap or skip.</p></div>
       ${s.exercises.map((e) => {
-        const rr = /\d+-\d+/.test(e.reps) ? e.reps.split("-")[0] + "–" + e.reps.split("-")[1].split(" ")[0] : e.reps;
-        return `<div class="card lgx" data-ex="${e.id}">
-          <div class="exh"><b>${esc(nice(e.id))}</b><span class="muted mono" style="font-size:.75rem">rest ${e.rest_s}s</span></div>
-          <div class="tgt">${e.next ? `<span class="pill ${e.next.action === "add" ? "ok" : e.next.action === "reduce" ? "warn" : ""}">${e.next.kg ? "Target " + e.next.kg + " kg × " + esc(rr) : e.next.action === "start" ? "Find your weight: " + esc(rr) + " reps @ RPE 7" : esc(rr)}</span>` : ""}${e.last ? `<span class="pill">Last ${esc(e.last.text)}</span>` : ""}</div>
+        const rr = rrOf(e.reps), skipped = LOG.skip[e.id], swapped = LOG.swap[e.id];
+        const collapsed = !skipped && exDone(e.id) && !LOG.open[e.id];
+        const head = `<div class="exh"><b>${esc(nameOf(e.id))}${swapped ? `<span class="muted" style="display:block;font-weight:400;font-size:.78rem">instead of ${esc(nice(e.id))}</span>` : ""}</b>
+          <span style="display:flex;align-items:center;gap:8px"><span class="muted mono" style="font-size:.72rem">rest ${e.rest_s}s</span><button class="more" data-exmenu="${e.id}" aria-label="${esc(nameOf(e.id))} options">⋯</button></span></div>`;
+        if (skipped) return `<div class="card lgx skipped" data-ex="${e.id}">${head}<span class="muted" style="font-size:.85rem">Skipped. Open ⋯ to bring it back.</span></div>`;
+        if (collapsed) {
+          const w = working(e.id);
+          return `<div class="card lgx collapsed" data-ex="${e.id}">${head}<button class="sum" data-open="${e.id}" style="width:100%">
+            <span class="mono" style="font-size:.85rem">${esc(w[0].kg)} kg × ${w.map((x) => esc(x.reps)).join(", ")}${w[w.length - 1].rpe ? " @" + esc(w[w.length - 1].rpe) : ""}</span>
+            <span class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></span></button></div>`;
+        }
+        return `<div class="card lgx" data-ex="${e.id}">${head}
+          <div class="tgt">${swapped ? `<span class="pill">New exercise: find your weight</span>` : e.next ? `<span class="pill ${e.next.action === "add" ? "ok" : e.next.action === "reduce" ? "warn" : ""}">${e.next.kg ? "Target " + e.next.kg + " kg × " + esc(rr) : e.next.action === "start" ? "Find your weight: " + esc(rr) + " reps @ RPE 7" : esc(rr)}</span>` : ""}${!swapped && e.last ? `<span class="pill">Last ${esc(e.last.text)}</span>` : ""}</div>
           <div class="colh"><span>Set</span><span>kg</span><span>Reps</span><span>RPE</span><span></span></div>
-          ${LOG.ex[e.id].map((st, k) => `<div class="setrow ${st.done ? "done" : ""}" data-set="${k}">
-            <span class="sn">${k + 1}</span>
-            <input inputmode="decimal" data-f="kg" value="${esc(st.kg)}" placeholder="kg" aria-label="${esc(nice(e.id))} set ${k + 1} kg">
-            <input inputmode="numeric" data-f="reps" value="${esc(st.reps)}" placeholder="${esc(rr)}" aria-label="set ${k + 1} reps">
-            <input inputmode="decimal" data-f="rpe" value="${esc(st.rpe)}" placeholder="RPE" aria-label="set ${k + 1} RPE">
-            <button class="ok" data-done="${e.id}:${k}:${e.rest_s}" aria-label="Set done"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button></div>`).join("")}
+          ${LOG.ex[e.id].map((st, k) => setRow(e, st, k, rr)).join("")}
           <button class="addset" data-addset="${e.id}">+ Add set</button>
         </div>`;
       }).join("")}
@@ -646,18 +691,49 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   function logMessage() {
     const s = D.program.find((p) => p.id === LOG.sid), mins = Math.round((Date.now() - LOG.start) / 60000);
     const lines = [`GYM ${LOG.date} · ${s.name.split(" (")[0]}`, `Duration (min): ${mins}`, `Session RPE (1-10): ${LOG.sessRpe}`];
+    const fmtSet = (x) => `${num(x.kg)}x${num(x.reps)}${x.rpe !== "" ? " @" + num(x.rpe) : ""}`;
     s.exercises.forEach((e) => {
-      const sets = LOG.ex[e.id].filter((x) => x.reps !== "" && x.reps != null);
-      lines.push(`${nice(e.id)}: ${sets.map((x) => `${x.kg}x${x.reps}${x.rpe !== "" ? " @" + x.rpe : ""}`).join(", ")}`);
+      const label = LOG.swap[e.id] ? `${nice(LOG.swap[e.id])} (instead of ${nice(e.id)})` : nice(e.id);
+      if (LOG.skip[e.id]) return lines.push(`${label}: skipped`);
+      const sets = LOG.ex[e.id].filter((x) => num(x.reps) !== "");
+      const warm = sets.filter((x) => x.warm), work = sets.filter((x) => !x.warm);
+      lines.push(`${label}: ${warm.length ? "warm-up " + warm.map(fmtSet).join(", ") + "; " : ""}${work.map(fmtSet).join(", ") || "not done"}`);
     });
     lines.push(`Cardio (type, min, avg HR): ${LOG.cardio}`, `Pain (where, 0-10): ${LOG.pain}`, `Shake: 2 scoops Isopure + creatine: ${LOG.shake ? "yes" : "no"}`, "(logged in Cut Log)");
     return lines.join("\n");
   }
-  let restT = null;
-  function startRest(sec) {
-    const el = $("#rest"); let left = +sec || 90; clearInterval(restT);
-    const tick = () => { el.textContent = `Rest ${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`; if (left-- <= 0) { clearInterval(restT); el.textContent = "Go: next set"; setTimeout(() => (el.hidden = true), 4000); } };
-    el.hidden = false; tick(); restT = setInterval(tick, 1000);
+  // rest timer with -15 / +15 / skip
+  let restT = null, restLeft = 0;
+  function restTick() {
+    const el = $("#rest"), c = $("#rest-clock");
+    if (restLeft <= 0) { clearInterval(restT); el.classList.add("go"); c.textContent = "Go"; setTimeout(() => { if (restLeft <= 0) el.hidden = true; }, 5000); return; }
+    c.textContent = `${Math.floor(restLeft / 60)}:${String(restLeft % 60).padStart(2, "0")}`; restLeft--;
+  }
+  function startRest(sec) { clearInterval(restT); restLeft = +sec || 90; const el = $("#rest"); el.classList.remove("go"); el.hidden = false; restTick(); restT = setInterval(restTick, 1000); }
+  // menus
+  function openMenu(title, opts) {
+    $("#menu-panel").innerHTML = `<div class="card-h" style="margin:0 0 6px"><h2>${esc(title)}</h2><button class="pill btn" data-menuclose>Close</button></div>` +
+      opts.map((o, i) => `<button class="opt ${o.danger ? "danger" : ""}" data-opt="${i}">${esc(o.label)}${o.hint ? `<small>${esc(o.hint)}</small>` : ""}</button>`).join("");
+    openMenu.opts = opts; $("#menu").hidden = false;
+  }
+  function setMenu(id, k) {
+    const arr = LOG.ex[id], st = arr[k];
+    const opts = [{ label: st.warm ? "Make it a working set" : "Make it a warm-up set", hint: st.warm ? "" : "won't count for progress", fn: () => { st.warm = !st.warm; } }];
+    if (k > 0) opts.push({ label: "Copy the set above", hint: `${arr[k - 1].kg || "—"} kg × ${arr[k - 1].reps || "—"}`, fn: () => { st.kg = arr[k - 1].kg; st.reps = arr[k - 1].reps; st.rpe = arr[k - 1].rpe; } });
+    opts.push({ label: "Delete this set", danger: true, fn: () => {
+      const removed = arr.splice(k, 1)[0];
+      toast("Set deleted", { label: "Undo", fn: () => { arr.splice(k, 0, removed); saveDraft(LOG); redrawLog(); } });
+    } });
+    openMenu(`${nameOf(id)} · set ${k + 1}`, opts);
+  }
+  function exMenu(id) {
+    const e = exOf(id), opts = [];
+    (e.alternatives || []).forEach((alt) => { if (alt !== LOG.swap[id]) opts.push({ label: `Swap for ${nice(alt)}`, hint: "busy or pain", fn: () => { LOG.swap[id] = alt; LOG.ex[id].forEach((x) => { x.kg = ""; x.done = false; }); } }); });
+    if (LOG.swap[id]) opts.push({ label: `Back to ${nice(id)}`, fn: () => { delete LOG.swap[id]; } });
+    opts.push({ label: "Add a warm-up set", hint: "goes first", fn: () => { const first = LOG.ex[id][0] || {}; const w = parseFloat(num(first.kg)); LOG.ex[id].unshift({ kg: Number.isFinite(w) ? Math.round((w * 0.5) / 2.5) * 2.5 : "", reps: "", rpe: "", done: false, warm: true }); } });
+    if (exDone(id) && !LOG.skip[id]) opts.push({ label: "Edit sets", fn: () => { LOG.open[id] = true; } });
+    opts.push(LOG.skip[id] ? { label: "Bring it back", fn: () => { delete LOG.skip[id]; } } : { label: "Skip this exercise", danger: true, fn: () => { LOG.skip[id] = true; } });
+    openMenu(nameOf(id), opts);
   }
 
   function viewTrain() {
@@ -720,10 +796,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     };
     return T[kind];
   }
-  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 2600); }
+  function toast(msg, action) {
+    const t = $("#toast"), b = $("#toast-act"); $("#toast-msg").textContent = msg;
+    b.hidden = !action; if (action) { b.textContent = action.label; b.onclick = () => { t.hidden = true; action.fn(); }; }
+    t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), action ? 6000 : 2600);
+  }
   function openSheet(kind) {
     $("#sheet-title").textContent = { morning: "Morning check-in", meal: "Meal", gym: "Gym session", night: "Night check-in", day: "Full day" }[kind];
-    $("#sheet-text").value = template(kind); $("#sheet").hidden = false;
+    $("#sheet-text").value = template(kind); $("#sheet-clear").hidden = true; $("#sheet").hidden = false;
   }
   async function copyText(text) {
     try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into Claude and send."); return true; }
@@ -736,7 +816,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     if (!D) return;
     const h = dubaiHour(), first = (D.name || "").split(" ")[0];
     $("#greet").textContent = `${h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"}${first ? ", " + first : ""}`;
-    $("#dateline").textContent = `${longDate(dubaiISO())} · ${D.plan.week ? "Week " + D.plan.week : "Plan starts with first weigh-in"}`;
+    const gen = new Date((D.generated_at || "").replace(" ", "T") + ":00+04:00"), ageH = (Date.now() - gen) / 36e5;
+    $("#dateline").innerHTML = `${esc(longDate(dubaiISO()))} · ${D.plan.week ? "Wk " + D.plan.week : "Day 0"} · <span class="${ageH > 36 ? "stale" : ""}" title="Last coach update">${ageH > 36 ? "synced " + Math.floor(ageH / 24) + "d ago" : "synced " + esc((D.generated_at || "").slice(11))}</span>`;
     $("#settings").textContent = (D.name || "Cut Log").split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
     $("#v-today").innerHTML = wrapV(viewToday());
     $("#v-trend").innerHTML = wrapV(viewTrend());
@@ -755,23 +836,43 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const s = e.target.closest("[data-sess]"); if (s) { TRAINSEL = +s.dataset.sess; $("#v-train").innerHTML = wrapV(viewTrain()); return; }
     const t = e.target.closest("[data-tpl]"); if (t) { openSheet(t.dataset.tpl); return; }
     const ls = e.target.closest("[data-logstart]"); if (ls) { TAB_LOGGING = true; startLog(+ls.dataset.logstart); return; }
-    const dn = e.target.closest("[data-done]"); if (dn) { const [id, k, rest] = dn.dataset.done.split(":"); const st = LOG.ex[id][+k]; st.done = !st.done; saveDraft(LOG); dn.closest(".setrow").classList.toggle("done", st.done); if (st.done) startRest(rest); return; }
-    const as = e.target.closest("[data-addset]"); if (as) { const arr = LOG.ex[as.dataset.addset], prev = arr[arr.length - 1] || {}; arr.push({ kg: prev.kg ?? "", reps: "", rpe: "", done: false }); saveDraft(LOG); $("#v-train").innerHTML = wrapV(viewLogger()); return; }
+    const dn = e.target.closest("[data-done]"); if (dn) {
+      const [id, k] = dn.dataset.done.split(":"), st = LOG.ex[id][+k], row = dn.closest(".setrow");
+      if (!st.done && num(st.reps) === "") { const r = row.querySelector('[data-f="reps"]'); r.classList.remove("need"); void r.offsetWidth; r.classList.add("need"); r.focus(); toast("Type the reps first"); return; }
+      st.done = !st.done; saveDraft(LOG); row.classList.toggle("done", st.done);
+      if (st.done) { startRest(st.warm ? 60 : exOf(id).rest_s); if (exDone(id)) setTimeout(redrawLog, 350); }
+      return;
+    }
+    const as = e.target.closest("[data-addset]"); if (as) { const arr = LOG.ex[as.dataset.addset], prev = [...arr].reverse().find((x) => !x.warm) || {}; arr.push({ kg: prev.kg ?? "", reps: "", rpe: "", done: false, warm: false }); saveDraft(LOG); redrawLog(); return; }
+    const sm = e.target.closest("[data-setmenu]"); if (sm) { const [id, k] = sm.dataset.setmenu.split(":"); setMenu(id, +k); return; }
+    const em = e.target.closest("[data-exmenu]"); if (em) { exMenu(em.dataset.exmenu); return; }
+    const op = e.target.closest("[data-opt]"); if (op) { $("#menu").hidden = true; openMenu.opts[+op.dataset.opt].fn(); saveDraft(LOG); redrawLog(); return; }
+    if (e.target.closest("[data-menuclose]") || e.target.id === "menu") { $("#menu").hidden = true; return; }
+    const oe = e.target.closest("[data-open]"); if (oe) { LOG.open[oe.dataset.open] = true; saveDraft(LOG); redrawLog(); return; }
     const sh = e.target.closest("[data-shake]"); if (sh) { LOG.shake = !LOG.shake; sh.setAttribute("aria-pressed", String(LOG.shake)); saveDraft(LOG); return; }
-    if (e.target.closest("[data-finish]")) { $("#sheet-title").textContent = "Workout ready"; $("#sheet-text").value = logMessage(); $("#sheet").hidden = false; copyText(logMessage()); return; }
-    if (e.target.closest("[data-discard]")) { if (e.target.closest("[data-discard]").dataset.sure) { saveDraft(null); LOG = null; TAB_LOGGING = false; $("#v-train").innerHTML = wrapV(viewTrain()); } else { const b = e.target.closest("[data-discard]"); b.dataset.sure = "1"; b.textContent = "Tap again to discard"; } return; }
+    if (e.target.closest("[data-finish]")) {
+      const s = D.program.find((p) => p.id === LOG.sid), empty = s.exercises.filter((x) => !LOG.skip[x.id] && !LOG.ex[x.id].some((y) => !y.warm && num(y.reps) !== ""));
+      $("#sheet-title").textContent = empty.length ? `Workout ready · ${empty.length} not done` : "Workout ready";
+      $("#sheet-text").value = logMessage(); $("#sheet-clear").hidden = false; $("#sheet").hidden = false; copyText(logMessage()); return;
+    }
+    if (e.target.closest("[data-discard]")) { const bt = e.target.closest("[data-discard]"); if (bt.dataset.sure) { clearLog(); } else { bt.dataset.sure = "1"; bt.textContent = "Tap again to discard"; } return; }
     if (e.target.closest("[data-logback]")) { TAB_LOGGING = false; $("#v-train").innerHTML = wrapV(viewTrain()); return; }
-    if (e.target.closest("#rest")) { clearInterval(restT); $("#rest").hidden = true; }
+    const rs = e.target.closest("[data-rest]"); if (rs) { const v = rs.dataset.rest; if (v === "skip") { restLeft = 0; clearInterval(restT); $("#rest").hidden = true; } else { restLeft = Math.max(0, restLeft + +v); $("#rest").classList.remove("go"); if (!$("#rest").hidden) restTick(); } return; }
   });
+  function clearLog() { saveDraft(null); LOG = null; TAB_LOGGING = false; clearInterval(restT); $("#rest").hidden = true; try { WAKE && WAKE.release(); } catch {} $("#v-train").innerHTML = wrapV(viewTrain()); }
   document.addEventListener("input", (e) => {
     if (!LOG) return;
     const f = e.target.dataset.f, top = e.target.dataset.top;
     if (f) { const id = e.target.closest("[data-ex]").dataset.ex, k = +e.target.closest("[data-set]").dataset.set; LOG.ex[id][k][f] = e.target.value.trim(); saveDraft(LOG); }
     else if (top) { LOG[top] = e.target.value; saveDraft(LOG); }
+    e.target.classList.remove("need");
   });
   setInterval(() => { const el = $("#elapsed"); if (el && LOG) el.textContent = Math.round((Date.now() - LOG.start) / 60000) + " min"; }, 30000);
   $("#sheet-copy").addEventListener("click", () => copyText($("#sheet-text").value));
-  $("#sheet-close").addEventListener("click", () => ($("#sheet").hidden = true));
+  $("#sheet-close").addEventListener("click", () => { $("#sheet").hidden = true; $("#sheet-clear").hidden = true; });
+  $("#sheet-clear").addEventListener("click", () => { $("#sheet").hidden = true; $("#sheet-clear").hidden = true; clearLog(); toast("Workout cleared from this phone"); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#sheet").hidden = true; $("#menu").hidden = true; } });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && LOG && TAB_LOGGING) keepAwake(); });
   $("#sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") $("#sheet").hidden = true; });
   $("#refresh").addEventListener("click", () => load());
   $("#settings").addEventListener("click", () => showSetup());

@@ -328,6 +328,16 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .layer .n { font: 500 0.75rem var(--f-mono); color: var(--muted); }
 .st { font-size: 0.78rem; } .st.wait { color: var(--warn); } .st.done { color: var(--ok); }
 #v-today, #v-food { padding-bottom: 70px; }
+/* Zepp device data (DEVICE source) */
+.src { font: 500 0.6rem/1 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); border: 1px solid var(--line-2); border-radius: 6px; padding: 3px 5px; white-space: nowrap; }
+.stat3.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rec > div { display: grid; gap: 6px; align-content: start; }
+.rec .eyebrow { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.rec b { margin-top: 2px; font: 300 1.85rem/1 var(--f); letter-spacing: -0.04em; }
+.rec b small { font: 500 0.75rem var(--f); color: var(--muted); letter-spacing: 0; margin-left: 3px; }
+.rec .u { font-size: 0.75rem; color: var(--muted); }
+.dtr { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 4px 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.dtr:first-child { border-top: 0; padding-top: 0; }
 #dateline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .opt2.sm { min-height: 38px; padding: 0 12px; font-size: 0.82rem; }
 .fade { animation: fade .45s cubic-bezier(.2,.8,.2,1) both; }
@@ -494,6 +504,50 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     </svg>`;
   }
 
+  // ---------- DEVICE (Zepp, DEVICE source; absent = not provided, never defaulted) ----------
+  const DEV = () => (D.device && D.device.latest) || null;
+  const dv = (o, k) => (o && o[k] != null && !Number.isNaN(+o[k]) ? +o[k] : null);
+  const SRC = '<span class="src">Zepp</span>';
+  function recoveryCard() {
+    const d = DEV(); if (!d) return "";
+    const r = d.readiness, today = dubaiISO();
+    const tile = (label, v, unit, sub) => `<div><span class="eyebrow">${label}${SRC}</span><b>${v != null ? fmt(v) + (unit ? `<small>${unit}</small>` : "") : "—"}</b><span class="u">${v != null ? sub : "— missing"}</span></div>`;
+    const st = dv(r, "status");
+    return `<section class="card" aria-label="Recovery from your watch"><div class="card-h"><h2>Recovery</h2><span class="pill">${d.date === today ? "Today" : esc(longDate(d.date))} · watch</span></div>
+      <div class="stat3 two rec">
+        ${tile("Readiness", dv(r, "score"), "", st != null ? `score · status ${fmt(st)}` : "score")}
+        ${tile("BioCharge", dv(d.biocharge, "wake"), "", "on waking")}
+        ${tile("Sleep HRV", dv(r, "sleep_hrv"), "ms", dv(r, "hrv_baseline") != null ? `baseline ${fmt(dv(r, "hrv_baseline"))} ms` : "overnight")}
+        ${tile("Stress", dv(d.stress, "avg"), "", "day average")}
+      </div>
+      <p class="note">Device readings: trend signals, not a diagnosis. Read with how you feel.</p></section>`;
+  }
+  function deviceTrendCard() {
+    const ser = (D.device && D.device.series) || [];
+    if (!ser.length) return "";
+    const end = ser[ser.length - 1].date, by = Object.fromEntries(ser.map((x) => [x.date, x])), n = 30;
+    const days = Array.from({ length: n }, (_, i) => addDays(end, i - n + 1));
+    const rows = [["Readiness", "readiness", "score", "var(--protein)"], ["BioCharge on waking", "biocharge", "wake", "var(--sleep)"],
+      ["Stress average", "stress", "avg", "var(--warn)"], ["PAI this week", "pai", "week_total", "var(--steps)"]];
+    return `<div class="card"><div class="card-h"><h2>Recovery trends</h2><span class="src">Zepp · ${n}D</span></div><div>
+      ${rows.map(([label, blk, key, c]) => {
+        const vals = days.map((x) => dv(by[x] && by[x][blk], key)), have = vals.filter((v) => v != null), last = [...vals].reverse().find((v) => v != null);
+        const sp = spark(vals, c, 132, 34);
+        return `<div class="dtr"><div><div class="eyebrow">${label}</div><div class="mono" style="margin-top:5px;font-size:.95rem">${last != null ? fmt(last) : "— missing"} <span class="muted" style="font-size:.72rem">${have.length ? `latest · ${have.length} day${have.length > 1 ? "s" : ""}` : ""}</span></div></div>
+          ${sp || `<span class="muted" style="font-size:.74rem;text-align:right">${have.length ? "needs 2+ days" : "— missing"}</span>`}</div>`;
+      }).join("")}</div>
+      <p class="note">From your watch, days it recorded. Trend only; weight and food decide targets.</p></div>`;
+  }
+  function watchWorkoutsCard() {
+    const d = DEV(), w = d && Array.isArray(d.workouts) ? d.workouts : null;
+    if (!w || !w.length) return "";
+    const v = (x, k, u = "") => (dv(x, k) != null ? fmt(dv(x, k)) : "—") + u;
+    return `<div class="card"><div class="card-h"><h2>Recorded by watch</h2><span class="pill">${d.date === dubaiISO() ? "Today" : esc(longDate(d.date))}</span></div>
+      <div class="list">${w.map((x) => `<div class="li"><b>${x.type_code != null ? "Type " + esc(x.type_code) : "Type — missing"}<span class="muted mono" style="font-weight:400;font-size:.78rem"> · ${x.start ? esc(x.start) : "—"}</span></b><span class="mono">${v(x, "duration_min", " min")}</span>
+        <span class="sub mono" style="font-size:.74rem">HR ${v(x, "avg_hr")} avg · ${v(x, "max_hr")} max · load ${v(x, "load")} · ${v(x, "kcal", " kcal")}${dv(x, "kcal") != null ? " watch estimate" : ""}</span></div>`).join("")}</div>
+      <p class="note">Zepp's type numbers are shown until you confirm their names. Watch calories are never eaten back.</p></div>`;
+  }
+
   // ---------- TODAY ----------
   function timeline(iso) {
     const m = menuMap()[menuLabel(iso)], gym = isGym(iso), s = sessionFor(iso), wkend = ["Sat", "Sun"].includes(dowOf(iso)), sup = supMap();
@@ -569,7 +623,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         <button class="sig" data-explain="sleep">Sleep ${L.sleep != null && isToday ? fmt(L.sleep, 1) + " h" : "—"}</button>
         <button class="sig" data-explain="steps">Steps ${L.steps != null && isToday ? fmt(L.steps) : "—"}</button>
         <button class="sig" data-explain="water">Water ${L.water != null && isToday ? fmt(L.water, 1) + " L" : "—"}</button>
-      </div>`;
+      </div>
+      ${recoveryCard()}`;
   }
   function nextUp(iso) {
     const m = menuMap()[menuLabel(iso)], gym = isGym(iso), s = sessionFor(iso), wk = ["Sat", "Sun"].includes(dowOf(iso)), sup = supMap(), it = [];
@@ -769,7 +824,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       <div class="card"><div class="card-h"><h2>Calories</h2><span class="muted mono" style="font-size:.74rem">${fmt(T.kcal.low)}–${fmt(T.kcal.high)}</span></div>${bars(s, "kcal", "var(--kcal)", { low: T.kcal.low, high: T.kcal.high, floor: T.kcal_floor })}
         <div class="card-h" style="margin:18px 0 14px"><h2>Protein</h2><span class="muted mono" style="font-size:.74rem">${T.protein.low}–${T.protein.high} g</span></div>${bars(s, "protein", "var(--protein)", { low: T.protein.low, high: T.protein.high, floor: T.protein_floor })}</div>
       <div class="card"><div class="card-h"><h2>Steps</h2><span class="muted mono" style="font-size:.74rem">≥ ${fmt(T.steps_min)}</span></div>${bars(s, "steps", "var(--steps)", { low: T.steps_min })}
-        <div class="card-h" style="margin:18px 0 14px"><h2>Sleep</h2><span class="muted mono" style="font-size:.74rem">≥ ${T.sleep_min} h</span></div>${bars(s, "sleep", "var(--sleep)", { low: T.sleep_min, high: 9 })}</div>`;
+        <div class="card-h" style="margin:18px 0 14px"><h2>Sleep</h2><span class="muted mono" style="font-size:.74rem">≥ ${T.sleep_min} h</span></div>${bars(s, "sleep", "var(--sleep)", { low: T.sleep_min, high: 9 })}</div>
+      ${deviceTrendCard()}`;
   }
 
   // ---------- FOOD ----------
@@ -945,6 +1001,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         <p class="note">Every set at the top of the range at RPE 8 or easier → add weight next time.</p>
         <button class="cta" data-logstart="${TRAINSEL}" style="width:100%;margin-top:14px;background:var(--steps);color:#fff">${draftFor(s.id) ? "Resume workout" : "Start workout"}</button>
       </div>
+      ${watchWorkoutsCard()}
       <div class="card"><div class="card-h"><h2>Strength</h2><span class="pill">estimated 1RM</span></div>
         ${D.lifts && D.lifts.length ? `<div class="list">${D.lifts.map((l) => `<div class="li"><div><b>${esc(nice(l.exercise))}</b><div class="muted mono" style="font-size:.76rem">${fmt(l.e1rm, 1)} kg · ${l.e1rm - l.first >= 0 ? "+" : ""}${fmt(l.e1rm - l.first, 1)} since start</div></div><div style="width:110px">${spark(l.points.map((p) => p.e1rm), "var(--steps)", 110, 34)}</div></div>`).join("")}</div>`
           : `<p class="muted" style="margin:0">Appears after your first sessions. Tell Claude your sets, like “bench 70x8, 70x8, 70x7 at RPE 8”.</p>`}</div>`;

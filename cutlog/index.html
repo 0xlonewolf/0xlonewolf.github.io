@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Newsreader:opsz,ital,wght@6..72,0,400;6..72,1,400&display=swap">
 <style>
 /* Concept: a night-first training companion. Three rings for the day's fuel and movement,
    a bento of body signals, and a timeline of the day's plan. Floating glass tab bar. */
@@ -27,6 +27,7 @@
   --tab: rgba(22,25,31,.72);
   --f: "Geist", -apple-system, "SF Pro Text", system-ui, sans-serif;
   --f-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --f-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
   --r-lg: 22px; --r: 16px; --r-sm: 12px;
   color-scheme: dark;
 }
@@ -269,6 +270,66 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 .sheet { position: fixed; z-index: 50; inset: 0; background: rgb(0 0 0 / .5); display: grid; align-items: end; }
 .sheet .panel { background: var(--surface); border-radius: 24px 24px 0 0; padding: 18px max(18px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; max-width: 560px; width: 100%; margin: 0 auto; }
 .sheet textarea { width: 100%; min-height: 260px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); font: 0.85rem/1.5 var(--f-mono); padding: 12px; resize: vertical; }
+/* ---- Editorial Brief (v1 redesign) ---- */
+.eyebrow { font-size: 0.75rem; }
+.brief { display: grid; gap: 12px; padding: 22px 20px; }
+.brief .meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.who { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); }
+.who i { width: 7px; height: 7px; border-radius: 50%; background: var(--protein); }
+.who.calc i { background: transparent; border: 1.5px solid var(--muted); }
+.serif-h { margin: 0; font: 400 1.85rem/1.12 var(--f-serif); letter-spacing: -0.01em; text-wrap: balance; }
+.serif-h em { color: var(--protein); }
+.brief p { margin: 0; color: var(--muted); font-size: 0.95rem; line-height: 1.55; }
+.one { display: flex; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.one .t { flex: 1; display: grid; gap: 3px; }
+.one .t .eyebrow { color: var(--protein); }
+.one .t span:last-child { font-size: 0.98rem; line-height: 1.4; }
+.m3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mt { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: grid; gap: 6px; text-align: left; min-width: 0; }
+.mt .v { font: 300 1.85rem/1 var(--f); letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.mt .u { font-size: 0.75rem; color: var(--muted); }
+.mt .bar { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; margin: 6px 0; }
+.mt .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
+.insight { margin: 0; font-size: 0.82rem; line-height: 1.5; color: var(--muted); padding: 0 2px; }
+.nx { display: grid; grid-template-columns: 48px 1fr auto; gap: 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.nx:first-of-type { border-top: 0; }
+.nx .tm { font: 500 0.78rem var(--f-mono); color: var(--muted); }
+.nx .w { display: grid; min-width: 0; } .nx .w b { font-weight: 500; } .nx .w span { font-size: 0.82rem; color: var(--muted); }
+.btn { min-height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); font: 500 0.82rem var(--f); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
+.btn.train { background: var(--steps); color: #0A0C0F; border-color: var(--steps); font-weight: 600; }
+.chipline { display: flex; gap: 8px; flex-wrap: wrap; }
+.sig { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 0.78rem; color: var(--muted); }
+.sig i { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
+.fab { position: fixed; z-index: 29; right: max(18px, env(safe-area-inset-right, 0px)); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); height: 54px; padding: 0 20px; border-radius: 27px; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; gap: 8px; font: 600 0.95rem var(--f); box-shadow: 0 12px 30px rgb(0 0 0 / .35); }
+.fab svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }
+.tabbar { grid-template-columns: repeat(4, 1fr); }
+/* pane (generic bottom sheet) */
+.pane { position: fixed; z-index: 45; inset: 0; background: rgb(0 0 0 / .5); display: grid; align-items: end; }
+.pane .sheetbox { background: var(--bg); border-top: 1px solid var(--line-2); border-radius: 26px 26px 0 0; max-height: 92vh; overflow-y: auto; padding: 10px max(18px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(18px, env(safe-area-inset-left, 0px)); display: grid; gap: 14px; max-width: 560px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+.grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line-2); justify-self: center; }
+.ph { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.ph h2 { margin: 0; font: 600 1.45rem var(--f); letter-spacing: -0.02em; }
+.sec { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 16px; display: grid; gap: 12px; }
+.sec .lab { font: 500 0.72rem var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.opts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+.opt2 { min-height: 46px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); font: 500 0.9rem var(--f); }
+.opt2[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
+.inp { width: 100%; min-height: 50px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--ink); padding: 0 14px; font: 400 1rem var(--f); box-sizing: border-box; }
+.inp.big { font: 300 2rem var(--f); letter-spacing: -0.03em; text-align: center; }
+.chk { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; min-height: 32px; }
+.chk input { width: 22px; height: 22px; accent-color: var(--protein); }
+.adj { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.linkbtn { color: var(--protein); font: 500 0.88rem var(--f); text-align: left; padding: 4px 0; display: flex; justify-content: space-between; width: 100%; }
+.srcs { display: grid; grid-template-columns: 22px 1fr; gap: 9px 10px; font-size: 0.9rem; line-height: 1.45; }
+.srcs b { font-weight: 600; }
+.serif { font-family: var(--f-serif); }
+.layer { display: grid; grid-template-columns: 30px 1fr; gap: 10px; font-size: 0.9rem; line-height: 1.45; }
+.layer .n { font: 500 0.75rem var(--f-mono); color: var(--muted); }
+.st { font-size: 0.78rem; } .st.wait { color: var(--warn); } .st.done { color: var(--ok); }
+#v-today, #v-food { padding-bottom: 70px; }
+#dateline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.opt2.sm { min-height: 38px; padding: 0 12px; font-size: 0.82rem; }
 .fade { animation: fade .45s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
@@ -279,7 +340,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   <header class="head" id="head" hidden>
     <div class="t"><div class="eyebrow" id="dateline">—</div><h1 id="greet">Hello</h1></div>
     <button class="roundbtn" id="refresh" aria-label="Refresh"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-    <button class="roundbtn avatar" id="settings" aria-label="Connection settings">CL</button>
+    <button class="roundbtn avatar" id="settings" aria-label="You: profile, privacy and settings">CL</button>
   </header>
 
   <section id="v-setup" class="setup" hidden>
@@ -303,12 +364,14 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   </section>
 
   <section id="v-today" hidden></section>
-  <section id="v-trend" hidden></section>
+  <section id="v-progress" hidden></section>
   <section id="v-food" hidden></section>
   <section id="v-train" hidden></section>
-  <section id="v-health" hidden></section>
+
 </div>
 
+<button class="fab" id="fab" hidden aria-label="Log something"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Log</button>
+<div class="pane" id="pane" hidden><div class="sheetbox" id="pane-box" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" role="status" hidden><span id="toast-msg"></span><button id="toast-act" hidden></button></div>
 <div class="rest" id="rest" hidden role="timer" aria-label="Rest timer"><button data-rest="-15" aria-label="15 seconds less">−15</button><span class="clock" id="rest-clock">0:00</span><button data-rest="15" aria-label="15 seconds more">+15</button><button data-rest="skip">Skip</button></div>
 <div class="sheet menu" id="menu" hidden><div class="panel" id="menu-panel"></div></div>
@@ -322,10 +385,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 
 <nav class="tabbar" id="tabs" role="tablist" hidden>
   <button role="tab" data-tab="today" aria-selected="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>Today</button>
-  <button role="tab" data-tab="trend" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Trend</button>
-  <button role="tab" data-tab="food" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 11h14a7 7 0 0 1-14 0z"/><path d="M8 7c0-1.5 1-2 1-3M12 7c0-1.5 1-2 1-3M16 7c0-1.5 1-2 1-3"/></svg>Food</button>
   <button role="tab" data-tab="train" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 10v4M20.5 10v4M6.5 12h11"/></svg>Train</button>
-  <button role="tab" data-tab="health" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M8 11h2l1-2 2 4 1-2h2"/></svg>Health</button>
+  <button role="tab" data-tab="food" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 11h14a7 7 0 0 1-14 0z"/><path d="M8 7c0-1.5 1-2 1-3M12 7c0-1.5 1-2 1-3M16 7c0-1.5 1-2 1-3"/></svg>Food</button>
+  <button role="tab" data-tab="progress" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Progress</button>
 </nav>
 
 <script>
@@ -380,16 +442,17 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   }
 
   function showSetup(err) {
-    ["today", "trend", "food", "train", "health"].forEach((t) => ($(`#v-${t}`).hidden = true));
-    $("#v-setup").hidden = false; $("#tabs").hidden = true; $("#head").hidden = !D;
+    ["today", "train", "food", "progress"].forEach((t) => ($(`#v-${t}`).hidden = true));
+    $("#v-setup").hidden = false; $("#tabs").hidden = true; $("#fab").hidden = true; $("#pane").hidden = true; $("#head").hidden = !D;
     const c = store.get();
     if (c.repo) $("#f-repo").value = c.repo;
     $("#forget").hidden = !c.token;
     $("#setup-err").hidden = !err; $("#setup-err").textContent = err || "";
   }
   function showTab(t) {
-    TAB = t; $("#v-setup").hidden = true;
-    ["today", "trend", "food", "train", "health"].forEach((x) => ($(`#v-${x}`).hidden = x !== t));
+    if (t === "trend" || t === "health") t = "progress";
+    TAB = t; $("#v-setup").hidden = true; $("#fab").hidden = !(t === "today" || t === "food");
+    ["today", "train", "food", "progress"].forEach((x) => ($(`#v-${x}`).hidden = x !== t));
     document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
     try { localStorage.setItem(KEY + ".tab", t); } catch {}
     const v = $(`#v-${t}`); v.classList.remove("fade"); void v.offsetWidth; v.classList.add("fade");
@@ -446,73 +509,194 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
       <div class="body"><b>${esc(x.b)}</b><span>${esc(x.s)}</span>${x.kv ? `<span class="kv">${esc(x.kv)}</span>` : ""}</div></div>`).join("")}</div>`;
   }
 
-  function viewToday() {
-    const T = D.targets, today = dubaiISO(), sel = SEL || today, sm = seriesMap(), day = sm[sel] || {};
-    const L = D.latest && D.latest.date === sel ? D.latest : null;
-    const kcal = L ? L.kcal : day.kcal, prot = L ? L.protein : day.protein, steps = L ? L.steps : day.steps;
-    const mon = mondayOf(today);
-    const strip = Array.from({ length: 7 }, (_, i) => addDays(mon, i)).map((iso) => {
-      const s = sm[iso], logged = s && (s.weight != null || s.kcal != null);
-      return `<button class="wd ${iso === today ? "today" : ""}" data-day="${iso}" aria-pressed="${iso === sel}" aria-label="${longDate(iso)}"><span class="l">${dowOf(iso).slice(0, 1)}</span><span class="n">${+iso.slice(8)}</span>
-        <span class="dots">${logged ? '<i class="log"></i>' : ""}${isGym(iso) ? '<i class="gym"></i>' : ""}${!logged && !isGym(iso) ? "<i></i>" : ""}</span></button>`;
-    }).join("");
-    const rings = [
-      { c: "var(--kcal)", p: (kcal || 0) / T.kcal.best, k: "Calories", v: kcal, t: fmt(T.kcal.best), u: "kcal" },
-      { c: "var(--protein)", p: (prot || 0) / T.protein.best, k: "Protein", v: prot, t: fmt(T.protein.best), u: "g" },
-      { c: "var(--steps)", p: (steps || 0) / T.steps_min, k: "Steps", v: steps, t: fmt(T.steps_min), u: "" },
-    ];
-    const tr = D.trend, avg = tr.avg7, start = D.start_weight_kg, goal = D.goal_kg;
-    const lost = avg != null && start != null ? Math.max(0, start - avg) : 0, pct = start && goal ? Math.min(100, (lost / (start - goal)) * 100) : 0;
-    const sleeps = (D.series || []).slice(-7).map((s) => s.sleep);
-    const cov = D.week7.nutrition, logged7 = (D.series || []).slice(-7).map((s) => s.complete);
-    const rec = D.recovery, noData = !D.latest.date;
-    const inBand = tr.change != null && -tr.change >= T.loss_band.low && -tr.change <= T.loss_band.high;
-    const status = L ? (L.complete ? ["ok", "Day complete"] : ["", "In progress"]) : day.complete ? ["ok", "Day complete"] : ["", sel > today ? "Upcoming" : "Not logged"];
-    return `
-      <div class="week">${strip}</div>
-      ${noData ? `<div class="card" style="display:grid;gap:10px;background:linear-gradient(150deg,color-mix(in srgb,var(--kcal) 20%,var(--surface)),var(--surface) 65%)">
-        <div class="eyebrow">Day one</div><div style="font:600 1.4rem/1.2 var(--f);letter-spacing:-.025em">Tomorrow the plan starts.</div>
-        <p class="muted" style="margin:0">Weigh in after the toilet, before food or drink. Send Claude the number, your Zepp screenshots and how you feel from 1 to 5.</p>
-        <a class="cta" href="https://claude.ai/code" target="_blank" rel="noopener" style="margin-top:4px">Open Claude</a></div>` : ""}
-      <div class="card">
-        <div class="card-h"><h2>${sel === today ? "Today" : longDate(sel)}</h2><span class="pill ${status[0]}">${status[1]}</span></div>
-        <div class="rings">${ringSVG(rings)}<div class="legend">${rings.map((r) => `<div class="lg"><span class="k"><i style="background:${r.c}"></i>${r.k}</span>
-          <span class="v">${r.v != null ? fmt(r.v) : "—"}<small> / ${r.t}${r.u ? " " + r.u : ""}</small></span></div>`).join("")}</div></div>
-      </div>
-      <div class="card"><div class="card-h"><h2>Check in</h2><span class="muted" style="font-size:.75rem">fill · copy · send to Claude</span></div>
-        <div class="tpl">
-          <button data-tpl="morning" style="--c:var(--kcal)"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="4"/><path d="M12 3v3M4.9 7.9l2 2M19.1 7.9l-2 2M3 17h18"/></svg></i>Morning</button>
-          <button data-tpl="meal" style="--c:var(--protein)"><i><svg viewBox="0 0 24 24"><path d="M5 11h14a7 7 0 0 1-14 0z"/></svg></i>Meal</button>
-          <button data-tpl="gym" style="--c:var(--steps)"><i><svg viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 10v4M20.5 10v4M6.5 12h11"/></svg></i>Gym</button>
-          <button data-tpl="night" style="--c:var(--sleep)"><i><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></i>Night</button>
-          <button data-tpl="day" style="--c:var(--ink)"><i><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></i>Full day</button>
-        </div></div>
-      <div class="bento">
-        <div class="tile wide">
-          <div class="row"><span class="eyebrow">Trend weight</span>${tr.change != null ? `<span class="pill ${inBand ? "ok" : "warn"}">${tr.change > 0 ? "+" : ""}${tr.change.toFixed(2)} kg / week</span>` : `<span class="pill">trend after 2 weeks</span>`}</div>
-          <div class="row" style="align-items:flex-end"><div class="hero-num">${avg != null ? fmt(avg, 1) : fmt(start, 0) ?? "—"}<small>kg</small></div>
-            <div class="muted" style="text-align:right;font-size:.8rem;line-height:1.5">${D.latest.weight != null ? `Scale <b class="mono" style="color:var(--ink)">${fmt(D.latest.weight, 1)}</b>` : avg == null ? "Start weight (you said)" : "Scale today —"}<br>Goal <b class="mono" style="color:var(--ink)">${goal}</b> kg</div></div>
-          ${spark((D.series || []).slice(-30).map((s) => s.avg7), "var(--protein)")}
-          <div class="goalbar" role="img" aria-label="${fmt(pct)}% of the way to goal"><i style="width:${pct}%"></i></div>
-          <div class="row muted" style="font-size:.76rem"><span>${fmt(lost, 1)} kg lost</span><span>${fmt(Math.max(0, (avg ?? start) - goal), 1)} kg to go</span></div>
-        </div>
-        <div class="tile"><span class="eyebrow">Sleep</span>
-          <div class="big">${D.latest.sleep != null ? fmt(D.latest.sleep, 1) : "—"}<small>h</small></div>
-          <div class="mini">${(sleeps.length ? sleeps : Array(7).fill(null)).map((v) => `<i class="${v == null ? "empty" : ""}" style="height:${v == null ? 3 : Math.max(6, (v / 9) * 34)}px"></i>`).join("")}</div>
-          <span class="muted" style="font-size:.74rem">Target ${T.sleep_min}+ h</span></div>
-        <div class="tile"><span class="eyebrow">Recovery</span>
-          <div class="big" style="font-size:1.35rem;letter-spacing:-.02em;margin:4px 0 2px">${rec.status === "ok" ? (rec.flags && rec.flags.length ? "Go easy" : "Ready") : "Learning"}</div>
-          <span class="muted" style="font-size:.76rem">${rec.status === "ok" ? `RHR ${rec.rhr_delta > 0 ? "+" : ""}${fmt(rec.rhr_delta, 0)} bpm · HRV ${rec.hrv_delta_pct > 0 ? "+" : ""}${fmt(rec.hrv_delta_pct, 0)}%` : "14 days of Zepp data sets your baseline."}</span>
-          ${(rec.flags || []).map((f) => `<span class="pill warn" style="white-space:normal">${esc(f)}</span>`).join("")}</div>
-        <div class="tile"><span class="eyebrow">Water</span><div class="big">${D.latest.water != null ? fmt(D.latest.water, 1) : "—"}<small>L</small></div>
-          <span class="muted" style="font-size:.74rem">Target ${T.water[0]}–${T.water[1]} L</span></div>
-        <div class="tile"><span class="eyebrow">Food logged</span><div class="big">${cov.complete_days}<small>/ 7</small></div>
-          <div class="dots7">${Array.from({ length: 7 }, (_, i) => `<i class="${logged7[i] ? "on" : ""}"></i>`).join("")}</div></div>
-      </div>
-      <div class="card"><div class="card-h"><h2>${sel === today ? "Today's plan" : "Plan · " + longDate(sel)}</h2><span class="pill">${isGym(sel) ? "Gym day" : ["Sat", "Sun"].includes(dowOf(sel)) ? "Weekend" : "Rest day"}</span></div>${timeline(sel)}</div>
-      ${D.latest.missing && D.latest.missing.length && D.latest.date === today ? `<div class="card"><div class="card-h"><h2>Still to log</h2></div><div class="row" style="justify-content:flex-start;gap:6px">${D.latest.missing.map((m) => `<span class="pill">${esc(nice(m))}</span>`).join("")}</div>
-        <a class="cta" style="margin-top:14px;width:100%" href="https://claude.ai/code" target="_blank" rel="noopener">Log with Claude</a></div>` : ""}`;
+  // ---------- brief, one thing, explanations ----------
+  const coachFresh = () => { const c = D.coach; if (!c || !c.written_at) return null; const t = new Date(c.written_at.replace(" ", "T") + ":00+04:00"); return (Date.now() - t) / 36e5 <= 36 ? c : null; };
+  function calcBrief() {
+    const T = D.targets, tr = D.trend, L = D.latest, today = dubaiISO();
+    if (!L.date) return { title: "Day one. Start with the scale.", body: "Weigh in after the toilet, before food or drink. Everything else builds from that number." };
+    const parts = [];
+    if (tr.change != null) parts.push(`Your trend moved ${tr.change > 0 ? "+" : ""}${tr.change.toFixed(2)} kg this week (target −${T.loss_band.low} to −${T.loss_band.high}).`);
+    else parts.push(`Trend needs ${tr.avg7 == null ? "4 weigh-ins in 7 days" : "two weeks of weigh-ins"} before it means much.`);
+    if (L.date === today && L.protein != null) parts.push(`Protein so far: ${fmt(L.protein)} of ${T.protein.best} g.`);
+    return { title: L.date === today && L.weight != null ? "Logged in. Here's where you stand." : "New day. Start with the scale.", body: parts.join(" ") };
   }
+  function oneThing() {
+    const c = coachFresh(); if (c && c.one_thing) return { text: c.one_thing, who: "coach" };
+    const L = D.latest, today = dubaiISO(), h = dubaiHour(), m = menuMap()[menuLabel(today)], s = sessionFor(today);
+    if (L.date !== today || L.weight == null) return { text: h < 12 ? "Weigh in now: after the toilet, before food or drink." : "Log today's weight if you weighed in this morning.", who: "rule", act: "log" };
+    if (m && m.addon && h < 20) return { text: `Plan the add-on: ${m.addon.items}.`, who: "rule" };
+    if (s && h < 18) return { text: `${s.name.split(" (")[0]} at 18:00. Pre-gym snack around 16:30.`, who: "rule" };
+    return { text: "Log what you ate so today's numbers are complete.", who: "rule", act: "log" };
+  }
+  function outbox() { try { return JSON.parse(localStorage.getItem(KEY + ".outbox")) || []; } catch { return []; } }
+  function setOutbox(v) { try { localStorage.setItem(KEY + ".outbox", JSON.stringify(v.slice(-30))); } catch {} }
+  function entryStatus(x) { const gen = new Date((D.generated_at || "").replace(" ", "T") + ":00+04:00"); return gen > new Date(x.at) ? "done" : "wait"; }
+
+  function viewToday() {
+    const T = D.targets, today = dubaiISO(), L = D.latest, isToday = L.date === today, tr = D.trend;
+    const c = coachFresh(), brief = c ? { title: c.title, body: c.body } : calcBrief(), one = oneThing();
+    const waiting = outbox().filter((x) => x.date === today && entryStatus(x) === "wait").length;
+    const prot = isToday ? L.protein : null, kcal = isToday ? L.kcal : null;
+    const hl = esc(brief.title || "").replace(/\b(protein|sleep|steps|trend|scale)\b/i, "<em>$1</em>");
+    const nowMin = dubaiHour() * 60 + +new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dubai", minute: "2-digit" }).format(new Date());
+    const items = nextUp(today).filter((x) => { const [hh, mm] = x.t.split(":").map(Number); return hh * 60 + mm >= nowMin - 60; }).slice(0, 3);
+    const ins = (D.insights || [])[0];
+    return `
+      ${waiting ? `<div><button class="sig" data-open-pane="entries"><i></i>${waiting} sent to your coach · waiting</button></div>` : ""}
+      <section class="card brief" aria-label="Daily brief">
+        <div class="meta"><span class="eyebrow">Daily brief</span><span class="who ${c ? "" : "calc"}"><i></i>${c ? "Coach · " + esc((c.written_at || "").slice(11)) : "Calculated · no coach note yet"}</span></div>
+        <h2 class="serif-h">${hl}</h2>
+        <p>${esc(brief.body || "")}</p>
+        <div class="one"><span class="t"><span class="eyebrow">→ One thing</span><span>${esc(one.text)}</span></span>${one.act === "log" ? `<button class="btn primary" data-open-pane="log">Log</button>` : ""}</div>
+      </section>
+      <div class="m3">
+        <button class="mt" data-explain="trend"><span class="eyebrow">□ Trend</span><span class="v">${tr.avg7 != null ? fmt(tr.avg7, 1) : isToday && L.weight != null ? fmt(L.weight, 1) : "—"}</span>${spark((D.series || []).slice(-21).map((x) => x.avg7), "var(--protein)", 100, 22) || '<span class="bar"><i style="--c:var(--protein);width:0"></i></span>'}<span class="u">${tr.avg7 != null ? "kg · 7-day avg" : isToday && L.weight != null ? "kg · today's scale" : "kg · log a weigh-in"}</span></button>
+        <button class="mt" data-explain="protein"><span class="eyebrow">■ Protein</span><span class="v">${prot != null ? fmt(prot) : "—"}</span><span class="bar"><i style="--c:var(--protein);width:${Math.min(100, ((prot || 0) / T.protein.best) * 100)}%"></i></span><span class="u">of ${T.protein.best} g</span></button>
+        <button class="mt" data-explain="kcal"><span class="eyebrow">■ Kcal</span><span class="v">${kcal != null ? fmt(kcal) : "—"}</span><span class="bar"><i style="--c:var(--kcal);width:${Math.min(100, ((kcal || 0) / T.kcal.best) * 100)}%"></i></span><span class="u">of ${fmt(T.kcal.best)}</span></button>
+      </div>
+      ${ins ? `<p class="insight">□ ${esc(ins.text)}</p>` : ""}
+      <section class="card"><div class="card-h"><h2>Next up</h2><span class="pill">${isGym(today) ? "Gym day" : ["Sat", "Sun"].includes(dowOf(today)) ? "Weekend" : "Rest day"}</span></div>
+        ${items.length ? items.map((x) => `<div class="nx"><span class="tm">${x.t}</span><span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span></span>${x.act === "meal" ? `<button class="btn" data-open-pane="log">Log</button>` : x.act === "gym" ? `<button class="btn train" data-go-train>Start</button>` : ""}</div>`).join("") : `<p class="muted" style="margin:0;font-size:.9rem">Nothing else planned today. Wind down for 7+ hours of sleep.</p>`}
+        <button class="linkbtn" data-open-pane="day" style="margin-top:6px">Whole day plan<span>›</span></button>
+      </section>
+      <div class="chipline">
+        <button class="sig" data-explain="sleep">Sleep ${L.sleep != null && isToday ? fmt(L.sleep, 1) + " h" : "—"}</button>
+        <button class="sig" data-explain="steps">Steps ${L.steps != null && isToday ? fmt(L.steps) : "—"}</button>
+        <button class="sig" data-explain="water">Water ${L.water != null && isToday ? fmt(L.water, 1) + " L" : "—"}</button>
+      </div>`;
+  }
+  function nextUp(iso) {
+    const m = menuMap()[menuLabel(iso)], gym = isGym(iso), s = sessionFor(iso), wk = ["Sat", "Sun"].includes(dowOf(iso)), sup = supMap(), it = [];
+    it.push({ t: "07:00", b: "Weigh in", s: "After the toilet, before food or drink" });
+    it.push({ t: "13:00", b: m ? "Lunch" : wk ? "Lunch out" : "Lunch", s: m ? stripId(m.lunch) : "Grilled protein, one carb, sauce on the side", act: "meal" });
+    if (gym && s) {
+      it.push({ t: "16:30", b: "Pre-gym snack", s: "Banana + eggs if lunch was 5+ h ago" });
+      it.push({ t: "18:00", b: s.name.split(" (")[0], s: `${s.exercises.length} exercises${/upper/.test(s.id) ? " + 20 min incline walk" : ""}`, act: "gym" });
+      if (sup.whey) it.push({ t: "19:30", b: "Shake", s: "2 scoops Isopure + 3 g creatine", act: "meal" });
+    }
+    it.push({ t: "20:30", b: m ? "Dinner + add-on" : "Dinner", s: m ? stripId(m.dinner) + (m.addon ? " · " + m.addon.items : "") : "Photo every plate", act: "meal" });
+    it.push({ t: "21:00", b: "Supplements", s: "Vitamin D3 + multivitamin" });
+    it.push({ t: "22:30", b: "Wind down", s: "Aim for 7+ hours" });
+    return it;
+  }
+
+  const EXPLAIN = {
+    trend: { title: "Trend weight", what: "The average of your last 7 morning weigh-ins. Daily weight swings up to 1.5 kg with water, salt and carbs; the average shows the real direction.", src: [["■", "Measured", "Scale weigh-ins, mornings."], ["□", "Calculated", "7-day average and weekly change. Needs 4+ weigh-ins in 7 days."]] },
+    protein: { title: "Protein", what: "Keeps your muscle while you lose fat. Your target is 150–175 g a day; never below 140 g.", src: [["■", "Label", "Meal-plan nutrition from the provider."], ["≈", "Estimate", "Add-ons and anything without a label, as a range."]] },
+    kcal: { title: "Calories", what: "Energy eaten. Your target is 1,900–2,100 kcal; the floor is 1,750. Zepp's 'calories burned' is never added back.", src: [["■", "Label", "Meal-plan nutrition."], ["≈", "Estimate", "Everything else, as a range."]] },
+    sleep: { title: "Sleep", what: "Hours asleep from your Zepp strap. Under 6 hours means an easier gym session; the target is 7+.", src: [["■", "Device", "Amazfit Helio via Zepp screenshots."]] },
+    steps: { title: "Steps", what: "Daily movement outside the gym. Target 8,000 now, rising to 10,000 from week 5.", src: [["■", "Device", "Zepp."]] },
+    water: { title: "Water", what: "2.5–3.5 L a day, plus 0.5–1 L per hour of training. Dubai heat counts.", src: [["■", "You said", "What you log."]] },
+  };
+  function explainPane(k) {
+    const e = EXPLAIN[k], L = D.latest, T = D.targets, tr = D.trend, s = (D.series || []).slice(-30);
+    const yours = k === "trend" ? `<div style="display:flex;align-items:baseline;gap:8px"><span style="font:300 3rem/1 var(--f);letter-spacing:-.05em">${tr.avg7 != null ? fmt(tr.avg7, 1) : "—"}</span><span class="muted">kg</span>${tr.change != null ? `<span class="pill ${-tr.change >= T.loss_band.low && -tr.change <= T.loss_band.high ? "ok" : "warn"}" style="margin-left:auto">${tr.change > 0 ? "+" : ""}${tr.change.toFixed(2)} kg/wk</span>` : ""}</div>${weightChart(s)}`
+      : k === "protein" ? bars(s, "protein", "var(--protein)", { low: T.protein.low, high: T.protein.high, floor: T.protein_floor })
+      : k === "kcal" ? bars(s, "kcal", "var(--kcal)", { low: T.kcal.low, high: T.kcal.high, floor: T.kcal_floor })
+      : k === "sleep" ? bars(s, "sleep", "var(--sleep)", { low: T.sleep_min, high: 9 })
+      : k === "steps" ? bars(s, "steps", "var(--steps)", { low: T.steps_min }) : `<p class="muted" style="margin:0">Today: ${L.water != null ? fmt(L.water, 1) + " L" : "— missing"}</p>`;
+    const q = k === "trend" ? `What does my trend say this week? Trend ${tr.avg7 ?? "n/a"} kg, change ${tr.change ?? "n/a"} kg/wk, food logged ${D.week7.nutrition.coverage_pct}%.` : `Explain my ${e.title.toLowerCase()} today: ${k === "protein" ? (L.protein ?? "n/a") + " g" : k === "kcal" ? (L.kcal ?? "n/a") + " kcal" : ""}.`;
+    return `<div class="grab"></div><div class="ph"><span class="eyebrow">1 · What it is</span><button class="btn" data-close-pane>Close</button></div>
+      <h2 style="margin:0;font:600 1.6rem var(--f);letter-spacing:-.02em">${e.title}</h2>
+      <p class="serif" style="margin:0;font-size:1.12rem;line-height:1.45">${e.what}</p>
+      <div style="display:grid;gap:10px;padding-top:12px;border-top:1px solid var(--line)"><span class="eyebrow">2 · Yours</span>${yours}</div>
+      <div style="display:grid;gap:10px;padding-top:12px;border-top:1px solid var(--line)"><span class="eyebrow">Where it comes from</span><div class="srcs">${e.src.map((x) => `<span>${x[0]}</span><span><b>${x[1]}.</b> <span class="muted">${x[2]}</span></span>`).join("")}</div></div>
+      <button class="cta" data-ask="${esc(q)}" style="width:100%">Ask your coach about this</button>
+      <span class="muted" style="font-size:.78rem;text-align:center">Copies a question with these numbers. Nothing else is shared.</span>`;
+  }
+
+  // ---------- log pane ----------
+  const LD_KEY = KEY + ".logdraft";
+  function ld() { try { const d = JSON.parse(localStorage.getItem(LD_KEY)); if (d && d.date === dubaiISO()) return d; } catch {} return { date: dubaiISO(), weight: "", feel: "", meal: dubaiHour() < 16 ? "lunch" : "dinner", ate: "", addon: true, adj: false, portion: "", sauce: "", out: "", added: "", water: 0, sup: {}, free: "" }; }
+  function saveLd(d) { try { localStorage.setItem(LD_KEY, JSON.stringify(d)); } catch {} }
+  let LD = null;
+  function logPane() {
+    LD = LD || ld();
+    const today = dubaiISO(), L = D.latest, m = menuMap()[menuLabel(today)], planned = m ? stripId(LD.meal === "lunch" ? m.lunch : m.dinner) : null;
+    const weighed = L.date === today && L.weight != null;
+    const o = (f, v, label) => `<button class="opt2" data-ld="${f}" data-v="${esc(v)}" aria-pressed="${String(LD[f]) === String(v)}">${label}</button>`;
+    return `<div class="grab"></div>
+      <div class="ph"><h2>Log</h2><button class="btn" data-close-pane>Close</button></div>
+      <section class="sec"><span class="lab">Weigh-in</span>
+        ${weighed ? `<span class="st done">✓ ${fmt(L.weight, 1)} kg is in your records</span>` : `<input class="inp big" inputmode="decimal" placeholder="kg" data-ldi="weight" value="${esc(LD.weight)}" aria-label="Weight in kg">
+        <span class="lab" style="margin-top:2px">How do you feel? (1 low – 5 great)</span><div class="opts">${[1, 2, 3, 4, 5].map((n) => o("feel", n, n)).join("")}</div>`}
+      </section>
+      <section class="sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="lab">${LD.meal === "lunch" ? "Lunch" : "Dinner"}${planned ? " · on your plan" : ""}</span><span class="opts" style="grid-auto-columns:auto">${o("meal", "lunch", "Lunch").replace('class="opt2"', 'class="opt2 sm"')}${o("meal", "dinner", "Dinner").replace('class="opt2"', 'class="opt2 sm"')}</span></div>
+        ${planned ? `<b style="font-weight:600">${esc(planned)}</b>` : `<span class="muted" style="font-size:.88rem">No plan meal today: describe it below or attach a photo in Claude.</span>`}
+        ${planned ? `<div class="opts">${o("ate", "all", "All")}${o("ate", "most", "Most ¾")}${o("ate", "half", "Half")}${o("ate", "none", "Skipped")}</div>
+        ${m && m.addon && LD.meal === "dinner" ? `<label class="chk"><input type="checkbox" data-ldc="addon" ${LD.addon ? "checked" : ""}>With the add-on: ${esc(m.addon.items)}</label>` : ""}
+        <button class="linkbtn" data-ld-toggle>${LD.adj ? "Hide adjustments" : "Sauce, extras, amount"}<span>${LD.adj ? "−" : "Adjust ›"}</span></button>
+        ${LD.adj ? `<div class="adj"><span class="lab">How much</span><div class="opts">${["¼", "½", "¾", "1", "1½"].map((v) => o("portion", v, v)).join("")}</div>
+          <span class="lab">Sauce or dressing</span><div class="opts">${o("sauce", "none", "None")}${o("sauce", "some", "Some")}${o("sauce", "lots", "Lots")}${o("sauce", "unsure", "Not sure")}</div>
+          <label class="lab" for="ld-out">Left out</label><input class="inp" id="ld-out" data-ldi="out" placeholder="e.g. half the bread, no cheese" value="${esc(LD.out)}">
+          <label class="lab" for="ld-add">Added</label><input class="inp" id="ld-add" data-ldi="added" placeholder="e.g. 1 tbsp tahini, small fries" value="${esc(LD.added)}"></div>` : ""}` : ""}
+      </section>
+      <section class="sec"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lab">Water</span><span style="font:300 1.6rem var(--f)">+${(LD.water / 1000).toFixed(2)} <span class="muted" style="font-size:.85rem">L to add</span></span></div>
+        <div class="opts"><button class="opt2" data-water="250">+250 ml</button><button class="opt2" data-water="500">+500 ml</button><button class="opt2" data-water="0">Reset</button></div></section>
+      <section class="sec"><span class="lab">Supplements taken</span>${[["brahmi", "Brahmi (morning)"], ["d3", "Vitamin D3"], ["multi", "Multivitamin"], ["shake", "Shake: 2 scoops Isopure + 3 g creatine"]].map(([k, l]) => `<label class="chk"><input type="checkbox" data-sup="${k}" ${LD.sup[k] ? "checked" : ""}>${l}</label>`).join("")}</section>
+      <section class="sec"><label class="lab" for="ld-free">Something not on the plan</label><input class="inp" id="ld-free" data-ldi="free" placeholder="“Karak and 2 dates at 4pm”" value="${esc(LD.free)}">
+        <span class="muted" style="font-size:.8rem">Plain words are fine. Attach photos in Claude. You'll get ranges, not guesses.</span></section>
+      <button class="cta" data-ld-send style="width:100%;min-height:54px">Copy for your coach</button>
+      <button class="linkbtn" data-open-pane="templates" style="justify-content:center;gap:6px">Workout or full-day template ›</button>`;
+  }
+  function ldMessage() {
+    const d = LD, today = dubaiISO(), m = menuMap()[menuLabel(today)], lines = [];
+    if (d.weight) lines.push(`MORNING ${today}`, `Weight (kg): ${num(d.weight)}`, `Feel (1-5): ${d.feel}`);
+    if (d.ate) {
+      const planned = m ? stripId(d.meal === "lunch" ? m.lunch : m.dinner) : "";
+      lines.push(`MEAL ${today} ${d.meal}`, `What: ${planned ? "plan meal (" + planned + ")" : "see notes"}`, `Ate: ${d.ate}${d.portion ? " (portion " + d.portion + ")" : ""}`);
+      if (d.sauce) lines.push(`Sauce/dressing: ${d.sauce}`);
+      if (d.out) lines.push(`Left out: ${d.out}`);
+      if (d.added) lines.push(`Added: ${d.added}`);
+      if (d.meal === "dinner" && m && m.addon) lines.push(`Add-on eaten: ${d.addon ? m.addon.items : "no"}`);
+    }
+    const sups = Object.entries(d.sup).filter(([, v]) => v).map(([k]) => k);
+    if (d.water || sups.length || d.free) lines.push(`NOTE ${today}`);
+    if (d.water) lines.push(`Water: +${(d.water / 1000).toFixed(2)} L`);
+    if (sups.length) lines.push(`Supplements taken: ${sups.join(", ")}`);
+    if (d.free) lines.push(`Also: ${d.free}`);
+    return lines.length ? lines.join("\n") + "\n(sent from Cut Log)" : "";
+  }
+  function entriesPane() {
+    const ob = outbox().slice().reverse();
+    return `<div class="grab"></div><div class="ph"><h2>Sent to your coach</h2><button class="btn" data-close-pane>Close</button></div>
+      <p class="muted" style="margin:0;font-size:.85rem;line-height:1.5">"Waiting" until your coach updates your records. Mistake? Send a correction ("fix today's weight, it was 84.2"): the original is kept with the reason.</p>
+      ${ob.length ? ob.map((x) => `<section class="sec"><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-weight:600">${esc(x.title)}</b><span class="st ${entryStatus(x)}">${entryStatus(x) === "done" ? "✓ Processed" : "● Waiting"}</span></div><span class="muted" style="font-size:.8rem;white-space:pre-line">${esc(x.text)}</span></section>`).join("") : `<p class="muted">Nothing sent from this phone yet.</p>`}`;
+  }
+  function dayPane() {
+    return `<div class="grab"></div><div class="ph"><h2>Today's plan</h2><button class="btn" data-close-pane>Close</button></div><section class="card">${timeline(dubaiISO())}</section>`;
+  }
+  function templatesPane() {
+    return `<div class="grab"></div><div class="ph"><h2>Templates</h2><button class="btn" data-close-pane>Close</button></div>
+      <div class="tpl">
+        <button data-tpl="morning" style="--c:var(--kcal)"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="4"/><path d="M12 3v3M4.9 7.9l2 2M19.1 7.9l-2 2M3 17h18"/></svg></i>Morning</button>
+        <button data-tpl="meal" style="--c:var(--protein)"><i><svg viewBox="0 0 24 24"><path d="M5 11h14a7 7 0 0 1-14 0z"/></svg></i>Meal</button>
+        <button data-tpl="gym" style="--c:var(--steps)"><i><svg viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 10v4M20.5 10v4M6.5 12h11"/></svg></i>Gym</button>
+        <button data-tpl="night" style="--c:var(--sleep)"><i><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></i>Night</button>
+        <button data-tpl="day" style="--c:var(--ink)"><i><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></i>Full day</button>
+      </div>`;
+  }
+  function themePref() { try { return localStorage.getItem(KEY + ".theme") || "system"; } catch { return "system"; } }
+  function applyTheme(t) { if (t === "system") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", t); try { localStorage.setItem(KEY + ".theme", t); } catch {} }
+  function youPane() {
+    const th = themePref();
+    return `<div class="grab"></div><div class="ph"><h2>${esc((D.name || "You").split(" ")[0])}</h2><button class="btn" data-close-pane>Close</button></div>
+      <span class="muted" style="font-size:.88rem">${esc(String(D.start_weight_kg))} → ${esc(String(D.goal_kg))}–74 kg · 4 gym days after 18:00 · Dubai</span>
+      <section class="sec"><span class="lab">How Cut Log works</span>
+        <div class="layer"><span class="n">01</span><span><b>Interface.</b> <span class="muted">This app. Shows what's happening.</span></span>
+        <span class="n" style="color:var(--protein)">02</span><span><b>Intelligence.</b> <span class="muted">Your coach (Claude) explains and suggests. Always labelled and timed.</span></span>
+        <span class="n">03</span><span><b>Source of truth.</b> <span class="muted">Your private repo. Every change is kept with its reason.</span></span></div></section>
+      <section class="sec"><span class="lab">Your coach</span><span style="font-size:.9rem;line-height:1.5">One brief a day after your weigh-in. Questions only when the answer changes a meal by 100+ kcal or 10+ g protein, at most 2 a day. No notifications.</span></section>
+      <section class="sec"><span class="lab">Appearance</span><div class="opts">${["system", "dark", "light"].map((t) => `<button class="opt2" data-theme-set="${t}" aria-pressed="${th === t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div></section>
+      <section class="sec"><span class="lab">Privacy · this phone</span><span style="font-size:.88rem;line-height:1.5" class="muted">Everything lives in your private repo. This phone holds a read-only token and can't change your records; messages go through Claude.</span>
+        <button class="btn" data-setup style="justify-self:start">Connection settings</button></section>
+      <span class="muted" style="font-size:.78rem;line-height:1.5">Your coach is an AI. It doesn't diagnose or change doses. Chest pain, fainting or unusual breathlessness: see a doctor promptly.</span>`;
+  }
+  function openPane(kind, arg) {
+    const html = kind === "log" ? logPane() : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : youPane();
+    $("#pane-box").innerHTML = html; $("#pane").hidden = false; $("#pane").dataset.kind = kind; $("#pane-box").scrollTop = 0;
+  }
+  function closePane() { $("#pane").hidden = true; }
 
   // ---------- TREND ----------
   function weightChart(series) {
@@ -817,24 +1001,43 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const h = dubaiHour(), first = (D.name || "").split(" ")[0];
     $("#greet").textContent = `${h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"}${first ? ", " + first : ""}`;
     const gen = new Date((D.generated_at || "").replace(" ", "T") + ":00+04:00"), ageH = (Date.now() - gen) / 36e5;
-    $("#dateline").innerHTML = `${esc(longDate(dubaiISO()))} · ${D.plan.week ? "Wk " + D.plan.week : "Day 0"} · <span class="${ageH > 36 ? "stale" : ""}" title="Last coach update">${ageH > 36 ? "synced " + Math.floor(ageH / 24) + "d ago" : "synced " + esc((D.generated_at || "").slice(11))}</span>`;
+    $("#dateline").innerHTML = `${esc(longDate(dubaiISO()))} · ${D.plan.week ? "Wk " + D.plan.week : "Day 0"} · <span class="${ageH > 36 ? "stale" : ""}" title="Last coach update">${ageH > 36 ? "updated " + Math.floor(ageH / 24) + "d ago" : "↻ " + esc((D.generated_at || "").slice(11))}</span>`;
     $("#settings").textContent = (D.name || "Cut Log").split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
     $("#v-today").innerHTML = wrapV(viewToday());
-    $("#v-trend").innerHTML = wrapV(viewTrend());
+    $("#v-progress").innerHTML = wrapV(viewTrend() + viewHealth());
     $("#v-food").innerHTML = wrapV(viewFood());
     $("#v-train").innerHTML = wrapV(viewTrain());
-    $("#v-health").innerHTML = wrapV(viewHealth());
     $("#head").hidden = false; $("#tabs").hidden = false;
+    if (!$("#pane").hidden && $("#pane").dataset.kind === "entries") openPane("entries");
     showTab(TAB);
   }
 
   $("#tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
   document.addEventListener("click", (e) => {
     const d = e.target.closest("[data-day]"); if (d) { SEL = d.dataset.day; $("#v-today").innerHTML = wrapV(viewToday()); requestAnimationFrame(() => requestAnimationFrame(animateRings)); return; }
-    const r = e.target.closest("[data-range]"); if (r) { RANGE = +r.dataset.range; $("#v-trend").innerHTML = wrapV(viewTrend()); return; }
+    const r = e.target.closest("[data-range]"); if (r) { RANGE = +r.dataset.range; $("#v-progress").innerHTML = wrapV(viewTrend() + viewHealth()); return; }
     const f = e.target.closest("[data-food]"); if (f) { FOODSEL = f.dataset.food; $("#v-food").innerHTML = wrapV(viewFood()); return; }
     const s = e.target.closest("[data-sess]"); if (s) { TRAINSEL = +s.dataset.sess; $("#v-train").innerHTML = wrapV(viewTrain()); return; }
-    const t = e.target.closest("[data-tpl]"); if (t) { openSheet(t.dataset.tpl); return; }
+    const t = e.target.closest("[data-tpl]"); if (t) { closePane(); openSheet(t.dataset.tpl); return; }
+    const op2 = e.target.closest("[data-open-pane]"); if (op2) { openPane(op2.dataset.openPane); return; }
+    const ex = e.target.closest("[data-explain]"); if (ex) { openPane("explain", ex.dataset.explain); return; }
+    if (e.target.closest("[data-close-pane]") || e.target.id === "pane") { closePane(); return; }
+    if (e.target.closest("#fab")) { openPane("log"); return; }
+    if (e.target.closest("[data-go-train]")) { showTab("train"); return; }
+    if (e.target.closest("[data-setup]")) { closePane(); showSetup(); return; }
+    const tsb = e.target.closest("[data-theme-set]"); if (tsb) { applyTheme(tsb.dataset.themeSet); openPane("you"); return; }
+    const ask = e.target.closest("[data-ask]"); if (ask) { copyText(ask.dataset.ask + "\n(asked from Cut Log)"); return; }
+    const ldb = e.target.closest("[data-ld]"); if (ldb) { LD[ldb.dataset.ld] = String(LD[ldb.dataset.ld]) === ldb.dataset.v ? "" : ldb.dataset.v; saveLd(LD); const y = $("#pane-box").scrollTop; openPane("log"); $("#pane-box").scrollTop = y; return; }
+    if (e.target.closest("[data-ld-toggle]")) { LD.adj = !LD.adj; saveLd(LD); const y = $("#pane-box").scrollTop; openPane("log"); $("#pane-box").scrollTop = y; return; }
+    const wb = e.target.closest("[data-water]"); if (wb) { LD.water = +wb.dataset.water ? LD.water + +wb.dataset.water : 0; saveLd(LD); const y = $("#pane-box").scrollTop; openPane("log"); $("#pane-box").scrollTop = y; return; }
+    if (e.target.closest("[data-ld-send]")) {
+      const msg = ldMessage(); if (!msg) { toast("Nothing to send yet"); return; }
+      const w = parseFloat(num(LD.weight)); if (LD.weight && !(w >= 40 && w <= 200)) { toast("Weight looks off: check the number"); return; }
+      const ob = outbox(); ob.push({ at: new Date().toISOString(), date: dubaiISO(), title: [LD.weight && "Weigh-in " + num(LD.weight) + " kg", LD.ate && (LD.meal === "lunch" ? "Lunch" : "Dinner") + " · " + LD.ate, LD.water && "Water", LD.free && "Note"].filter(Boolean).join(" · ") || "Entry", text: msg }); setOutbox(ob);
+      LD = { ...ld(), meal: LD.meal }; localStorage.removeItem(LD_KEY);
+      closePane(); $("#sheet-title").textContent = "Ready for your coach"; $("#sheet-text").value = msg; $("#sheet-clear").hidden = true; $("#sheet").hidden = false; copyText(msg);
+      $("#v-today").innerHTML = wrapV(viewToday()); return;
+    }
     const ls = e.target.closest("[data-logstart]"); if (ls) { TAB_LOGGING = true; startLog(+ls.dataset.logstart); return; }
     const dn = e.target.closest("[data-done]"); if (dn) {
       const [id, k] = dn.dataset.done.split(":"), st = LOG.ex[id][+k], row = dn.closest(".setrow");
@@ -860,7 +1063,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     const rs = e.target.closest("[data-rest]"); if (rs) { const v = rs.dataset.rest; if (v === "skip") { restLeft = 0; clearInterval(restT); $("#rest").hidden = true; } else { restLeft = Math.max(0, restLeft + +v); $("#rest").classList.remove("go"); if (!$("#rest").hidden) restTick(); } return; }
   });
   function clearLog() { saveDraft(null); LOG = null; TAB_LOGGING = false; clearInterval(restT); $("#rest").hidden = true; try { WAKE && WAKE.release(); } catch {} $("#v-train").innerHTML = wrapV(viewTrain()); }
+  document.addEventListener("change", (e) => {
+    const c = e.target.dataset && (e.target.dataset.ldc || e.target.dataset.sup);
+    if (!c || !LD) return;
+    if (e.target.dataset.ldc) LD[c] = e.target.checked; else LD.sup[c] = e.target.checked; saveLd(LD);
+  });
   document.addEventListener("input", (e) => {
+    if (e.target.dataset && e.target.dataset.ldi && LD) { LD[e.target.dataset.ldi] = e.target.value; saveLd(LD); return; }
     if (!LOG) return;
     const f = e.target.dataset.f, top = e.target.dataset.top;
     if (f) { const id = e.target.closest("[data-ex]").dataset.ex, k = +e.target.closest("[data-set]").dataset.set; LOG.ex[id][k][f] = e.target.value.trim(); saveDraft(LOG); }
@@ -871,11 +1080,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   $("#sheet-copy").addEventListener("click", () => copyText($("#sheet-text").value));
   $("#sheet-close").addEventListener("click", () => { $("#sheet").hidden = true; $("#sheet-clear").hidden = true; });
   $("#sheet-clear").addEventListener("click", () => { $("#sheet").hidden = true; $("#sheet-clear").hidden = true; clearLog(); toast("Workout cleared from this phone"); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#sheet").hidden = true; $("#menu").hidden = true; } });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#sheet").hidden = true; $("#menu").hidden = true; closePane(); } });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && LOG && TAB_LOGGING) keepAwake(); });
   $("#sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") $("#sheet").hidden = true; });
   $("#refresh").addEventListener("click", () => load());
-  $("#settings").addEventListener("click", () => showSetup());
+  $("#settings").addEventListener("click", () => { if (D) openPane("you"); else showSetup(); });
   $("#setup-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const repo = $("#f-repo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, ""), token = $("#f-token").value.trim() || store.get().token;
@@ -887,6 +1096,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && store.get().token) load({ quiet: true }); });
 
   try { TAB = localStorage.getItem(KEY + ".tab") || "today"; } catch {}
+  if (TAB === "trend" || TAB === "health") TAB = "progress";
+  applyTheme(themePref());
   if (LOG) TAB_LOGGING = true;
   const c = store.get();
   if (c.cache) { D = c.cache; render(); }

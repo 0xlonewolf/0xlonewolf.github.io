@@ -346,20 +346,12 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   <section id="v-setup" class="setup" hidden>
     <div class="logo"><svg viewBox="0 0 24 24"><path d="M3 7l6 6 4-4 8 8"/></svg></div>
     <h2>Your cut, at a glance.</h2>
-    <p class="muted" style="margin:0">Cut Log shows what your coach keeps in your private GitHub repo. This page stores nothing; it reads your data with a token saved only on this phone.</p>
-    <div class="card">
-      <ol class="steps">
-        <li><span>GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate new token.</span></li>
-        <li><span>Repository access: <b>Only select repositories</b> → your coach repo.</span></li>
-        <li><span>Permissions → <b>Contents: Read-only</b>. Expiry 90 days. Copy it.</span></li>
-      </ol>
-    </div>
+    <p class="muted" style="margin:0">Your data is locked with your Cut Log password. Type it once; this phone remembers it until you remove it.</p>
     <form id="setup-form" class="card" style="display:grid;gap:14px">
-      <div class="field"><label for="f-repo">Repository</label><input id="f-repo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="owner/repo"></div>
-      <div class="field"><label for="f-token">Token</label><input id="f-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"></div>
+      <div class="field"><label for="f-pass">Cut Log password</label><input id="f-pass" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" placeholder="xxxxx-xxxxx-xxxxx-xxxxx"></div>
       <p class="err" id="setup-err" hidden></p>
-      <button class="cta" type="submit">Connect</button>
-      <button class="cta ghost" type="button" id="forget" hidden>Remove token from this phone</button>
+      <button class="cta" type="submit" id="unlock">Unlock</button>
+      <button class="cta ghost" type="button" id="forget" hidden>Remove password from this phone</button>
     </form>
   </section>
 
@@ -417,26 +409,41 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   const mondayOf = (iso) => { const g = parse(iso).getUTCDay(); return addDays(iso, g === 0 ? -6 : 1 - g); };
   const longDate = (iso) => parse(iso).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
 
+  const b64d = (x) => Uint8Array.from(atob(x), (ch) => ch.charCodeAt(0));
+  const b64e = (u) => btoa(String.fromCharCode(...new Uint8Array(u)));
+  async function deriveKey(pass, salt, iter) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: b64d(salt), iterations: iter }, base, 256);
+    return b64e(bits);
+  }
+  async function decryptBlob(blob, rawKeyB64) {
+    const key = await crypto.subtle.importKey("raw", b64d(rawKeyB64), "AES-GCM", false, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64d(blob.iv) }, key, b64d(blob.ct));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+  async function fetchBlob() {
+    const r = await fetch(`data.enc.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status === 404 ? "No data published yet. Ask your coach to publish." : `Couldn't load (${r.status}). Try again.`);
+    return r.json();
+  }
   async function load({ quiet } = {}) {
     const cfg = store.get();
-    if (!cfg.token || !cfg.repo) { showSetup(); return; }
+    if (!cfg.key) { showSetup(); return; }
     $("#refresh").classList.add("spin");
     try {
-      const h = { Authorization: `Bearer ${cfg.token}`, "X-GitHub-Api-Version": "2022-11-28" };
-      const r = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/app/data.json?ref=main&t=${Date.now()}`, { headers: { ...h, Accept: "application/vnd.github.raw+json" }, cache: "no-store" });
-      if (r.status === 401) throw new Error("GitHub refused the token (expired or revoked). Make a new one.");
-      if (r.status === 404) {
-        const p = await fetch(`https://api.github.com/repos/${cfg.repo}`, { headers: h, cache: "no-store" }).catch(() => null);
-        if (p && p.ok) throw new Error("The token sees the repo but can't read files. Edit the token: Repository permissions → Contents → Read-only.");
-        throw new Error(`The token can't see "${cfg.repo}". Check the name and edit the token: Repository access → Only select repositories.`);
+      const blob = await fetchBlob();
+      let key = cfg.key;
+      if (cfg.salt !== blob.salt || cfg.iter !== blob.iter) {
+        if (!cfg.pass) throw new Error("The lock changed. Type your password again.");
+        key = await deriveKey(cfg.pass, blob.salt, blob.iter);
       }
-      if (!r.ok) throw new Error(`GitHub answered ${r.status}. Try again shortly.`);
-      D = await r.json();
-      store.set({ ...store.get(), cache: D });
+      try { D = await decryptBlob(blob, key); }
+      catch { store.set({ cache: cfg.cache }); throw new Error("Password no longer matches. Type the current one."); }
+      store.set({ ...store.get(), key, salt: blob.salt, iter: blob.iter, cache: D });
       render();
     } catch (e) {
       const c = store.get();
-      if (c.cache) { D = c.cache; render(); $("#dateline").textContent = "Offline copy · " + e.message; }
+      if (c.cache && c.key) { D = c.cache; render(); $("#dateline").textContent = "Offline copy · " + e.message; }
       else if (!quiet) showSetup(e.message);
     } finally { $("#refresh").classList.remove("spin"); }
   }
@@ -445,8 +452,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
     ["today", "train", "food", "progress"].forEach((t) => ($(`#v-${t}`).hidden = true));
     $("#v-setup").hidden = false; $("#tabs").hidden = true; $("#fab").hidden = true; $("#pane").hidden = true; $("#head").hidden = !D;
     const c = store.get();
-    if (c.repo) $("#f-repo").value = c.repo;
-    $("#forget").hidden = !c.token;
+    $("#forget").hidden = !c.key;
     $("#setup-err").hidden = !err; $("#setup-err").textContent = err || "";
   }
   function showTab(t) {
@@ -688,7 +694,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
         <span class="n">03</span><span><b>Source of truth.</b> <span class="muted">Your private repo. Every change is kept with its reason.</span></span></div></section>
       <section class="sec"><span class="lab">Your coach</span><span style="font-size:.9rem;line-height:1.5">One brief a day after your weigh-in. Questions only when the answer changes a meal by 100+ kcal or 10+ g protein, at most 2 a day. No notifications.</span></section>
       <section class="sec"><span class="lab">Appearance</span><div class="opts">${["system", "dark", "light"].map((t) => `<button class="opt2" data-theme-set="${t}" aria-pressed="${th === t}">${t[0].toUpperCase() + t.slice(1)}</button>`).join("")}</div></section>
-      <section class="sec"><span class="lab">Privacy · this phone</span><span style="font-size:.88rem;line-height:1.5" class="muted">Everything lives in your private repo. This phone holds a read-only token and can't change your records; messages go through Claude.</span>
+      <section class="sec"><span class="lab">Privacy · this phone</span><span style="font-size:.88rem;line-height:1.5" class="muted">Everything lives in your private repo. Your data is published only in locked form; this phone keeps the unlock key and can't change your records. Messages go through Claude.</span>
         <button class="btn" data-setup style="justify-self:start">Connection settings</button></section>
       <span class="muted" style="font-size:.78rem;line-height:1.5">Your coach is an AI. It doesn't diagnose or change doses. Chest pain, fainting or unusual breathlessness: see a doctor promptly.</span>`;
   }
@@ -1085,15 +1091,21 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   $("#sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") $("#sheet").hidden = true; });
   $("#refresh").addEventListener("click", () => load());
   $("#settings").addEventListener("click", () => { if (D) openPane("you"); else showSetup(); });
-  $("#setup-form").addEventListener("submit", (e) => {
+  $("#setup-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const repo = $("#f-repo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, ""), token = $("#f-token").value.trim() || store.get().token;
-    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) return showSetup("Repository must look like owner/name.");
-    if (!token) return showSetup("Paste the token first.");
-    store.set({ ...store.get(), repo, token }); $("#f-token").value = ""; load();
+    const pass = $("#f-pass").value.trim();
+    if (!pass) return showSetup("Type your password first.");
+    $("#unlock").textContent = "Unlocking…";
+    try {
+      const blob = await fetchBlob();
+      const key = await deriveKey(pass, blob.salt, blob.iter);
+      try { D = await decryptBlob(blob, key); } catch { $("#unlock").textContent = "Unlock"; return showSetup("Wrong password. Check it and try again."); }
+      store.set({ key, salt: blob.salt, iter: blob.iter, cache: D });
+      $("#f-pass").value = ""; $("#unlock").textContent = "Unlock"; render();
+    } catch (err) { $("#unlock").textContent = "Unlock"; showSetup(err.message); }
   });
   $("#forget").addEventListener("click", () => { store.set({}); D = null; showSetup(); });
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && store.get().token) load({ quiet: true }); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && store.get().key) load({ quiet: true }); });
 
   try { TAB = localStorage.getItem(KEY + ".tab") || "today"; } catch {}
   if (TAB === "trend" || TAB === "health") TAB = "progress";

@@ -104,7 +104,7 @@ input, textarea { font: inherit; color: inherit; }
 .pill.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
 .pill .dot, .pill::before { flex: none; }
 .pill.ok::before, .pill.warn::before, .pill.bad::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.pill.btn { min-height: 36px; padding: 0 14px; font-weight: 600; font-size: var(--t-sm); color: var(--ink); }
+.pill.btn { min-height: 44px; padding: 0 14px; font-weight: 600; font-size: var(--t-sm); color: var(--ink); }
 .src { display: inline-flex; align-items: center; gap: 5px; font: 500 var(--t-xs)/1 var(--f); color: var(--faint); white-space: nowrap; }
 .src::before { content: ""; width: 5px; height: 5px; border-radius: 50%; border: 1.5px solid currentColor; }
 .src.unv { color: var(--warn); }
@@ -113,7 +113,7 @@ input, textarea { font: inherit; color: inherit; }
 .tags { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 
 /* ---------- buttons ---------- */
-.btn { min-height: 40px; padding: 0 16px; border-radius: var(--r-sm); background: var(--raised); color: var(--ink); font: 600 var(--t-sm) var(--f); display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; transition: background .15s, transform .1s; white-space: nowrap; }
+.btn { min-height: 44px; padding: 0 16px; border-radius: var(--r-sm); background: var(--raised); color: var(--ink); font: 600 var(--t-sm) var(--f); display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; transition: background .15s, transform .1s; white-space: nowrap; }
 .btn:hover { background: color-mix(in srgb, var(--raised) 80%, var(--ink) 8%); }
 .btn:active, .cta:active, .opt2:active { transform: scale(.97); }
 .btn.primary, .cta { background: var(--accent); color: var(--on-accent); }
@@ -122,8 +122,8 @@ input, textarea { font: inherit; color: inherit; }
 .cta:hover { filter: brightness(1.06); }
 .cta.ghost { background: var(--raised); color: var(--ink); }
 .cta[disabled] { opacity: .6; cursor: progress; }
-.linkbtn { color: var(--accent-ink); font: 600 var(--t-sm) var(--f); text-align: left; min-height: 40px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.addset { justify-self: start; font: 600 var(--t-sm) var(--f); color: var(--accent-ink); min-height: 36px; padding: 0 2px; }
+.linkbtn { color: var(--accent-ink); font: 600 var(--t-sm) var(--f); text-align: left; min-height: 44px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.addset { justify-self: start; font: 600 var(--t-sm) var(--f); color: var(--accent-ink); min-height: 44px; padding: 0 8px 0 2px; }
 
 /* ---------- daily brief (no card: it is the page's lead) ---------- */
 .brief { display: grid; gap: var(--s3); padding: var(--s2) 0 var(--s1); }
@@ -225,7 +225,7 @@ input, textarea { font: inherit; color: inherit; }
 
 /* ---------- segmented controls & day chips ---------- */
 .seg { display: inline-flex; background: var(--raised); border-radius: var(--r-sm); padding: 3px; gap: 2px; }
-.seg button { min-height: 34px; padding: 0 12px; border-radius: 9px; font: 600 var(--t-sm) var(--f); color: var(--muted); transition: background .2s, color .2s; }
+.seg button { min-height: 40px; padding: 0 12px; border-radius: 9px; font: 600 var(--t-sm) var(--f); color: var(--muted); transition: background .2s, color .2s; }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .18); }
 .seg.wide { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; background: var(--surface); }
 .seg.wide button[aria-pressed="true"] { background: var(--raised); box-shadow: none; }
@@ -311,7 +311,7 @@ input, textarea { font: inherit; color: inherit; }
 .setrow.warm .sn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
 .setrow input.need { border-color: var(--bad); animation: shake .3s; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-.exh .more { width: 44px; height: 40px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); margin: -8px -10px -8px 0; }
+.exh .more { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); margin: -10px -10px -10px 0; }
 .exh .more svg { width: 20px; height: 20px; fill: currentColor; }
 .lgx.skipped { opacity: .55; }
 .lgx .sum { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 36px; }
@@ -657,7 +657,7 @@ input, textarea { font: inherit; color: inherit; }
         ${tile("Sleep HRV", dv(r, "sleep_hrv"), "ms", dv(r, "hrv_baseline") != null ? `baseline ${fmt(dv(r, "hrv_baseline"))} ms` : "overnight", "device.readiness.sleep_hrv")}
         ${tile("Stress", dv(d.stress, "avg"), "", "day average", "device.stress.avg")}
       </div>
-      <p class="note">Watch readings are trend signals, not a diagnosis. Read them with how you feel. "Unverified" values haven't been checked against the Zepp app yet.</p>
+      <p class="note">Watch readings are trend signals, not a diagnosis. Read them with how you feel.${((D.device || {}).unverified || []).length ? ' "Unverified" values haven\'t been checked against the Zepp app yet.' : ""}</p>
       <button class="linkbtn" data-open-pane="watch" style="margin-top:var(--s1)">All watch details<span aria-hidden="true">›</span></button></section>`;
   }
   // one pane section: fields [label, key, unit, decimals]; tags per value only where the section is mixed

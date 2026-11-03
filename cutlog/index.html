@@ -632,6 +632,8 @@ input, textarea { font: inherit; color: inherit; }
 
   const seriesMap = () => Object.fromEntries((D.series || []).map((s) => [s.date, s]));
   const menuRows = () => Object.values(D.menus || {}).flat();
+  // the user's own changes (data/meal_plan/overrides.yaml) arrive applied: a cancelled slot is null and listed here
+  const cancelledOf = (m, slot) => !!(m && (m.cancelled || []).includes(slot));
   // menus are matched by date when data.json has it (older data: by "Tue 03" label)
   const menuFor = (iso) => menuRows().find((r) => (r.date ? r.date === iso : r.day === menuLabel(iso))) || null;
   // ---------- week schedule (training/week_plan.yaml via data.json; default Mon/Tue/Thu/Fri when absent) ----------
@@ -791,19 +793,19 @@ input, textarea { font: inherit; color: inherit; }
     const m = menuFor(iso), s = sessionFor(iso), wkend = ["Sat", "Sun"].includes(dowOf(iso)), sup = supMap(), T = D.targets;
     const am = supAt(/morning/i), pm = supAt(/dinner|night|evening/i), shake = shakeTxt(), it = [];
     it.push({ t: "07:00", c: "var(--protein)", b: "Weigh in", s: "After the toilet, before food or drink" + (am.length ? `, then ${supNames(am)}` : "") });
-    if (m) it.push({ t: "13:00", c: "var(--kcal)", b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein (label)` : "", act: "meal" });
-    else it.push({ t: "13:00", c: "var(--kcal)", b: wkend ? "Lunch out" : "Lunch", s: "Grilled protein, one carb, sauce on the side. Photo it.", act: "meal" });
+    if (m && m.lunch) it.push({ t: "13:00", c: "var(--kcal)", b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein (label)` : "", act: "meal" });
+    else if (!cancelledOf(m, "lunch")) it.push({ t: "13:00", c: "var(--kcal)", b: wkend ? "Lunch out" : "Lunch", s: "Grilled protein, one carb, sauce on the side. Photo it.", act: "meal" });
     it.push({ t: "15:00", c: "var(--faint)", b: "Last tea", s: "Later caffeine costs sleep. Milk + sugar ≈ 60–100 kcal a cup." });
     if (s) {
-      it.push({ t: "16:30", c: "var(--faint)", b: "Pre-gym snack", s: "Banana + eggs, if lunch was 5+ hours ago" });
+      it.push({ t: "16:30", c: "var(--faint)", b: "Pre-gym snack", s: m && m.pre_gym ? m.pre_gym : "Banana + eggs, if lunch was 5+ hours ago", act: m && m.pre_gym ? "meal" : undefined });
       it.push({ t: "18:00", c: "var(--steps)", b: s.name.split(" (")[0], s: `${s.exercises.length} exercises, ${s.duration} min${/upper/.test(s.id) ? " + 20 min incline walk" : ""}`, act: "gym" });
       if (shake) {
         const ne = sup.whey && sup.whey.nutrition_estimate;
-        it.push({ t: "19:30", c: "var(--protein)", b: "Shake", s: shake, kv: ne ? `≈ ${ne.protein_g.best} g protein, ${ne.kcal.best} kcal (estimate)` : "", act: "meal" });
+        it.push({ t: "19:30", c: "var(--protein)", b: "Shake", s: shake + (m && m.shake_on_top ? ". On top of the add-ons today" : ""), kv: ne ? `≈ ${ne.protein_g.best} g protein, ${ne.kcal.best} kcal (estimate)` : "", act: "meal" });
       }
     } else if (!wkend) it.push({ t: "18:00", c: "var(--faint)", b: "Rest day", s: "Walk 10 minutes after lunch and dinner for steps" });
-    if (m) it.push({ t: "20:30", c: "var(--kcal)", b: m.addon ? "Dinner + add-on" : "Dinner", s: stripId(m.dinner) + (m.addon ? `, plus ${m.addon.items}` : ""), kv: m.addon ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "", act: "meal" });
-    else it.push({ t: "20:30", c: "var(--kcal)", b: wkend ? "Dinner out" : "Dinner", s: "Photo every plate; aim for 40+ g protein", act: "meal" });
+    if (m && m.dinner) it.push({ t: "20:30", c: "var(--kcal)", b: m.addon ? "Dinner + add-on" : "Dinner", s: stripId(m.dinner) + (m.addon ? `, plus ${m.addon.with_dinner || m.addon.items}` : ""), kv: m.addon ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "", act: "meal" });
+    else if (!cancelledOf(m, "dinner")) it.push({ t: "20:30", c: "var(--kcal)", b: wkend ? "Dinner out" : "Dinner", s: "Photo every plate; aim for 40+ g protein", act: "meal" });
     if (pm.length) it.push({ t: "21:00", c: "var(--faint)", b: "Supplements", s: supNames(pm) });
     it.push({ t: "22:30", c: "var(--sleep)", b: "Wind down", s: `Lights low, screens off, aim for ${T.sleep_min}+ hours` });
     return it;
@@ -921,10 +923,11 @@ input, textarea { font: inherit; color: inherit; }
     // food block (Food tab merged here): today's plan, then what's logged
     const m = menuFor(today), sup = supMap(), shake = s && shakeTxt(), day = (D.meals || {})[today];
     const prow = (k, name, sub, q) => `<div class="meal"><span class="lbl" style="padding-top:3px">${k}</span><div class="nm"><b>${esc(name)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}</div><div class="q">${q}</div></div>`;
-    const planRows = m ? [prow("Lunch", stripId(m.lunch), "Meal plan", `<b>${pOf(m.lunch) || "—"} g</b>protein`), prow("Dinner", stripId(m.dinner), "Meal plan", `<b>${pOf(m.dinner) || "—"} g</b>protein`),
+    const planRows = m ? [m.lunch ? prow("Lunch", stripId(m.lunch), "Meal plan", `<b>${pOf(m.lunch) || "—"} g</b>protein`) : "", m.dinner ? prow("Dinner", stripId(m.dinner), "Meal plan", `<b>${pOf(m.dinner) || "—"} g</b>protein`) : "",
       m.addon ? prow("Add-on", m.addon.items, `Day ≈ ${fmt(m.addon.kcal)} kcal`, `<b>+${fmt(m.addon.protein - m.protein)} g</b>protein`) : "",
-      shake ? prow("Shake", shake, "After training", sup.whey.nutrition_estimate ? `<b>≈ ${sup.whey.nutrition_estimate.protein_g.best} g</b>protein` : "") : ""].join("")
+      shake ? prow("Shake", shake, m.shake_on_top ? "After training, on top of the add-ons today" : "After training", sup.whey.nutrition_estimate ? `<b>≈ ${sup.whey.nutrition_estimate.protein_g.best} g</b>protein` : "") : ""].join("")
       : `<p class="muted" style="margin:0">No meal-plan delivery today. Grilled protein, one carb, sauce on the side; photo every plate.</p>`;
+    const planNote = m && m.note ? `<p class="note" style="margin:var(--s2) 0 0">${esc(m.note)}</p>` : "";
     const sum = (k) => day ? day.items.reduce((a, x) => a + ((x[k] && x[k].best) || 0), 0) : 0;
     return `<div class="cols">
       <div class="col">
@@ -952,7 +955,7 @@ input, textarea { font: inherit; color: inherit; }
       </div>
       <div class="col">
         <section class="card" aria-label="Food today"><div class="card-h"><h2>Food</h2><span class="aside">Plan, then what's logged</span></div>
-          ${planRows}
+          ${planRows}${planNote}
           <div class="subh"><span class="lbl" style="color:var(--ink)">Logged ${day ? "" : "today"}</span><span class="aside num" style="font-size:var(--t-sm)">${day ? `${fmt(sum("kcal"))} kcal, ${fmt(sum("protein"))} g protein${day.complete ? ", complete" : ", so far"}` : ""}</span></div>
           ${day ? `<div class="list">${mealRows(today)}</div>` : `<p class="muted" style="margin:0">Nothing logged yet today.</p>`}
           <button class="linkbtn" data-open-pane="week">This week's menu<span aria-hidden="true">›</span></button>
@@ -998,7 +1001,7 @@ input, textarea { font: inherit; color: inherit; }
 
   // ---------- log pane ----------
   const LD_KEY = KEY + ".logdraft";
-  function ld() { try { const d = JSON.parse(localStorage.getItem(LD_KEY)); if (d && d.date === dubaiISO()) return d; } catch {} return { date: dubaiISO(), weight: "", feel: "", meal: dubaiHour() < 16 ? "lunch" : "dinner", ate: "", addon: true, adj: false, portion: "", sauce: "", out: "", added: "", water: 0, sup: {}, free: "" }; }
+  function ld() { try { const d = JSON.parse(localStorage.getItem(LD_KEY)); if (d && d.date === dubaiISO()) return d; } catch {} return { date: dubaiISO(), weight: "", feel: "", meal: dubaiHour() < 16 && !(D && cancelledOf(menuFor(dubaiISO()), "lunch")) ? "lunch" : "dinner", ate: "", addon: true, adj: false, portion: "", sauce: "", out: "", added: "", water: 0, sup: {}, free: "" }; }
   function saveLd(d) { try { localStorage.setItem(LD_KEY, JSON.stringify(d)); } catch {} }
   let LD = null;
   // quick paths: one section at a time (weigh-in / meal / water / supplements), or All; entries persist across modes
@@ -1019,7 +1022,7 @@ input, textarea { font: inherit; color: inherit; }
         <span class="lab" style="margin-top:2px">How do you feel? 1 is low, 5 is great</span><div class="opts">${[1, 2, 3, 4, 5].map((n) => o("feel", n, n)).join("")}</div>`}
       </section>` : ""}
       ${show("meal") ? `<section class="sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="lab">${LD.meal === "lunch" ? "Lunch" : "Dinner"}${planned ? ", on your plan" : ""}</span><span class="opts" style="grid-auto-columns:auto">${o("meal", "lunch", "Lunch").replace('class="opt2"', 'class="opt2 sm"')}${o("meal", "dinner", "Dinner").replace('class="opt2"', 'class="opt2 sm"')}</span></div>
-        ${planned ? `<b style="font-weight:600">${esc(planned)}</b>` : `<span class="muted">No plan meal today: describe it below or attach a photo in Claude.</span>`}
+        ${planned ? `<b style="font-weight:600">${esc(planned)}</b>` : `<span class="muted">${cancelledOf(m, LD.meal) ? `${LD.meal === "lunch" ? "Lunch" : "Dinner"} is cancelled today. Ate something anyway? Describe it below.` : "No plan meal today: describe it below or attach a photo in Claude."}</span>`}
         ${planned ? `<div class="opts">${o("ate", "all", "All")}${o("ate", "most", "Most ¾")}${o("ate", "half", "Half")}${o("ate", "none", "Skipped")}</div>
         ${m && m.addon && LD.meal === "dinner" ? `<label class="chk"><input type="checkbox" data-ldc="addon" ${LD.addon ? "checked" : ""}>With the add-on: ${esc(m.addon.items)}</label>` : ""}
         <button class="linkbtn" data-ld-toggle aria-expanded="${!!LD.adj}">${LD.adj ? "Hide adjustments" : "Adjust amount, sauce or extras"}<span aria-hidden="true">${LD.adj ? "−" : "›"}</span></button>
@@ -1257,15 +1260,16 @@ input, textarea { font: inherit; color: inherit; }
       <div class="card">
         <div class="card-h"><h2>${r.day === todayL ? "Today's plan" : esc(r.day) + " plan"}</h2><span class="pill">${r.date ? esc(dayKindOf(r.date)) : gym ? "Gym day" : "Rest day"}</span></div>
         <div class="list">
-          <div class="meal"><span class="lbl" style="padding-top:3px">Lunch</span><div class="nm"><b>${esc(stripId(r.lunch))}</b><span>Lunch, meal plan</span></div><div class="q"><b>${pOf(r.lunch) || "—"} g</b>protein</div></div>
-          <div class="meal"><span class="lbl" style="padding-top:3px">Dinner</span><div class="nm"><b>${esc(stripId(r.dinner))}</b><span>Dinner, meal plan</span></div><div class="q"><b>${pOf(r.dinner) || "—"} g</b>protein</div></div>
+          ${r.lunch ? `<div class="meal"><span class="lbl" style="padding-top:3px">Lunch</span><div class="nm"><b>${esc(stripId(r.lunch))}</b><span>Lunch, meal plan</span></div><div class="q"><b>${pOf(r.lunch) || "—"} g</b>protein</div></div>` : ""}
+          ${r.dinner ? `<div class="meal"><span class="lbl" style="padding-top:3px">Dinner</span><div class="nm"><b>${esc(stripId(r.dinner))}</b><span>Dinner, meal plan</span></div><div class="q"><b>${pOf(r.dinner) || "—"} g</b>protein</div></div>` : ""}
           ${r.addon ? `<div class="meal"><span class="lbl" style="padding-top:3px">Add-on</span><div class="nm"><b>Protein add-on</b><span>${esc(r.addon.items)}</span></div><div class="q"><b>+${fmt(r.addon.protein - r.protein)} g</b>protein</div></div>` : ""}
           ${gym && sup.whey ? `<div class="meal"><span class="lbl" style="padding-top:3px">Shake</span><div class="nm"><b>Post-workout shake</b><span>${esc(shakeTxt())}. On gym days it replaces the tuna, or 150 g of the chicken.</span></div><div class="q"><b>${sup.whey.nutrition_estimate ? "≈ " + sup.whey.nutrition_estimate.protein_g.best + " g" : "—"}</b>protein</div></div>` : ""}
         </div>
       </div>
       <div class="card"><div class="card-h"><h2>Planned day total</h2><span class="src">Labels + estimates</span></div>
         <div class="meters">${meter({ label: "Protein", v: totP, lo: T.protein.low, hi: T.protein.high, floor: T.protein_floor, unit: "g", c: "--protein" })}${meter({ label: "Calories", v: totK, lo: T.kcal.low, hi: T.kcal.high, floor: T.kcal_floor, unit: "kcal", c: "--kcal" })}</div>
-        <p class="note">Plan meals ${fmt(r.kcal)} kcal and ${r.protein} g protein (provider labels), plus add-ons (estimates). Tea with milk and sugar adds about 120–200 kcal.</p></div>`;
+        ${r.note ? `<p class="note">${esc(r.note)}</p>` : ""}
+        <p class="note">Plan meals ${fmt(r.kcal)} kcal and ${r.protein} g protein (provider labels), plus add-ons (estimates)${r.shake_on_top ? "; the shake is extra" : ""}. Tea with milk and sugar adds about 120–200 kcal.</p></div>`;
   }
 
   // ---------- TRAIN ----------
@@ -1461,7 +1465,7 @@ input, textarea { font: inherit; color: inherit; }
       meal: `MEAL ${iso} ${mealGuess}\nWhat: ${plan(m && (mealGuess === "lunch" ? m.lunch : m.dinner))}\nAte: all / most / half\nExtras (oil, sauce, sides, drinks):\nAdd-on eaten:${m && m.addon && mealGuess === "dinner" ? " (" + m.addon.items + ")" : ""}\n+ attach photo`,
       gym: `GYM ${iso} · ${s ? s.name.split(" (")[0] : "session"}\nDuration (min):\nSession RPE (1-10):\n${exLines}\nCardio (type, min, avg HR):${s && /upper/.test(s.id) ? " incline walk 20 min," : ""}\nPain (where, 0-10): none\nShake (${shakeTxt() || "protein"}): yes/no`,
       night: `NIGHT ${iso}\nSteps:\nWater (L):\nTea cups:\nSupplements (${supList().filter((x) => !["whey", "creatine"].includes(x.id)).map((x) => x.name).join(" / ") || "none recorded"}): all / missed:\nOther food or drinks not logged yet:\nAll food logged today: yes/no\nNotes:\n+ attach Zepp steps screenshot`,
-      day: `DAY ${iso}\nWeight (kg):\nFeel (1-5):\nLunch: ${plan(m && m.lunch)}, ate all/most/half, extras:\nDinner: ${plan(m && m.dinner)}, ate all/most/half, extras:\nAdd-on / snacks:${m && m.addon ? " (" + m.addon.items + ")" : ""}\n${s ? `Gym: ${s.name.split(" (")[0]}, duration, RPE, sets per exercise:\nShake: yes/no\n` : ""}Steps:\nWater (L):\nTea cups:\nSupplements: all / missed:\nAll food logged: yes/no\nNotes:\n+ attach Zepp + food photos`,
+      day: `DAY ${iso}\nWeight (kg):\nFeel (1-5):\nLunch: ${cancelledOf(m, "lunch") ? "cancelled" : plan(m && m.lunch) + ", ate all/most/half, extras:"}\nDinner: ${cancelledOf(m, "dinner") ? "cancelled" : plan(m && m.dinner) + ", ate all/most/half, extras:"}\nAdd-on / snacks:${m && m.addon ? " (" + m.addon.items + ")" : ""}\n${s ? `Gym: ${s.name.split(" (")[0]}, duration, RPE, sets per exercise:\nShake: yes/no\n` : ""}Steps:\nWater (L):\nTea cups:\nSupplements: all / missed:\nAll food logged: yes/no\nNotes:\n+ attach Zepp + food photos`,
     };
     return T[kind];
   }

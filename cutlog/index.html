@@ -28,6 +28,8 @@
   --ink: #F4F4F5; --muted: #A1A1AA; --faint: #8A8A93;
   --coral: #FF4F3A; --on-coral: #0B0B0D; --coral-ink: #FF6B59;
   --better: #3DDC84; --worse: #FFB020; --pb: #B98CFF; --alert: #FF6B8A;
+  /* recovery dial metric hues (identity, not good/bad): sleep indigo, HRV sky, resting HR rose */
+  --m-sleep: #9B95FF; --m-hrv: #4FB8F0; --m-rhr: #FF7EA6;
   --glow: 0 0 18px; --shadow: 0 18px 48px rgb(0 0 0 / .45);
   /* legacy names used by view code */
   --bg: var(--void); --paper: var(--void); --line: var(--edge); --line-2: var(--edge-2); --tint: var(--raised);
@@ -53,6 +55,7 @@
   --ink: #0B0B0D; --muted: #52525B; --faint: #63636B;
   --coral: #E03E2A; --on-coral: #0B0B0D; --coral-ink: #C2321F;
   --better: #0B7442; --worse: #A35A00; --pb: #7C3AED; --alert: #C8264B;
+  --m-sleep: #5A52E0; --m-hrv: #0A6FA8; --m-rhr: #C42A62;
   --scrim: rgb(11 11 13 / .35); --nav: rgb(255 255 255 / .86); --shadow: 0 16px 40px rgb(11 11 13 / .14);
   color-scheme: light;
 } }
@@ -61,6 +64,7 @@
   --ink: #0B0B0D; --muted: #52525B; --faint: #63636B;
   --coral: #E03E2A; --on-coral: #0B0B0D; --coral-ink: #C2321F;
   --better: #0B7442; --worse: #A35A00; --pb: #7C3AED; --alert: #C8264B;
+  --m-sleep: #5A52E0; --m-hrv: #0A6FA8; --m-rhr: #C42A62;
   --scrim: rgb(11 11 13 / .35); --nav: rgb(255 255 255 / .86); --shadow: 0 16px 40px rgb(11 11 13 / .14);
   color-scheme: light;
 }
@@ -139,25 +143,32 @@ input, textarea { font: inherit; color: inherit; }
 .who.calc i { background: var(--faint); box-shadow: none; }
 .serif-h { margin: 2px 0 0; font: 800 2.25rem/1.02 var(--f-display); letter-spacing: -.035em; text-wrap: balance; }
 .brief p { margin: 0; font-size: var(--t-md); line-height: 1.55; color: var(--muted); max-width: 62ch; }
-.one { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--s3); margin: var(--s3) calc(-1 * var(--gutter)) 0; padding: var(--s4) var(--gutter); background: var(--coral); color: var(--on-coral); }
+.brief p.clamp { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.clamp.c2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.clamp.open, .brief p.clamp.open { display: block; -webkit-line-clamp: unset; line-clamp: none; overflow: visible; }
+.morebtn { justify-self: start; min-height: 44px; margin: -10px 0 -10px; padding: 0 2px; color: var(--coral-ink); font: 600 var(--t-sm) var(--f); }
+.one { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--s3); margin: var(--s2) 0 0; padding: var(--s3) var(--s4); background: var(--surface); border: var(--rule); border-left: 3px solid var(--coral); border-radius: var(--r); color: var(--ink); }
 .one .t { display: grid; gap: 2px; min-width: 0; }
-.one .t .lbl { color: var(--on-coral); opacity: .75; }
-.one .t > span:last-child { font: 700 var(--t-lg)/1.25 var(--f-display); letter-spacing: -.01em; }
-.one .btn { background: var(--void); border-color: var(--void); color: #F4F4F5; }
+.one .t .lbl { color: var(--coral-ink); }
+.one .t > span:last-child { font: 600 var(--t-md)/1.35 var(--f); color: var(--ink); }
 
 /* ---------- WHOOP-style recovery dial ---------- */
-.dialcard { display: grid; grid-template-columns: auto 1fr; gap: var(--s4); align-items: center; }
-.dial { position: relative; width: 152px; height: 152px; }
+.dialcard { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s4); align-items: center; }
+.dial { position: relative; width: 132px; height: 132px; }
 .dial svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
-.dial .trk { fill: none; stroke: var(--edge); stroke-width: 9; }
-.dial .arc { fill: none; stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset 1.1s var(--ease); filter: drop-shadow(0 0 6px currentColor); }
-.dial .ctr { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; align-content: center; gap: 2px; }
-.dial .ctr b { font: 800 1.35rem/1 var(--f-display); letter-spacing: -.02em; }
-.dial .ctr span { font: 600 var(--t-xs) var(--f); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-.dlegend { display: grid; gap: var(--s2); min-width: 0; }
-.dleg { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: var(--rule); width: 100%; text-align: left; }
+.dial .trk { fill: none; stroke: var(--edge); stroke-width: 8; }
+.dial .arc { fill: none; stroke: currentColor; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.1s var(--ease); }
+.dial .arc.off { stroke-opacity: .45; }
+/* inner ring's inside edge is ~74px across at 132px: the word box is capped well inside it */
+.dial .ctr { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; align-content: center; gap: 3px; }
+.dial .ctr b { display: block; max-width: 62px; font: 800 1.125rem/1 var(--f-display); letter-spacing: -.02em; white-space: nowrap; }
+.dial .ctr b.long { font-size: .875rem; letter-spacing: -.01em; }
+.dial .ctr span { font: 600 .625rem/1 var(--f); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.dlegend { display: grid; gap: 0; min-width: 0; align-content: center; }
+.dleg { display: grid; grid-template-columns: 10px 1fr auto; gap: 2px 8px; align-items: baseline; padding: 8px 0; min-height: 44px; border-bottom: var(--rule); width: 100%; text-align: left; }
 .dleg:last-child { border-bottom: 0; }
 .dleg i { width: 10px; height: 10px; border-radius: 50%; background: currentColor; align-self: center; }
+.dleg.nodata i { background: transparent; border: 1.5px solid var(--edge-2); }
 .dleg .k { font-size: var(--t-sm); color: var(--muted); }
 .dleg b { font: 600 var(--t-md) var(--f-num); color: var(--ink); }
 .dleg small { grid-column: 2 / -1; font-size: var(--t-xs); color: var(--faint); }
@@ -220,6 +231,15 @@ input, textarea { font: inherit; color: inherit; }
 .tli.now .tm { color: var(--coral-ink); }
 .tli.past:not(.done) .tm { color: var(--faint); }
 .tli .w .yours { font-size: var(--t-xs); color: var(--coral-ink); }
+.chg { display: flex; align-items: center; gap: 8px; margin: 0 0 var(--s1); font-size: var(--t-sm); color: var(--muted); }
+.chg i { width: 7px; height: 7px; border-radius: 50%; background: var(--coral); flex: none; }
+.tlempty { margin: 0; padding: var(--s2) 0; color: var(--muted); font-size: var(--t-sm); }
+.trow { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--s3); width: 100%; min-height: 64px; padding: var(--s3) var(--s4); background: var(--surface); border: var(--rule); border-radius: var(--r); text-align: left; }
+.trow .w { display: grid; gap: 2px; min-width: 0; }
+.trow .w b { font: 700 var(--t-md)/1.2 var(--f-display); letter-spacing: -.01em; }
+.trow .w span { font-size: var(--t-sm); color: var(--muted); }
+.trow .go { font: 600 var(--t-sm) var(--f); color: var(--coral-ink); white-space: nowrap; }
+.trow .go.ok { color: var(--better); }
 .dayring { display: inline-flex; align-items: center; gap: 8px; font: 600 var(--t-sm) var(--f-num); color: var(--muted); }
 .dayring svg { width: 28px; height: 28px; transform: rotate(-90deg); }
 .dayring .trk { fill: none; stroke: var(--edge); stroke-width: 4; }
@@ -486,7 +506,15 @@ input, textarea { font: inherit; color: inherit; }
 .chline { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; margin: 0; min-height: 44px; font-size: var(--t-sm); color: var(--muted); }
 .chline > span:not(.pill) { flex: 1; min-width: 0; }
 .chline .undo { min-height: 44px; padding: 0 6px; color: var(--coral-ink); font: 600 var(--t-sm) var(--f); }
-.toeat { display: grid; gap: var(--s3); }
+.toeat { display: grid; gap: var(--s2); }
+.toeat h2 { font-size: var(--t-md); }
+.disc > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 44px; cursor: pointer; color: var(--coral-ink); font: 600 var(--t-sm) var(--f); }
+.disc > summary::-webkit-details-marker { display: none; }
+.disc > summary small { color: var(--muted); font: 500 var(--t-xs) var(--f-num); margin-left: auto; }
+.disc > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .15s; flex: none; margin-right: 4px; }
+.disc[open] > summary::after { transform: rotate(-135deg) translateY(-2px); }
+.disc > .list { padding-top: var(--s3); border-top: var(--rule); }
+.disc > * + * { margin-top: var(--s3) !important; }
 .toeat .li .q { font: 600 var(--t-base) var(--f-num); white-space: nowrap; text-align: right; }
 .addex { width: 100%; min-height: 56px; border: 1.5px dashed var(--edge-2); border-radius: var(--r); color: var(--coral-ink); font: 600 var(--t-base) var(--f); display: flex; align-items: center; justify-content: center; gap: 8px; }
 .pick { display: grid; gap: var(--s1); }
@@ -526,7 +554,6 @@ input, textarea { font: inherit; color: inherit; }
   .tabbar { position: sticky; top: 12px; bottom: auto; left: auto; right: auto; margin: 12px auto 0; width: 520px; }
   .cols { grid-template-columns: 1.1fr 1fr 1fr; column-gap: var(--s5); align-items: start; }
   .cols.two { grid-template-columns: 1fr 1fr; }
-  .one { margin: var(--s3) 0 0; border-radius: var(--r); }
   .view.narrow { max-width: 760px; }
   .pane { align-items: stretch; justify-items: end; }
   .pane .sheetbox { max-width: 480px; max-height: none; height: 100%; margin: 0; border-radius: 0; border: 0; border-left: 1px solid var(--edge-2); }
@@ -741,24 +768,28 @@ input, textarea { font: inherit; color: inherit; }
     const drop = pr.hrv_drop_pct || 15, up = pr.rhr_elevated_bpm || 5;
     const okSleep = sl != null && sl >= T.sleep_min, okH = hrv != null && hb != null && hrv >= hb * (1 - drop / 100), okR = rhr != null && rb != null && rhr <= rb + up;
     const arcs = [
-      { k: "sleep", r: 64, v: sl != null ? Math.min(1, sl / T.sleep_min) : null, ok: okSleep },
-      { k: "hrv", r: 52, v: hrv != null && hb ? Math.min(1, hrv / hb) : null, ok: okH },
-      { k: "rhr", r: 40, v: rhr != null && rb ? Math.min(1, rb / rhr) : null, ok: okR },
+      { k: "sleep", r: 66, v: sl != null ? Math.min(1, sl / T.sleep_min) : null, ok: okSleep },
+      { k: "hrv", r: 56, v: hrv != null && hb ? Math.min(1, hrv / hb) : null, ok: okH },
+      { k: "rhr", r: 46, v: rhr != null && rb ? Math.min(1, rb / rhr) : null, ok: okR },
     ];
+    // whole numbers without ".0" (0 h, 7 h, 6.5 h)
+    const fh = (v) => (v == null ? null : Math.abs(v - Math.round(v)) < .05 ? fmt(Math.round(v)) : fmt(v, 1));
+    const flagTxt = (R.flags || []).map((f) => String(f).replace(/(\d+)\.0\b/g, "$1")).join("; ");
     let word, cls, say;
-    if (R.fatigue) { word = "Easy day"; cls = "down"; say = `<b>Fatigue rule fired</b>: ${esc((R.flags || []).join("; "))}. Keep the session, RPE 7 max, one set less, or Zone 2.`; }
+    if (R.fatigue) { word = "Easy"; cls = "down"; say = `<b>Fatigue rule fired</b>: ${esc(flagTxt)}. Keep the session, RPE 7 max, one set less, or Zone 2.`; }
     else if (R.status === "ok") { word = "Go"; cls = "up"; say = `<b>Within your baselines.</b> Train as planned.`; }
     else { const need = Math.max(0, (pr.baseline_min_points || 14) - Math.min(R.rhr_points || 0, R.hrv_points || 0)); word = "Building"; cls = ""; say = `<b>Baselines building</b>: ${need} more night${need === 1 ? "" : "s"} of watch data. Go by how you feel.`; }
-    const ring = (x) => { const C = 2 * Math.PI * x.r; return `<circle class="trk" cx="76" cy="76" r="${x.r}"/>${x.v != null ? `<circle class="arc" cx="76" cy="76" r="${x.r}" style="color:var(--${x.ok ? "better" : "worse"});stroke:currentColor" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}" data-off="${(C * (1 - Math.max(.02, x.v))).toFixed(1)}"/>` : ""}`; };
-    const leg = (k, label, v, unit, d, ok, have) => `<button class="dleg" data-explain="${k}" style="color:var(--${have ? (ok ? "better" : "worse") : "edge-2"})"><i></i><span class="k">${label}</span><b>${v != null ? v + `<span style="font-size:.8em;color:var(--muted)"> ${unit}</span>` : "–"}</b><small>${d}</small></button>`;
+    // each arc in its metric's hue; off target = same hue at 45%; nothing drawn for 0 or missing (track only)
+    const ring = (x) => { const C = 2 * Math.PI * x.r; return `<circle class="trk" cx="76" cy="76" r="${x.r}"/>${x.v != null && x.v > 0 ? `<circle class="arc${x.ok ? "" : " off"}" cx="76" cy="76" r="${x.r}" style="color:var(--m-${x.k})" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${C.toFixed(1)}" data-off="${(C * (1 - x.v)).toFixed(1)}"/>` : ""}`; };
+    const leg = (k, label, v, unit, d, ok, have) => `<button class="dleg${have ? "" : " nodata"}" data-explain="${k}" style="color:var(--m-${k})"><i></i><span class="k">${label}</span><b>${v != null ? v + `<span style="font-size:.8em;color:var(--muted)"> ${unit}</span>` : "–"}</b><small>${d}</small></button>`;
     const hdTxt = hrv == null ? "— missing" : hb != null && hd != null ? `<span class="${okH ? "up" : "down"}">${hd > 0 ? "+" : hd < 0 ? "−" : "±"}${fmt(Math.abs(hd))}%</span> vs ${fmt(hb)} baseline` : "baseline building";
     const rdTxt = rhr == null ? "— missing" : rb != null && rdl != null ? `<span class="${okR ? "up" : "down"}">${rdl > 0 ? "+" : rdl < 0 ? "−" : "±"}${fmt(Math.abs(rdl))} bpm</span> vs ${fmt(rb)} baseline` : "baseline building";
     return `<section class="card" aria-label="Recovery, ${esc(when)}">
       <div class="card-h"><h2>Recovery</h2><span class="aside">${esc(when)}${DEV() ? ` · <button class="linkbtn" data-open-pane="watch" style="display:inline;width:auto;min-height:0">watch</button>` : ""}</span></div>
       <div class="dialcard">
-        <div class="dial" role="img" aria-label="Recovery verdict: ${esc(word)}"><svg viewBox="0 0 152 152">${arcs.map(ring).join("")}</svg><div class="ctr"><b class="${cls}">${esc(word)}</b><span>fatigue rule</span></div></div>
+        <div class="dial" role="img" aria-label="Recovery verdict: ${esc(R.fatigue ? "easy day, the fatigue rule fired" : word)}"><svg viewBox="0 0 152 152">${arcs.map(ring).join("")}</svg><div class="ctr"><b class="${cls}${word.length > 4 ? " long" : ""}">${esc(word)}</b><span>${R.fatigue || R.status === "ok" ? "today" : "baseline"}</span></div></div>
         <div class="dlegend">
-          ${leg("sleep", "Sleep", sl != null ? fmt(sl, 1) : null, "h", sl == null ? "— missing" : `<span class="${okSleep ? "up" : "down"}">${okSleep ? "on target" : `${fmt(T.sleep_min - sl, 1)} h short`}</span> of ${T.sleep_min} h`, okSleep, sl != null)}
+          ${leg("sleep", "Sleep", fh(sl), "h", sl == null ? "— missing" : `<span class="${okSleep ? "up" : "down"}">${okSleep ? "on target" : `${fh(T.sleep_min - sl)} h short`}</span> of ${fh(T.sleep_min)} h`, okSleep, sl != null)}
           ${leg("hrv", "HRV", hrv != null ? fmt(hrv) : null, "ms", hdTxt, okH, hrv != null)}
           ${leg("rhr", "Resting HR", rhr != null ? fmt(rhr) : null, "bpm", rdTxt, okR, rhr != null)}
         </div>
@@ -978,15 +1009,19 @@ input, textarea { font: inherit; color: inherit; }
   const TK = (iso) => KEY + ".ticks." + iso;
   const ticks = (iso) => { try { return JSON.parse(localStorage.getItem(TK(iso))) || {}; } catch { return {}; } };
   const setTicks = (iso, v) => { try { localStorage.setItem(TK(iso), JSON.stringify(v)); } catch {} };
+  // compact (Today): only the current/next 4 items by time (ticking never hides a row); earlier ones live in the day pane
+  const TL_COMPACT = 4;
   function timelineHTML(iso, { compact = false } = {}) {
-    const tk = ticks(iso), items = dayItems(iso), now = iso === dubaiISO() ? nowMin() : -1;
+    const tk = ticks(iso), all = dayItems(iso), now = iso === dubaiISO() ? nowMin() : -1;
     const isDone = (x) => !!(tk[x.id] || x.auto);
-    const nextIdx = items.findIndex((x) => !isDone(x) && minOf(x.t) >= now - 30);
-    return `<div class="tline" role="list">${items.map((x, i) => { const done = isDone(x), past = now >= 0 && minOf(x.t) < now - 30;
-      return `<div class="tli ${done ? "done" : ""} ${i === nextIdx ? "now" : ""} ${past ? "past" : ""}" role="listitem">
+    const nextId = (all.find((x) => !isDone(x) && minOf(x.t) >= now - 30) || {}).id;
+    const items = compact ? all.filter((x) => now < 0 || minOf(x.t) >= now - 30).slice(0, TL_COMPACT) : all;
+    if (compact && !items.length) return `<p class="tlempty">Nothing left on today's plan.</p>`;
+    return `${compact && all.some((x) => x.src === "yours") ? `<p class="chg"><i></i>Includes your changes for today</p>` : ""}<div class="tline" role="list">${items.map((x) => { const done = isDone(x), past = now >= 0 && minOf(x.t) < now - 30;
+      return `<div class="tli ${done ? "done" : ""} ${x.id === nextId ? "now" : ""} ${past ? "past" : ""}" role="listitem">
         <span class="tm">${x.t}</span>
         <button class="tick" data-tick="${x.id}" data-iso="${iso}" aria-pressed="${done}" aria-label="${done ? "Done" : "Mark done"}: ${esc(x.b)}" ${x.auto ? "disabled" : ""}><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button>
-        <span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span>${!compact && x.kv ? `<span>${esc(x.kv)}</span>` : ""}${x.src === "yours" ? `<span class="yours">Your change</span>` : ""}${x.slot && iso >= dubaiISO() ? `<button class="linkmini" data-mealmenu="${x.slot}" data-iso="${iso}">Change</button>` : ""}</span>
+        <span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span>${!compact && x.kv ? `<span>${esc(x.kv)}</span>` : ""}${x.src === "yours" && !compact ? `<span class="yours">Your change</span>` : ""}${x.slot && iso >= dubaiISO() ? `<button class="linkmini" data-mealmenu="${x.slot}" data-iso="${iso}">Change</button>` : ""}</span>
         ${x.act === "meal" && !done ? `<button class="btn" data-open-pane="log" data-mode="meal" aria-label="Log ${esc(x.b)}">Log</button>` : x.act === "gym" && !done ? `<button class="btn primary" data-go-train data-i="${(D.program || []).indexOf(sessionFor(iso))}">Start</button>` : x.act === "weigh" && !done ? `<button class="btn" data-open-pane="log" data-mode="weigh">Log</button>` : "<span></span>"}
       </div>`; }).join("")}</div>`;
   }
@@ -1058,8 +1093,10 @@ input, textarea { font: inherit; color: inherit; }
     const pq = (x) => (x.p == null ? "—" : `${x.est ? "≈ " : ""}${fmt(x.p)} g`);
     return `<section class="card toeat" aria-label="Still to eat">
       <h2>Still to eat: ${fmt(gap)} g protein to your ${fmt(floor)} g floor</h2>
+      <details class="disc"><summary>What's left<small>${left.length ? `${left.length} item${left.length === 1 ? "" : "s"}, ${unknown ? "≥ " : ""}${fmt(planned)} g planned` : "nothing planned"}</small></summary>
       ${left.length ? `<div class="list">${left.map((x) => `<div class="li"><span><b>${esc(x.b)}</b></span><span class="q">${pq(x)}</span><span class="sub">${esc(x.t)} · ${esc(x.s)}</span></div>`).join("")}</div>` : `<p class="muted" style="margin:0">Nothing left on today's plan: add a protein item (eggs, Greek yoghurt, tuna, chicken).</p>`}
       <p class="note" style="margin:0">Logged so far ${fmt(got)} g. ${left.length ? `Planned items left add ${fmt(planned)} g${unknown ? " plus the ones without a number" : ""}: ${planned >= gap ? "enough to clear the floor if you eat them" : `${fmt(gap - planned)} g short, so add a protein item`}.` : ""}${ticked.length ? ` Ticked here, not in your records yet: ${ticked.map((x) => `${x.b} ${pq(x)}`).join(", ")}.` : ""}</p>
+      </details>
     </section>`;
   }
 
@@ -1335,37 +1372,24 @@ input, textarea { font: inherit; color: inherit; }
     // training
     const sp = sessionPlan(today), si = sp ? (D.program || []).indexOf(sessionFor(today)) : -1, pl = planOf(today);
     let nextS = null; for (let i = 1; i < 14 && !nextS; i++) { const iso = addDays(today, i); if (sessionFor(iso)) nextS = { iso, s: sessionFor(iso) }; }
+    // training: one compact row to Train (the exercise list, re-plan note and changes live on the Train tab)
+    const tnext = nextS ? `Next: ${esc(nextS.s.name.split(" (")[0])}, ${esc(longDate(nextS.iso))}` : "";
     const train = pl && pl.status === "done"
-      ? `<p style="margin:0;font-weight:600">Trained today: ${esc((progById(pl.logged) || { name: pl.logged }).name.split(" (")[0])}. Logged.</p>`
-      : sp ? `<div class="exlist" style="margin-top:0">${sp.exercises.map((e, i) => `<div class="ex ${e.skip ? "skip" : ""}"><span class="n">${i + 1}</span><span style="font-weight:600">${esc(e.added ? e.name : cap(nice(e.swap || e.id)))}${e.swap ? `<span class="muted" style="font-weight:400;font-size:var(--t-xs)"> instead of ${esc(nice(e.id))}</span>` : ""}</span><span class="m">${e.skip ? "skipped" : `${e.sets}×${esc(e.reps)}${e.rpe ? ` · RPE ${esc(e.rpe)}` : ""}`}</span></div>`).join("")}</div>
-          ${sp.changed ? `<p class="note"><span class="pill yours">Your change</span> ${sp.rpeCap ? `RPE ≤${sp.rpeCap}` : ""}${sp.setsDelta ? `, ${-sp.setsDelta} set less per exercise` : ""}.</p>` : ""}
-          <button class="cta pen" data-go-train data-i="${si}" style="width:100%;margin-top:var(--s3)">${draftFor(sp.id) ? "Resume workout" : "Start workout"}</button>`
-      : `<p style="margin:0">Rest day. Walk 10 minutes after lunch and dinner.${nextS ? ` Next: <b>${esc(nextS.s.name.split(" (")[0])}</b>, ${esc(longDate(nextS.iso))}.` : ""}</p>`;
-    // food: today's plan (with his changes), then what's logged
-    const m = menuFor(today), ch = dayChanges(today), sup = supMap(), shakeMode = ch.shake || (m && m.shake) || "replaces_chicken", shake = sp && shakeMode !== "skip" && shakeTxt(), day = (D.meals || {})[today];
-    const prow = (k, name, sub, q, yours) => `<div class="meal"><span class="lbl" style="padding-top:3px">${k}</span><div class="nm"><b>${esc(name)}</b>${sub || yours ? `<span>${esc(sub || "")}${yours ? `${sub ? " · " : ""}<span class="yours" style="color:var(--coral-ink)">your change</span>` : ""}</span>` : ""}</div><div class="q">${q}</div></div>`;
-    const extras = ch.extras || [];
-    const plm = localChanges(today).meals || {};
-    const slotRow = (slot, label) => {
-      const v = plm[slot];
-      if (v === "cancelled") return prow(label, "Not delivered / not eaten", "Your change", "<b>—</b>", true);
-      if (v && v.replaced) return prow(label, v.replaced.item, "Your change, instead of the plan", `<b>${v.replaced.protein != null ? fmt(v.replaced.protein) + " g" : "—"}</b>protein`, true);
-      return m && m[slot] ? prow(label, stripId(m[slot]), "Meal plan", `<b>${pOf(m[slot]) || "—"} g</b>protein`) : "";
-    };
-    const planRows = m || extras.length || Object.keys(plm).length ? [slotRow("lunch", "Lunch"), slotRow("dinner", "Dinner"),
-      ...extras.map((x) => prow(x.kind === "snack" ? "Snack" : x.kind === "drink" ? "Drink" : "Add-on", x.item, x.time ? `at ${x.time}` : "", `<b>${fmt(x.protein)} g</b>protein`, true)),
-      !extras.length && m && m.addon ? prow("Add-on", m.addon.items, `Day ≈ ${fmt(m.addon.kcal)} kcal`, `<b>+${fmt(m.addon.protein - m.protein)} g</b>protein`) : "",
-      shake ? prow("Shake", shake, shakeMode === "on_top" ? "After training, on top today" : "After training", sup.whey.nutrition_estimate ? `<b>≈ ${sup.whey.nutrition_estimate.protein_g.best} g</b>protein` : "", !!ch.shake) : ""].join("")
-      : `<p class="muted" style="margin:0">No meal-plan delivery today. Grilled protein, one carb, sauce on the side; photo every plate.</p>`;
+      ? `<button class="trow" data-go-train data-i="${si}" aria-label="Trained today, open Train"><span class="w"><b>Trained today: ${esc((progById(pl.logged) || { name: pl.logged }).name.split(" (")[0])}</b><span>Logged${tnext ? `. ${tnext}` : ""}</span></span><span class="go ok">Done ›</span></button>`
+      : sp ? `<button class="trow" data-go-train data-i="${si}"><span class="w"><b>${esc(sp.name.split(" (")[0])}, ${esc(timesFor(today).gym)}</b><span>${sp.exercises.filter((e) => !e.skip).length} exercises, ${esc(sp.duration)} min${sp.rpeCap ? `. RPE ≤${sp.rpeCap}${sp.setsDelta ? `, ${-sp.setsDelta} set less` : ""}` : ""}${sp.changed ? ". Your changes" : ""}</span></span><span class="go">${draftFor(sp.id) ? "Resume" : "Start"} ›</span></button>`
+      : `<button class="trow" data-go-train data-i="-1"><span class="w"><b>${esc(dayKindOf(today))}</b><span>Walk 10 minutes after lunch and dinner.${tnext ? ` ${tnext}.` : ""}</span></span><span class="go">Train ›</span></button>`;
+    const day = (D.meals || {})[today];
     const sum = (k) => day ? day.items.reduce((a, x) => a + ((x[k] && x[k].best) || 0), 0) : 0;
-    const note = ch.note || (m && m.note);
+    const m = menuFor(today), note = dayChanges(today).note || (m && m.note);
+    // past items not ticked: not shown on Today, counted on the "Full day" link
+    const tkT = ticks(today), earlyOpen = dayItems(today).filter((x) => minOf(x.t) < nowMin() - 30 && !(tkT[x.id] || x.auto)).length;
     return `<div class="cols">
       <div class="col">
         ${waiting ? `<div><button class="sig" data-open-pane="entries"><i></i>${waiting} sent to your coach, waiting</button></div>` : ""}
         <section class="brief" aria-label="Coach note">
           <span class="who ${c ? "" : "calc"}"><i></i><span class="lbl">${c ? "Coach, " + cw : "Calculated from your data"}</span></span>
           <h2 class="serif-h">${esc(brief.title || "")}</h2>
-          <p>${esc(brief.body || "")}</p>
+          <p class="clamp" id="brief-body">${esc(brief.body || "")}</p><button class="morebtn" data-more="brief-body" aria-expanded="false" aria-controls="brief-body">More</button>
           <div class="one"><span class="t"><span class="lbl">One thing</span><span>${esc(one.text)}</span></span>${one.act === "log" ? `<button class="btn" data-open-pane="log" data-mode="${/weigh/i.test(one.text) ? "weigh" : "meal"}">Log</button>` : "<span></span>"}</div>
         </section>
         ${easyCard()}
@@ -1384,17 +1408,14 @@ input, textarea { font: inherit; color: inherit; }
       <div class="col">
         <section class="card" aria-label="Today's plan">
           <div class="card-h"><h2>Today's plan</h2>${dayRing(today)}</div>
-          ${note ? `<p class="note" style="margin:0 0 var(--s2)"><span class="pill yours">Your change</span> ${esc(note)}</p>` : ""}
           ${timelineHTML(today, { compact: true })}
-          <div class="row" style="margin-top:var(--s3)"><button class="btn" data-ics="${today}">Add to calendar</button><button class="linkbtn" data-open-pane="day" style="width:auto">Full details<span aria-hidden="true"> ›</span></button></div>
+          ${note ? `<p class="note clamp c2" id="plan-note" style="margin:var(--s2) 0 0">${esc(note)}</p><button class="morebtn" data-more="plan-note" aria-expanded="false" aria-controls="plan-note" style="margin-top:0">More</button>` : ""}
+          <div class="row" style="margin-top:var(--s2)"><button class="btn" data-ics="${today}">Add to calendar</button><button class="linkbtn" data-open-pane="day" style="width:auto">Full day${earlyOpen ? ` (${earlyOpen} earlier open)` : ""}<span aria-hidden="true"> ›</span></button></div>
         </section>
-        <section class="card" aria-label="Training today"><div class="card-h"><h2>${sp ? esc(sp.name.split(" (")[0]) + `, ${timesFor(today).gym}` : "Training"}</h2><span class="pill">${esc(dayKindOf(today))}</span></div>${train}
-          ${weekNote(today) ? `<p class="note">Coach re-plan: ${esc(weekNote(today))}</p>` : ""}</section>
+        <div aria-label="Training today" role="group">${train}</div>
       </div>
       <div class="col">
-        <section class="card" aria-label="Food today"><div class="card-h"><h2>Food</h2><span class="aside">plan, then logged</span></div>
-          ${planRows}
-          <div class="subh"><span class="lbl">Logged</span><span class="aside num" style="font-size:var(--t-sm)">${day ? `${fmt(sum("kcal"))} kcal · ${fmt(sum("protein"))} g${day.complete ? " · complete" : ""}` : ""}</span></div>
+        <section class="card" aria-label="Food today"><div class="card-h"><h2>Food logged</h2><span class="aside num">${day ? `${fmt(sum("kcal"))} kcal · ${fmt(sum("protein"))} g${day.complete ? " · complete" : ""}` : ""}</span></div>
           ${day ? `<div class="list">${mealRows(today)}</div>` : `<p class="muted" style="margin:0">Nothing logged yet today.</p>`}
           <button class="linkbtn" data-open-pane="week">This week's menu<span aria-hidden="true">›</span></button>
         </section>
@@ -2105,7 +2126,11 @@ input, textarea { font: inherit; color: inherit; }
   // ---------- render ----------
   const wrapV = (html, cls = "") => `<div class="view ${cls}">${html}</div>`;
   const anim = () => requestAnimationFrame(() => requestAnimationFrame(animateRings));
-  function drawToday() { $("#v-today").innerHTML = wrapV(viewToday()); anim(); }
+  // clamped text: "More" shows only when the text is actually cut; it expands in place
+  function checkClamps() { document.querySelectorAll("[data-more]").forEach((b) => { const el = document.getElementById(b.dataset.more); if (!el || el.classList.contains("open")) return; b.hidden = el.scrollHeight <= el.clientHeight + 1; }); }
+  function drawToday() { $("#v-today").innerHTML = wrapV(viewToday()); anim(); requestAnimationFrame(checkClamps); }
+  try { document.fonts && document.fonts.ready.then(checkClamps); } catch {}
+  window.addEventListener("resize", () => requestAnimationFrame(checkClamps));
   function drawProgress() { $("#v-progress").innerHTML = wrapV(viewProgress()); anim(); }
   function drawFood() { if (!$("#pane").hidden && $("#pane").dataset.kind === "week") { const y = $("#pane-box").scrollTop; openPane("week"); $("#pane-box").scrollTop = y; anim(); } }
   function drawTrain() { $("#v-train").innerHTML = wrapV(viewTrain(), LOG && TAB_LOGGING ? "narrow" : ""); }
@@ -2130,6 +2155,7 @@ input, textarea { font: inherit; color: inherit; }
   document.addEventListener("click", (e) => {
     const d = e.target.closest("[data-day]"); if (d) { SEL = d.dataset.day; drawToday(); requestAnimationFrame(() => requestAnimationFrame(animateRings)); return; }
     const hit = e.target.closest(".hit"); if (hit) { showTip(hit); return; }
+    const mb = e.target.closest("[data-more]"); if (mb) { const el = document.getElementById(mb.dataset.more); if (el) { const open = el.classList.toggle("open"); mb.textContent = open ? "Less" : "More"; mb.setAttribute("aria-expanded", String(open)); } return; }
     const tkb = e.target.closest("[data-tick]"); if (tkb) { const iso = tkb.dataset.iso, t = ticks(iso); t[tkb.dataset.tick] ? delete t[tkb.dataset.tick] : (t[tkb.dataset.tick] = Date.now()); setTicks(iso, t); const y = window.scrollY; drawToday(); if (!$("#pane").hidden && $("#pane").dataset.kind === "day") openPane("day"); window.scrollTo({ top: y }); return; }
     const icb = e.target.closest("[data-ics]"); if (icb) { downloadIcs(icb.dataset.ics); return; }
     const plb = e.target.closest("[data-plates]"); if (plb) { openPane("plates", plb.dataset.plates); return; }

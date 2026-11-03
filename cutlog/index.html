@@ -128,6 +128,7 @@ input, textarea { font: inherit; color: inherit; }
 .cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--ink); color: var(--void); font: 700 var(--t-md) var(--f); text-decoration: none; }
 .cta.pen { background: var(--coral); color: var(--on-coral); box-shadow: 0 8px 28px color-mix(in srgb, var(--coral) 35%, transparent); }
 .cta.ghost { background: var(--raised); color: var(--ink); border: var(--rule); }
+.linkmini { justify-self: start; min-height: 44px; padding: 0; color: var(--accent-ink); font: 600 var(--t-xs) var(--f); text-align: left; }
 .linkbtn { color: var(--coral-ink); font: 600 var(--t-sm) var(--f); min-height: 44px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
 .addset { justify-self: start; font: 600 var(--t-sm) var(--f); color: var(--coral-ink); min-height: 44px; padding: 0 8px 0 2px; }
 
@@ -915,27 +916,51 @@ input, textarea { font: inherit; color: inherit; }
     const am = supAt(/morning/i).filter((x) => !skipSup.has(x.id)), pm = supAt(/dinner|night|evening/i).filter((x) => !skipSup.has(x.id));
     const it = [], yours = (k) => k in ch, L = D.latest, logged = (D.meals || {})[iso];
     const ate = (kind) => !!(logged && logged.items.some((x) => x.kind === kind));
+    const lm = localChanges(iso).meals || {};
+    // a meal he changed on this phone: cancelled = gone from the plan; replaced = what he ate instead (no invented numbers)
+    const phoneMeal = (slot) => lm[slot] === "cancelled" ? { gone: true } : lm[slot] && lm[slot].replaced ? lm[slot].replaced : null;
+    ["lunch", "dinner"].forEach((slot) => { const pm = phoneMeal(slot); if (pm && !pm.gone) it.push({ id: slot, t: T[slot], b: (slot === "lunch" ? "Lunch" : "Dinner") + ", instead", s: pm.item, kv: pm.protein != null ? `${fmt(pm.protein)} g protein, ${String(pm.source || "you").toLowerCase()}` : "protein — (coach estimates it)", p: pm.protein != null ? +pm.protein : null, act: "meal", src: "yours", slot, auto: ate(slot) }); });
     it.push({ id: "weigh", t: T.weigh_in, b: "Weigh in", s: "After the toilet, before food or drink" + (am.length ? `, then ${supNames(am)}` : ""), act: "weigh", auto: L.date === iso && L.weight != null });
     if (ch.times && ch.times.nap) { const [a, z] = ch.times.nap.split("-"); it.push({ id: "nap", t: a, b: "Nap", s: `${a}–${z}. Set an alarm for ${z}`, src: "yours" }); }
-    if (m && m.lunch) it.push({ id: "lunch", t: T.lunch, b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein, label` : "", p: pOf(m.lunch) ? +pOf(m.lunch) : null, act: "meal", src: (m.replaced || []).includes("lunch") ? "yours" : "", auto: ate("lunch") });
-    else if (!cancelledOf(m, "lunch")) it.push({ id: "lunch", t: T.lunch, b: wkend ? "Lunch out" : "Lunch", s: "Grilled protein, one carb, sauce on the side. Photo it.", p: null, act: "meal", auto: ate("lunch") });
+    if (phoneMeal("lunch")) { /* changed on this phone: handled above */ }
+    else if (m && m.lunch) it.push({ slot: "lunch", id: "lunch", t: T.lunch, b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein, label` : "", p: pOf(m.lunch) ? +pOf(m.lunch) : null, act: "meal", src: (m.replaced || []).includes("lunch") ? "yours" : "", auto: ate("lunch") });
+    else if (!cancelledOf(m, "lunch")) it.push({ slot: "lunch", id: "lunch", t: T.lunch, b: wkend ? "Lunch out" : "Lunch", s: "Grilled protein, one carb, sauce on the side. Photo it.", p: null, act: "meal", auto: ate("lunch") });
     it.push({ id: "caffeine", t: T.caffeine_cutoff, b: "Caffeine cutoff", s: `Nothing caffeinated after this, so you sleep by ${T.bedtime}`, src: yours("times") && ch.times.caffeine_cutoff ? "yours" : "" });
     (ch.extras || []).forEach((x, i) => it.push({ id: "x" + i, t: x.time || T.pre_gym, b: x.kind === "snack" ? "Snack" : x.kind === "drink" ? "Drink" : "Add-on", s: x.item, kv: `${fmt(x.kcal)} kcal, ${fmt(x.protein)} g protein, ${String(x.source || "estimate").toLowerCase()}`, p: x.protein != null ? +x.protein : null, est: x.source === "ESTIMATE", act: "meal", src: "yours" }));
     if (sp) {
       if (!(ch.extras || []).some((x) => x.kind === "snack")) it.push({ id: "pregym", t: T.pre_gym, b: "Pre-gym snack", s: "Banana + eggs, if lunch was 5+ hours ago", p: null, act: "meal" });
       const live = sp.exercises.filter((e) => !e.skip).length, pl = planOf(iso);
       it.push({ id: "gym", t: T.gym, b: sp.name.split(" (")[0], s: `${live} exercises, ${sp.duration} min${/upper/.test(sp.id) && !sp.skipCond ? " + 20 min incline walk" : ""}${sp.rpeCap ? `. Easy today: RPE ≤${sp.rpeCap}${sp.setsDelta ? `, ${-sp.setsDelta} set less each` : ""}` : ""}`, act: "gym", src: sp.changed ? "yours" : "", auto: !!(pl && pl.status === "done") });
-      if (shake && shakeMode !== "skip") { const ne = sup.whey && sup.whey.nutrition_estimate; it.push({ id: "shake", t: T.shake, b: "Shake", s: shake + (shakeMode === "on_top" ? ". On top of the add-ons today" : ""), kv: ne ? `≈ ${ne.protein_g.best} g protein, ${ne.kcal.best} kcal, estimate` : "", p: ne ? ne.protein_g.best : null, est: true, act: "meal", src: ch.shake ? "yours" : "" }); }
+      if (shake && shakeMode !== "skip") { const ne = sup.whey && sup.whey.nutrition_estimate; it.push({ slot: "shake", id: "shake", t: T.shake, b: "Shake", s: shake + (shakeMode === "on_top" ? ". On top of the add-ons today" : ""), kv: ne ? `≈ ${ne.protein_g.best} g protein, ${ne.kcal.best} kcal, estimate` : "", p: ne ? ne.protein_g.best : null, est: true, act: "meal", src: ch.shake ? "yours" : "" }); }
     } else if (!wkend) it.push({ id: "walk", t: T.gym, b: "Rest day walk", s: "10 minutes after lunch and after dinner, for steps" });
-    if (m && m.dinner) {
+    if (phoneMeal("dinner")) { /* changed on this phone: handled above */ }
+    else if (m && m.dinner) {
       const withDinner = (ch.extras || []).length ? "" : m.addon ? `, plus ${m.addon.with_dinner || m.addon.items}` : "";
-      it.push({ id: "dinner", t: T.dinner, b: withDinner ? "Dinner + add-on" : "Dinner", s: stripId(m.dinner) + withDinner, kv: m.addon && !(ch.extras || []).length ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "", p: pOf(m.dinner) ? +pOf(m.dinner) + (withDinner && m.addon.protein != null && m.protein != null ? m.addon.protein - m.protein : 0) : null, est: !!withDinner, act: "meal", src: (m.replaced || []).includes("dinner") ? "yours" : "", auto: ate("dinner") });
-    } else if (!cancelledOf(m, "dinner")) it.push({ id: "dinner", t: T.dinner, b: wkend ? "Dinner out" : "Dinner", s: "Photo every plate; aim for 40+ g protein", p: null, act: "meal", auto: ate("dinner") });
+      it.push({ slot: "dinner", id: "dinner", t: T.dinner, b: withDinner ? "Dinner + add-on" : "Dinner", s: stripId(m.dinner) + withDinner, kv: m.addon && !(ch.extras || []).length ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "", p: pOf(m.dinner) ? +pOf(m.dinner) + (withDinner && m.addon.protein != null && m.protein != null ? m.addon.protein - m.protein : 0) : null, est: !!withDinner, act: "meal", src: (m.replaced || []).includes("dinner") ? "yours" : "", auto: ate("dinner") });
+    } else if (!cancelledOf(m, "dinner")) it.push({ slot: "dinner", id: "dinner", t: T.dinner, b: wkend ? "Dinner out" : "Dinner", s: "Photo every plate; aim for 40+ g protein", p: null, act: "meal", auto: ate("dinner") });
     const addSup = (ch.supplements || {}).add || [];
     if (pm.length || addSup.length) it.push({ id: "supps", t: T.supplements, b: "Supplements", s: [...pm.map((x) => x.name), ...addSup].join(" + "), src: addSup.length || skipSup.size ? "yours" : "" });
     it.push({ id: "wind", t: T.wind_down, b: "Wind down", s: "Lights low, screens off" });
     it.push({ id: "bed", t: T.bedtime, b: "Bed", s: `Aim for ${D.targets.sleep_min}+ hours`, src: yours("times") && ch.times.bedtime ? "yours" : "" });
     return it.sort((x, y) => minOf(x.t) - minOf(y.t));
+  }
+  // his meal changes from the phone: cancel / ate something else / shake off; queued as PLAN lines for the coach
+  function mealMenu(iso, slot) {
+    const lm = localChanges(iso).meals || {}, label = slot === "shake" ? "Shake" : slot === "lunch" ? "Lunch" : "Dinner", opts = [];
+    const repaint = () => { const y = window.scrollY; drawToday(); if (!$("#pane").hidden && $("#pane").dataset.kind === "day") openPane("day"); window.scrollTo({ top: y }); };
+    const redraw = (undo, msg) => { repaint(); toast(msg, { label: "Undo", fn: () => { undo(); repaint(); } }); };
+    if (slot === "shake") {
+      const off = dayChanges(iso).shake === "skip";
+      opts.push(off ? { label: "Shake back on", fn: () => redraw(planChange(iso, "shake", "shake back on", (c) => { delete c.shake; }), "Shake back on") }
+                    : { label: "No shake today", hint: "the coach plans protein around it", fn: () => redraw(planChange(iso, "shake", "no shake today", (c) => { c.shake = "skip"; }), "Shake off for today") });
+    } else {
+      opts.push({ label: "Not delivered / won't eat it", hint: "removed from today, never moved to later", fn: () => redraw(planChange(iso, "meal." + slot, `${slot} cancelled (not delivered or not eaten)`, (c) => { c.meals = { ...(c.meals || {}), [slot]: "cancelled" }; }), `${label} cancelled`) });
+      opts.push({ label: "I ate something else instead…", hint: "type what it was; the coach estimates it", fn: () => {
+        const txt = (window.prompt(`${label}: what did you eat instead?`) || "").trim(); if (!txt) return;
+        redraw(planChange(iso, "meal." + slot, `${slot} replaced: ${txt}`, (c) => { c.meals = { ...(c.meals || {}), [slot]: { replaced: { item: txt, kcal: null, protein: null, source: "USER" } } }; }), `${label} replaced`); } });
+      if (lm[slot]) opts.push({ label: "Back to the plan", fn: () => redraw(planChange(iso, "meal." + slot, `${slot} back to the plan`, (c) => { if (c.meals) { delete c.meals[slot]; if (!Object.keys(c.meals).length) delete c.meals; } }), `${label} back to the plan`) });
+    }
+    openMenu(`${label}, ${longDate(iso)}`, opts.map((o) => ({ ...o, noLog: true })));
   }
   const nextUp = (iso) => dayItems(iso).filter((x) => x.id !== "wind");
   // ticks: stored on this phone per day; the next Log message carries them so the coach records them
@@ -950,7 +975,7 @@ input, textarea { font: inherit; color: inherit; }
       return `<div class="tli ${done ? "done" : ""} ${i === nextIdx ? "now" : ""} ${past ? "past" : ""}" role="listitem">
         <span class="tm">${x.t}</span>
         <button class="tick" data-tick="${x.id}" data-iso="${iso}" aria-pressed="${done}" aria-label="${done ? "Done" : "Mark done"}: ${esc(x.b)}" ${x.auto ? "disabled" : ""}><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button>
-        <span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span>${!compact && x.kv ? `<span>${esc(x.kv)}</span>` : ""}${x.src === "yours" ? `<span class="yours">Your change</span>` : ""}</span>
+        <span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span>${!compact && x.kv ? `<span>${esc(x.kv)}</span>` : ""}${x.src === "yours" ? `<span class="yours">Your change</span>` : ""}${x.slot && iso >= dubaiISO() ? `<button class="linkmini" data-mealmenu="${x.slot}" data-iso="${iso}">Change</button>` : ""}</span>
         ${x.act === "meal" && !done ? `<button class="btn" data-open-pane="log" data-mode="meal" aria-label="Log ${esc(x.b)}">Log</button>` : x.act === "gym" && !done ? `<button class="btn primary" data-go-train data-i="${(D.program || []).indexOf(sessionFor(iso))}">Start</button>` : x.act === "weigh" && !done ? `<button class="btn" data-open-pane="log" data-mode="weigh">Log</button>` : "<span></span>"}
       </div>`; }).join("")}</div>`;
   }
@@ -1133,8 +1158,14 @@ input, textarea { font: inherit; color: inherit; }
     const m = menuFor(today), ch = dayChanges(today), sup = supMap(), shakeMode = ch.shake || (m && m.shake) || "replaces_chicken", shake = sp && shakeMode !== "skip" && shakeTxt(), day = (D.meals || {})[today];
     const prow = (k, name, sub, q, yours) => `<div class="meal"><span class="lbl" style="padding-top:3px">${k}</span><div class="nm"><b>${esc(name)}</b>${sub || yours ? `<span>${esc(sub || "")}${yours ? `${sub ? " · " : ""}<span class="yours" style="color:var(--coral-ink)">your change</span>` : ""}</span>` : ""}</div><div class="q">${q}</div></div>`;
     const extras = ch.extras || [];
-    const planRows = m || extras.length ? [m && m.lunch ? prow("Lunch", stripId(m.lunch), "Meal plan", `<b>${pOf(m.lunch) || "—"} g</b>protein`) : "",
-      m && m.dinner ? prow("Dinner", stripId(m.dinner), "Meal plan", `<b>${pOf(m.dinner) || "—"} g</b>protein`) : "",
+    const plm = localChanges(today).meals || {};
+    const slotRow = (slot, label) => {
+      const v = plm[slot];
+      if (v === "cancelled") return prow(label, "Not delivered / not eaten", "Your change", "<b>—</b>", true);
+      if (v && v.replaced) return prow(label, v.replaced.item, "Your change, instead of the plan", `<b>${v.replaced.protein != null ? fmt(v.replaced.protein) + " g" : "—"}</b>protein`, true);
+      return m && m[slot] ? prow(label, stripId(m[slot]), "Meal plan", `<b>${pOf(m[slot]) || "—"} g</b>protein`) : "";
+    };
+    const planRows = m || extras.length || Object.keys(plm).length ? [slotRow("lunch", "Lunch"), slotRow("dinner", "Dinner"),
       ...extras.map((x) => prow(x.kind === "snack" ? "Snack" : x.kind === "drink" ? "Drink" : "Add-on", x.item, x.time ? `at ${x.time}` : "", `<b>${fmt(x.protein)} g</b>protein`, true)),
       !extras.length && m && m.addon ? prow("Add-on", m.addon.items, `Day ≈ ${fmt(m.addon.kcal)} kcal`, `<b>+${fmt(m.addon.protein - m.protein)} g</b>protein`) : "",
       shake ? prow("Shake", shake, shakeMode === "on_top" ? "After training, on top today" : "After training", sup.whey.nutrition_estimate ? `<b>≈ ${sup.whey.nutrition_estimate.protein_g.best} g</b>protein` : "", !!ch.shake) : ""].join("")
@@ -1964,7 +1995,8 @@ input, textarea { font: inherit; color: inherit; }
     const as = e.target.closest("[data-addset]"); if (as) { const arr = LOG.ex[as.dataset.addset], prev = [...arr].reverse().find((x) => !x.warm) || {}; arr.push({ kg: prev.kg ?? "", reps: "", rpe: "", done: false, warm: false }); saveDraft(LOG); redrawLog(); return; }
     const sm = e.target.closest("[data-setmenu]"); if (sm) { const [id, k] = sm.dataset.setmenu.split(":"); setMenu(id, +k); return; }
     const em = e.target.closest("[data-exmenu]"); if (em) { exMenu(em.dataset.exmenu); return; }
-    const op = e.target.closest("[data-opt]"); if (op) { $("#menu").hidden = true; openMenu.opts[+op.dataset.opt].fn(); saveDraft(LOG); redrawLog(); return; }
+    const mm = e.target.closest("[data-mealmenu]"); if (mm) { mealMenu(mm.dataset.iso, mm.dataset.mealmenu); return; }
+    const op = e.target.closest("[data-opt]"); if (op) { $("#menu").hidden = true; const o = openMenu.opts[+op.dataset.opt]; o.fn(); if (!o.noLog) { saveDraft(LOG); redrawLog(); } return; }
     if (e.target.closest("[data-menuclose]") || e.target.id === "menu") { $("#menu").hidden = true; return; }
     const oe = e.target.closest("[data-open]"); if (oe) { LOG.open[oe.dataset.open] = true; saveDraft(LOG); redrawLog(); return; }
     const sh = e.target.closest("[data-shake]"); if (sh) { LOG.shake = !LOG.shake; sh.setAttribute("aria-pressed", String(LOG.shake)); saveDraft(LOG); return; }

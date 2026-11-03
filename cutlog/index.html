@@ -494,6 +494,16 @@ input, textarea { font: inherit; color: inherit; }
 .pick button small { color: var(--muted); font: 500 var(--t-xs) var(--f-num); white-space: nowrap; }
 .pick button.new { color: var(--coral-ink); font-weight: 600; border: 1.5px dashed var(--edge-2); background: transparent; }
 .offpill { justify-self: start; margin-top: 2px; }
+/* relay sync chip (design §6): 44px target, small pill inside */
+.syncchip { min-height: 44px; display: grid; place-items: center; flex: none; padding: 0; background: none; border: 0; }
+.syncchip .pill { min-height: 28px; border: var(--rule); }
+.syncchip .pill i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.syncchip .pill.busy i { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+.rq { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px var(--s2); align-items: center; }
+.rq .acts { grid-column: 1 / -1; display: flex; gap: var(--s2); flex-wrap: wrap; }
+.syncchip .sh { display: none; }
+@media (max-width: 420px) { .syncchip .lg { display: none; } .syncchip .sh { display: inline; } .head h1 { white-space: nowrap; } }
 .cols { display: grid; gap: var(--s3); }
 .col { display: grid; align-content: start; gap: var(--s3); min-width: 0; }
 @media (max-width: 370px) {
@@ -538,6 +548,7 @@ input, textarea { font: inherit; color: inherit; }
 <div class="wrap" id="app">
   <header class="head" id="head" hidden>
     <div class="t"><h1 id="greet">Cut Log</h1><span class="lbl" id="dateline">—</span><span class="pill warn offpill" id="offline" role="status" hidden></span></div>
+    <button class="syncchip" id="sync" hidden aria-label="Sync with your coach"></button>
     <button class="roundbtn" id="refresh" aria-label="Refresh data"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
     <button class="roundbtn avatar" id="settings" aria-label="You: profile, appearance and privacy">CL</button>
   </header>
@@ -883,8 +894,8 @@ input, textarea { font: inherit; color: inherit; }
     mutate(cur); writeLocal(iso, cur);
     const log = planLog().filter((x) => !(x.iso === iso && x.key === key && !x.sent));
     if (text) log.push({ iso, key, text: `PLAN ${iso}: ${text}`, at: Date.now() });
-    setPlanLog(log);
-    return () => { writeLocal(iso, JSON.parse(before)); setPlanLog(JSON.parse(logBefore)); };
+    setPlanLog(log); relayChanged(iso);
+    return () => { writeLocal(iso, JSON.parse(before)); setPlanLog(JSON.parse(logBefore)); relayChanged(iso); };
   }
   const pendingPlan = (iso) => planLog().filter((x) => !x.sent && (!iso || x.iso === iso));
   const markPlanSent = (xs, via) => { const at = new Set(xs.map((x) => x.at + x.key)); setPlanLog(planLog().map((x) => (at.has(x.at + x.key) ? { ...x, sent: true, via } : x))); };
@@ -1025,7 +1036,7 @@ input, textarea { font: inherit; color: inherit; }
     else planChange(iso, "easy", "train as planned (easy version declined)", (c) => { c.easy = false; if (c.exercises) delete c.exercises["*"]; });
     syncDraft(iso);
     const y = window.scrollY; drawToday(); drawTrain(); window.scrollTo({ top: y });
-    toast(v === "undo" ? "Choice undone" : "Saved. Goes with your next message", { label: "Send now", fn: sendPlan });
+    toast(v === "undo" ? "Choice undone" : relayOn() ? "Saved. Sending to your coach" : "Saved. Goes with your next message", { label: relayOn() ? "Copy" : "Send now", fn: sendPlan });
   }
   // copy the queued PLAN lines on their own (the Log message and the workout message also carry them)
   function sendPlan() {
@@ -1076,6 +1087,182 @@ input, textarea { font: inherit; color: inherit; }
   function outbox() { try { return JSON.parse(localStorage.getItem(KEY + ".outbox")) || []; } catch { return []; } }
   function setOutbox(v) { try { localStorage.setItem(KEY + ".outbox", JSON.stringify(v.slice(-30))); } catch {} }
   function entryStatus(x) { const gen = new Date((D.generated_at || "").replace(" ", "T") + ":00+04:00"); return gen > new Date(x.at) ? "done" : "wait"; }
+
+  // ---------- relay (design §6): structured entries, AES-GCM encrypted with the unlock key, signed with write_key ----------
+  // Config from relay.json next to data.enc.json (404 = relay off); test override localStorage[KEY + ".relay"].
+  // Queue in localStorage[KEY + ".relayq"]; the copy-to-chat path always stays available. Key material lives in memory only.
+  const RQ_KEY = KEY + ".relayq", RC_KEY = KEY + ".relaycfg", RQ_MAX_TRIES = 8;
+  const RL = { url: null, keyB64: null, wk: null, aes: null, busy: false, offline: false, deb: {} };
+  const relayQ = () => { try { const q = JSON.parse(localStorage.getItem(RQ_KEY)); return Array.isArray(q) ? q : []; } catch { return []; } };
+  function setRelayQ(q) {
+    // keep everything unfinished; past 60 entries drop the oldest applied ones
+    let extra = q.length - 60; const out = extra > 0 ? q.filter((x) => !(extra > 0 && x.state === "applied" && extra-- > 0)) : q;
+    try { localStorage.setItem(RQ_KEY, JSON.stringify(out.slice(-80))); } catch {}
+  }
+  const updRelay = (id, fn) => { const q = relayQ(); const x = q.find((y) => y.id === id); if (x) { fn(x); setRelayQ(q); } return x; };
+  const cleanUrl = (u) => { try { const x = new URL(String(u || "")); if (x.protocol === "https:" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(x.hostname)) return x.href.replace(/\/+$/, ""); } catch {} return null; };
+  function relayOverride() { try { const v = localStorage.getItem(KEY + ".relay"); if (!v) return null; let o; try { o = JSON.parse(v); } catch { o = v; } return cleanUrl(typeof o === "string" ? o : o && o.url); } catch { return null; } }
+  async function relayConfig() {
+    const ov = relayOverride(); if (ov) { RL.url = ov; return; }
+    try { const c = JSON.parse(localStorage.getItem(RC_KEY)); RL.url = cleanUrl(c && c.url); } catch {}
+    try {
+      const r = await fetch(`relay.json?t=${Date.now()}`, { cache: "no-store" });
+      if (r.ok) { const c = await r.json(); RL.url = cleanUrl(c && c.url); try { RL.url ? localStorage.setItem(RC_KEY, JSON.stringify({ url: RL.url })) : localStorage.removeItem(RC_KEY); } catch {} }
+      else if (r.status === 404 && !r.headers.get("x-cutlog-offline")) { RL.url = null; try { localStorage.removeItem(RC_KEY); } catch {} }
+    } catch {} // offline: keep the cached config
+  }
+  const relayOn = () => !!RL.url;
+  const utf8 = (s) => new TextEncoder().encode(s);
+  async function relayKeys() {
+    const k = store.get().key; if (!k) return null; // never send when not unlocked
+    if (RL.keyB64 !== k) {
+      const raw = b64d(k), hk = await crypto.subtle.importKey("raw", raw, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      const wk = await crypto.subtle.sign("HMAC", hk, utf8("cutlog-relay-write-v1"));
+      RL.wk = await crypto.subtle.importKey("raw", wk, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+      RL.aes = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt"]);
+      RL.keyB64 = k;
+    }
+    return RL;
+  }
+  const relaySig = async (s) => b64e(await crypto.subtle.sign("HMAC", (await relayKeys()).wk, utf8(s)));
+  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) => (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)));
+  // encrypt + sign + queue one entry; resolves to its id, or null when the relay is off / the phone is locked
+  async function relaySend(kind, iso, payload, { copy = "", title = "" } = {}) {
+    if (!relayOn()) return null;
+    try {
+      const K = await relayKeys(); if (!K) return null;
+      const id = uuid(), at = new Date().toISOString(), iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, K.aes, utf8(JSON.stringify({ id, kind, at, iso, ...payload })));
+      const body = JSON.stringify({ id, v: 1, iv: b64e(iv), ct: b64e(ct) }), sig = await relaySig(body);
+      // a newer "changes" entry carries the full state for that day: drop older ones still waiting
+      const q = relayQ().filter((x) => !(kind === "changes" && x.kind === "changes" && x.iso === iso && x.state === "queued" && !x.inflight));
+      q.push({ id, kind, iso, at, body, sig, state: "queued", tries: 0, next: 0, title, copy });
+      setRelayQ(q); drawSync();
+      await relayFlush(true);
+      return id;
+    } catch { return null; }
+  }
+  // phone plan changes: several quick taps become one entry with the full current changes for that day
+  function relayChanged(iso) {
+    if (!relayOn()) return;
+    clearTimeout(RL.deb[iso]);
+    RL.deb[iso] = setTimeout(() => {
+      delete RL.deb[iso];
+      const lines = pendingPlan(iso).map((x) => x.text);
+      relaySend("changes", iso, { changes: JSON.parse(JSON.stringify(localChanges(iso))), lines }, { copy: lines.length ? lines.join("\n") + "\n(sent from Cut Log)" : "", title: "Plan change" });
+    }, 2000);
+  }
+  async function relayFlush(force) {
+    if (RL.busy || !relayOn() || !store.get().key) return;
+    RL.busy = true;
+    try {
+      const due = relayQ().filter((x) => x.state === "queued" && (force || !x.next || x.next <= Date.now()));
+      for (const x of due) {
+        updRelay(x.id, (y) => (y.inflight = true));
+        let r = null;
+        try { r = await fetch(RL.url + "/v1/entries", { method: "POST", headers: { "Content-Type": "application/json", "X-Cutlog-Sig": x.sig }, body: x.body, cache: "no-store" }); } catch { r = null; }
+        updRelay(x.id, (y) => {
+          delete y.inflight;
+          if (r && (r.status === 200 || r.status === 201)) { y.state = "sent"; y.sentAt = new Date().toISOString(); RL.offline = false; return; }
+          y.tries = (y.tries || 0) + 1;
+          if (!r) RL.offline = true; else RL.offline = false;
+          // rejected for good (bad signature, too big …): no point retrying
+          const fatal = r && r.status >= 400 && r.status < 500 && r.status !== 408 && r.status !== 429;
+          if (fatal || y.tries >= RQ_MAX_TRIES) { y.state = "failed"; y.why = r ? `relay said ${r.status}` : "no connection"; }
+          else y.next = Date.now() + Math.min(30 * 60e3, 5e3 * 2 ** y.tries);
+        });
+        if (!r) break; // offline: try the rest later
+      }
+    } finally { RL.busy = false; drawSync(); }
+  }
+  async function relayPoll() {
+    if (!relayOn() || !store.get().key) return;
+    const ids = relayQ().filter((x) => x.state === "sent").map((x) => x.id).slice(-40); if (!ids.length) return;
+    const qs = "ids=" + ids.join(",");
+    try {
+      const r = await fetch(`${RL.url}/v1/status?${qs}`, { headers: { "X-Cutlog-Sig": await relaySig(qs) }, cache: "no-store" });
+      if (!r.ok) return;
+      const js = await r.json(), st = js.statuses || js;
+      const q = relayQ(); q.forEach((x) => { if (x.state === "sent" && (st[x.id] === "applied" || st[x.id] === "needs_coach")) x.state = st[x.id]; });
+      setRelayQ(q); drawSync();
+    } catch {}
+  }
+  // data.json "inbox": ids the coach applied (or left for himself) since the phone sent them
+  function relayFromData() {
+    const ib = (D && D.inbox) || {}, idOf = (v) => (v && typeof v === "object" ? v.id : v);
+    const ap = new Set((ib.applied || []).map(idOf)), nc = new Set((ib.needs_coach || []).map(idOf));
+    if (!ap.size && !nc.size) return;
+    const q = relayQ(); let ch = false;
+    q.forEach((x) => { if (x.state !== "applied" && ap.has(x.id)) { x.state = "applied"; ch = true; } else if (x.state === "sent" && nc.has(x.id)) { x.state = "needs_coach"; ch = true; } });
+    if (ch) { setRelayQ(q); drawSync(); }
+  }
+  function relaySummary() {
+    const q = relayQ(), n = (s) => q.filter((x) => x.state === s).length, wait = n("queued"), failed = n("failed"), coach = n("needs_coach");
+    if (failed) return { cls: "bad", text: `${failed} not sent`, long: `${failed} not sent: tap to copy instead` };
+    if (wait) return (RL.offline || !navigator.onLine) ? { cls: "warn", text: `Offline · ${wait} waiting`, short: `${wait} waiting`, long: `Offline, ${wait} waiting to send` } : { cls: "busy", text: `Sending ${wait}`, long: `Sending ${wait} to your coach` };
+    if (coach) return { cls: "warn", text: `${coach} needs your coach`, short: `${coach} for coach`, long: `${coach} needs your coach` };
+    return { cls: "ok", text: "Synced", long: "Synced with your coach" };
+  }
+  function drawSync() {
+    const b = $("#sync"); if (!b) return;
+    b.hidden = !relayOn() || !D;
+    if (!b.hidden) { const s = relaySummary(); b.innerHTML = `<span class="pill ${s.cls === "busy" ? "busy" : s.cls}"><i aria-hidden="true"></i>${s.short ? `<span class="lg">${esc(s.text)}</span><span class="sh">${esc(s.short)}</span>` : esc(s.text)}</span>`; b.setAttribute("aria-label", s.long + ". Show sent entries"); }
+    if (!$("#pane").hidden && $("#pane").dataset.kind === "relay") { const y = $("#pane-box").scrollTop; $("#pane-box").innerHTML = relayPane(); $("#pane-box").scrollTop = y; }
+  }
+  const RK_LABEL = { changes: "Plan change", workout: "Workout", checkin: "Check-in", text: "Meal / note" };
+  const RS_LABEL = { queued: ["Waiting", "warn"], sent: ["Sent", ""], applied: ["Applied", "ok"], needs_coach: ["Needs your coach", "warn"], failed: ["Not sent", "bad"] };
+  function relayPane() {
+    const q = relayQ().slice().reverse().slice(0, 25), hm = (t) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(t));
+    return `<div class="grab"></div><div class="ph"><h2>Sync with your coach</h2><button class="btn" data-close-pane>Close</button></div>
+      <p class="muted" style="margin:0;font-size:var(--t-sm);line-height:1.5">Entries go to your coach's inbox encrypted. "Applied" once they're in your records. Not sent? Copy it into Claude instead.</p>
+      ${q.length ? q.map((x) => { const [l, c] = RS_LABEL[x.state] || [x.state, ""]; return `<section class="sec rq"><b style="font-weight:600">${esc(RK_LABEL[x.kind] || x.kind)}${x.title && x.title !== RK_LABEL[x.kind] ? `<span class="muted" style="display:block;font-weight:400;font-size:var(--t-sm)">${esc(x.title)}</span>` : ""}</b><span class="pill ${c}">${esc(l)}</span>
+        <span class="muted num" style="font-size:var(--t-sm);grid-column:1/-1">${esc(longDate(x.iso))} · ${hm(x.at)}${x.state === "failed" && x.why ? ` · ${esc(x.why)}` : x.state === "queued" && x.tries ? ` · try ${x.tries + 1} of ${RQ_MAX_TRIES}` : ""}</span>
+        ${x.state === "failed" || (x.state === "queued" && x.tries) ? `<div class="acts"><button class="btn" data-rq-retry="${esc(x.id)}">Retry</button>${x.copy ? `<button class="btn" data-rq-copy="${esc(x.id)}">Copy instead</button>` : ""}</div>` : ""}</section>`; }).join("")
+        : `<p class="muted">Nothing sent from this phone yet.</p>`}`;
+  }
+  // honest toast after a send: delivered, or waiting in the queue (copy stays one tap away)
+  function relayToast(ids, copy) {
+    const q = relayQ(), xs = ids.filter(Boolean).map((id) => q.find((x) => x.id === id)).filter(Boolean);
+    const msg = xs.length && xs.every((x) => x.state !== "queued" && x.state !== "failed") ? "Sent to your coach" : xs.some((x) => x.state === "failed") ? "Not sent. Copy it into Claude instead" : "Saved. Sends when the connection is back";
+    toast(msg, { label: "Copy", fn: copy });
+  }
+  function relayRetry(id) { updRelay(id, (x) => { x.state = "queued"; x.tries = 0; x.next = 0; delete x.why; }); drawSync(); relayFlush(true); }
+  function relayCopy(id) {
+    const x = relayQ().find((y) => y.id === id); if (!x || !x.copy) return;
+    closePane(); $("#sheet-title").textContent = "Ready for your coach"; $("#sheet-text").value = x.copy; $("#sheet-clear").hidden = true; $("#sheet").hidden = false; copyText(x.copy);
+  }
+  // workout as data (contract §6): sets with reps only; skipped / not done listed with sets: [] and a status
+  function workoutEntry() {
+    const s = sessOf(), n = (v) => { const x = parseFloat(num(v)); return Number.isFinite(x) ? x : null; };
+    return {
+      session: s.id, duration_min: Math.round((Date.now() - LOG.start) / 60000), session_rpe: n(LOG.sessRpe),
+      cardio: String(LOG.cardio || "").trim() || null, pain: String(LOG.pain || "").trim() || null, shake: !!LOG.shake,
+      exercises: exList().map((e) => {
+        const id = LOG.swap[e.id] || e.id, x = { id, name: LOG.swap[e.id] ? catName(id) : nameOf(e.id), added: !!e.added };
+        if (LOG.swap[e.id]) x.instead_of = e.id;
+        if (LOG.skip[e.id]) return { ...x, sets: [], status: "skipped" };
+        x.sets = LOG.ex[e.id].filter((y) => num(y.reps) !== "").map((y) => ({ kg: n(y.kg), reps: parseInt(num(y.reps), 10), rpe: n(y.rpe), warm: !!y.warm }));
+        if (!x.sets.some((y) => !y.warm)) x.status = "not_done";
+        return x;
+      }),
+      message: logMessage(),
+    };
+  }
+  // the Log sheet as data: only the fields he filled; meals and notes go as text for the coach to estimate
+  function checkinEntry(d) {
+    const out = {}, w = parseFloat(num(d.weight));
+    if (d.weight && Number.isFinite(w)) out.weight_kg = w;
+    if (d.weight && d.feel) out.feel_1to5 = parseInt(d.feel, 10);
+    if (d.water) out.water_l = Math.round(d.water) / 1000;
+    const sm = supMap(), sups = {};
+    Object.entries(d.sup || {}).filter(([, v]) => v).forEach(([k]) => { if (k === "shake") ["whey", "creatine"].forEach((s) => sm[s] && (sups[s] = true)); else sups[k] = true; });
+    if (Object.keys(sups).length) out.supplements = sups;
+    return out;
+  }
+  const relayHasText = (d, msg) => !!(d.ate || d.free || d.nap_from || d.nap_to || d.bed || d.wake || /^DONE /m.test(msg));
+  setInterval(() => { if (document.visibilityState === "visible") relayFlush(false); }, 60e3);
+  setInterval(() => { if (document.visibilityState === "visible") relayPoll(); }, 120e3);
+  async function relayStart() { await relayConfig(); drawSync(); if (relayOn()) { await relayFlush(true); relayPoll(); } }
 
   // ---------- shared components ----------
   // tally bar: value against a target band (low–high) with an optional floor tick in red pen
@@ -1369,7 +1556,7 @@ input, textarea { font: inherit; color: inherit; }
   function openPane(kind, arg) {
     const html = kind === "report" ? reportPane(arg) : kind === "plates" ? platesPane(arg) : kind === "cues" ? cuesPane(arg) : kind === "lift" ? liftPane(arg) : kind === "week" ? `<div class="grab"></div><div class="ph"><h2>This week's menu</h2><button class="btn" data-close-pane>Close</button></div><div class="view">${viewFood()}</div>`
       : kind === "meals" ? `<div class="grab"></div><div class="ph"><h2>Logged today</h2><button class="btn" data-close-pane>Close</button></div>${loggedCard(dubaiISO()).replace('<div class="card-h"><h2>Logged today</h2>', '<div class="card-h"><h2 class="lab" style="font-size:var(--t-sm);color:var(--muted)">From your records</h2>')}`
-      : kind === "log" ? logPane(arg) : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : kind === "addex" ? addexPane() : youPane();
+      : kind === "log" ? logPane(arg) : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "relay" ? relayPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : kind === "addex" ? addexPane() : youPane();
     const wasOpen = !$("#pane").hidden;
     if (!wasOpen) openPane.ret = document.activeElement;
     $("#pane-box").innerHTML = html; $("#pane").hidden = false; $("#pane").dataset.kind = kind; $("#pane-box").scrollTop = 0;
@@ -1910,9 +2097,9 @@ input, textarea { font: inherit; color: inherit; }
     $("#sheet-title").textContent = { morning: "Morning check-in", meal: "Meal", gym: "Gym session", night: "Night check-in", day: "Full day" }[kind];
     $("#sheet-text").value = template(kind); $("#sheet-clear").hidden = true; $("#sheet").hidden = false; $("#sheet-text").focus({ preventScroll: true });
   }
-  async function copyText(text) {
-    try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into Claude and send."); return true; }
-    catch { const ta = $("#sheet-text"); ta.focus(); ta.select(); toast("Selected. Tap Copy in the menu."); return false; }
+  async function copyText(text, { quiet = false } = {}) {
+    try { await navigator.clipboard.writeText(text); if (!quiet) toast("Copied. Paste it into Claude and send."); return true; }
+    catch { if (quiet) return false; const ta = $("#sheet-text"); ta.focus(); ta.select(); toast("Selected. Tap Copy in the menu."); return false; }
   }
 
   // ---------- render ----------
@@ -1935,6 +2122,7 @@ input, textarea { font: inherit; color: inherit; }
     drawTrain();
     $("#head").hidden = false; $("#tabs").hidden = false;
     if (!$("#pane").hidden && $("#pane").dataset.kind === "entries") openPane("entries");
+    relayFromData(); drawSync();
     showTab(TAB);
   }
 
@@ -1960,6 +2148,9 @@ input, textarea { font: inherit; color: inherit; }
     const gt = e.target.closest("[data-go-train]"); if (gt) { const i = parseInt(gt.dataset.i, 10); if (i >= 0) TRAINSEL = i; drawTrain(); showTab("train"); window.scrollTo({ top: 0 }); return; }
     if (e.target.closest("[data-setup]")) { closePane(); showSetup(); return; }
     const tsb = e.target.closest("[data-theme-set]"); if (tsb) { applyTheme(tsb.dataset.themeSet); openPane("you"); return; }
+    if (e.target.closest("#sync")) { openPane("relay"); return; }
+    const rqr = e.target.closest("[data-rq-retry]"); if (rqr) { relayRetry(rqr.dataset.rqRetry); return; }
+    const rqc = e.target.closest("[data-rq-copy]"); if (rqc) { relayCopy(rqc.dataset.rqCopy); return; }
     const ask = e.target.closest("[data-ask]"); if (ask) { copyText(ask.dataset.ask + "\n(asked from Cut Log)"); return; }
     const ldb = e.target.closest("[data-ld]"); if (ldb) { LD[ldb.dataset.ld] = String(LD[ldb.dataset.ld]) === ldb.dataset.v ? "" : ldb.dataset.v; saveLd(LD); const y = $("#pane-box").scrollTop; openPane("log"); $("#pane-box").scrollTop = y; return; }
     if (e.target.closest("[data-ld-toggle]")) { LD.adj = !LD.adj; saveLd(LD); const y = $("#pane-box").scrollTop; openPane("log"); $("#pane-box").scrollTop = y; return; }
@@ -1970,8 +2161,16 @@ input, textarea { font: inherit; color: inherit; }
       const pend = pendingPlan();
       const ob = outbox(); ob.push({ at: new Date().toISOString(), date: dubaiISO(), title: [LD.weight && "Weigh-in " + num(LD.weight) + " kg", LD.ate && (LD.meal === "lunch" ? "Lunch" : "Dinner") + " · " + LD.ate, LD.water && "Water", LD.free && "Note", pend.length && "Plan change"].filter(Boolean).join(" · ") || "Entry", text: msg }); setOutbox(ob);
       markPlanSent(pend, "log");
-      const sentTicks = Object.keys(ticks(dubaiISO())); LD = { ...ld(), meal: LD.meal, sentTicks }; saveLd(LD);
-      closePane(); $("#sheet-title").textContent = "Ready for your coach"; $("#sheet-text").value = msg; $("#sheet-clear").hidden = true; $("#sheet").hidden = false; copyText(msg);
+      const ci = checkinEntry(LD), hasText = relayHasText(LD, msg), today = dubaiISO();
+      const sent = relayOn() && store.get().key ? (async () => {
+        const a = Object.keys(ci).length ? await relaySend("checkin", today, { ...ci, message: msg }, { copy: msg, title: ob[ob.length - 1].title }) : true;
+        const b = hasText ? await relaySend("text", today, { message: msg }, { copy: msg, title: ob[ob.length - 1].title }) : true;
+        return a && b ? [a, b].filter((x) => typeof x === "string") : null;
+      })() : null;
+      const sentTicks = Object.keys(ticks(dubaiISO())); try { localStorage.removeItem(LD_KEY); } catch {} LD = { ...ld(), meal: LD.meal, sentTicks }; saveLd(LD);
+      closePane(); $("#sheet-text").value = msg; $("#sheet-clear").hidden = true;
+      if (sent) sent.then((ids) => { if (ids) { copyText(msg, { quiet: true }); relayToast(ids, () => { $("#sheet-title").textContent = "Ready for your coach"; $("#sheet").hidden = false; copyText(msg); }); } else { $("#sheet-title").textContent = "Ready for your coach"; $("#sheet").hidden = false; copyText(msg); } });
+      else { $("#sheet-title").textContent = "Ready for your coach"; $("#sheet").hidden = false; copyText(msg); }
       drawToday(); return;
     }
     const eb = e.target.closest("[data-easy]"); if (eb) { chooseEasy(eb.dataset.easy); return; }
@@ -2008,7 +2207,18 @@ input, textarea { font: inherit; color: inherit; }
       const prs = list.filter((x) => LOG.ex[x.id].some((y) => y.pr)).length, mins = Math.round((Date.now() - LOG.start) / 60000);
       $("#sheet-title").textContent = `${work.length} set${work.length === 1 ? "" : "s"}, ${fmt(vol)} kg moved, ${mins} min${prs ? `, ${prs} new best${prs > 1 ? "s" : ""}` : ""}${empty.length ? `. ${empty.length} not done` : ""}`;
       markPlanSent(planLog().filter((x) => x.iso === LOG.date && !x.sent), LOG.start);
-      const msg = logMessage(); $("#sheet-text").value = msg; $("#sheet-clear").hidden = false; $("#sheet").hidden = false; copyText(msg); return;
+      const msg = logMessage(); $("#sheet-text").value = msg; $("#sheet-clear").hidden = false; $("#sheet").hidden = false;
+      if (relayOn() && store.get().key) {
+        // one entry per finished workout; Finish again after an edit sends the new version
+        const w = workoutEntry(), sigt = JSON.stringify({ ...w, duration_min: 0, message: "" }), lg = LOG;
+        if (lg.relaySent === sigt) { copyText(msg, { quiet: true }); toast("Already sent to your coach", { label: "Copy", fn: () => copyText(msg) }); return; }
+        relaySend("workout", lg.date, w, { copy: msg, title: sessOf().name.split(" (")[0] }).then((id) => {
+          if (id) { lg.relaySent = sigt; if (LOG === lg) saveDraft(LOG); copyText(msg, { quiet: true }); relayToast([id], () => copyText(msg)); }
+          else copyText(msg);
+        });
+        return;
+      }
+      copyText(msg); return;
     }
     if (e.target.closest("[data-discard]")) { const bt = e.target.closest("[data-discard]"); if (bt.dataset.sure) { clearLog(); } else { bt.dataset.sure = "1"; bt.textContent = "Tap again to discard"; } return; }
     if (e.target.closest("[data-logback]")) { TAB_LOGGING = false; drawTrain(); return; }
@@ -2062,12 +2272,12 @@ input, textarea { font: inherit; color: inherit; }
       const key = await deriveKey(pass, blob.salt, blob.iter);
       try { D = await decryptBlob(blob, key); } catch { $("#unlock").textContent = "Unlock"; return showSetup("Wrong password. Check it and try again."); }
       store.set({ key, salt: blob.salt, iter: blob.iter, cache: D, cachedAt: new Date().toISOString() });
-      $("#f-pass").value = ""; $("#unlock").textContent = "Unlock"; render();
+      $("#f-pass").value = ""; $("#unlock").textContent = "Unlock"; render(); relayStart();
     } catch (err) { $("#unlock").textContent = "Unlock"; showSetup(err.message); }
   });
   $("#peek").addEventListener("click", () => { const f = $("#f-pass"), show = f.type === "password"; f.type = show ? "text" : "password"; $("#peek").textContent = show ? "Hide" : "Show"; $("#peek").setAttribute("aria-pressed", String(show)); });
   $("#forget").addEventListener("click", () => { store.set({}); D = null; showSetup(); });
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && store.get().key) load({ quiet: true }); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && store.get().key) { load({ quiet: true }); relayFlush(false); relayPoll(); } });
 
   try { TAB = localStorage.getItem(KEY + ".tab") || "today"; } catch {}
   if (TAB === "trend" || TAB === "health") TAB = "progress";
@@ -2076,9 +2286,9 @@ input, textarea { font: inherit; color: inherit; }
   if (LOG) TAB_LOGGING = true;
   const c = store.get();
   if (c.cache) { D = c.cache; render(); if (!navigator.onLine) showOffline(true, c.cachedAt); }
-  load();
-  window.addEventListener("offline", () => showOffline(true, store.get().cachedAt));
-  window.addEventListener("online", () => { showOffline(false); if (store.get().key) load({ quiet: true }); });
+  load(); relayStart();
+  window.addEventListener("offline", () => { showOffline(true, store.get().cachedAt); drawSync(); });
+  window.addEventListener("online", () => { showOffline(false); if (store.get().key) { load({ quiet: true }); relayFlush(true); } });
   // offline shell (sw.js): only on https or this computer
   if ("serviceWorker" in navigator && (location.protocol === "https:" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(() => {});
 })();

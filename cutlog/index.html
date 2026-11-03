@@ -24,7 +24,7 @@
 :root {
   --bg: #0E1B22; --surface: #142530; --raised: #1B2F3B; --sunken: #0B161C;
   --line: rgba(205, 228, 238, .085); --line-2: rgba(205, 228, 238, .16);
-  --ink: #E7EEF0; --muted: #98ABB5; --faint: #647C88;
+  --ink: #E7EEF0; --muted: #98ABB5; --faint: #8299A4;
   --accent: #E8D3A6; --on-accent: #14222A; --accent-ink: #E8D3A6;
   --kcal: #F2A766; --protein: #72D9C0; --steps: #ADB6FF; --sleep: #8BC0F0;
   --ok: #86DB9F; --warn: #F2C66B; --bad: #FF8F80; --info: #8BC0F0;
@@ -45,7 +45,7 @@
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
   --bg: #EDF2F2; --surface: #FFFFFF; --raised: #F3F7F7; --sunken: #E3EAEA;
   --line: rgba(16, 40, 50, .08); --line-2: rgba(16, 40, 50, .16);
-  --ink: #10232C; --muted: #4C626D; --faint: #84979F;
+  --ink: #10232C; --muted: #3F555F; --faint: #5A6E77;
   --accent: #23404D; --on-accent: #F3F7F7; --accent-ink: #7A5A1E;
   --kcal: #C9661E; --protein: #0E8C75; --steps: #5260D6; --sleep: #2A77C0;
   --ok: #1D8546; --warn: #9C6300; --bad: #C2372B; --info: #2A77C0;
@@ -53,7 +53,7 @@
 :root[data-theme="light"] {
   --bg: #EDF2F2; --surface: #FFFFFF; --raised: #F3F7F7; --sunken: #E3EAEA;
   --line: rgba(16, 40, 50, .08); --line-2: rgba(16, 40, 50, .16);
-  --ink: #10232C; --muted: #4C626D; --faint: #84979F;
+  --ink: #10232C; --muted: #3F555F; --faint: #5A6E77;
   --accent: #23404D; --on-accent: #F3F7F7; --accent-ink: #7A5A1E;
   --kcal: #C9661E; --protein: #0E8C75; --steps: #5260D6; --sleep: #2A77C0;
   --ok: #1D8546; --warn: #9C6300; --bad: #C2372B; --info: #2A77C0;
@@ -109,6 +109,7 @@ input, textarea { font: inherit; color: inherit; }
 .src::before { content: ""; width: 5px; height: 5px; border-radius: 50%; border: 1.5px solid currentColor; }
 .src.unv { color: var(--warn); }
 .src.unv::before { border-style: dotted; }
+.src.est::before { border-style: dashed; }
 .tags { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 
 /* ---------- buttons ---------- */
@@ -597,9 +598,26 @@ input, textarea { font: inherit; color: inherit; }
   }
 
   const seriesMap = () => Object.fromEntries((D.series || []).map((s) => [s.date, s]));
-  const menuMap = () => Object.fromEntries(Object.values(D.menus || {}).flat().map((r) => [r.day, r]));
-  const isGym = (iso) => (D.gym_days || []).includes(dowOf(iso));
-  const sessionFor = (iso) => { const i = (D.gym_days || []).indexOf(dowOf(iso)); return i >= 0 ? (D.program || [])[i] : null; };
+  const menuRows = () => Object.values(D.menus || {}).flat();
+  // menus are matched by date when data.json has it (older data: by "Tue 03" label)
+  const menuFor = (iso) => menuRows().find((r) => (r.date ? r.date === iso : r.day === menuLabel(iso))) || null;
+  // ---------- week schedule (training/week_plan.yaml via data.json; default Mon/Tue/Thu/Fri when absent) ----------
+  const progById = (id) => (D.program || []).find((p) => p.id === id) || null;
+  const schedStart = () => mondayOf((D.generated_at || dubaiISO()).slice(0, 10));
+  const inSched = (iso) => !!(D.schedule && D.schedule.days) && iso >= schedStart() && iso < addDays(schedStart(), 14);
+  const planOf = (iso) => (inSched(iso) ? D.schedule.days.find((r) => r.date === iso) || null : null);
+  function sessionFor(iso) {
+    if (inSched(iso)) { const r = planOf(iso); return r && r.status !== "missed" && r.status !== "skipped" ? progById(r.logged || r.session) : null; }
+    const i = (D.gym_days || []).indexOf(dowOf(iso)); return i >= 0 ? (D.program || [])[i] : null;
+  }
+  const isGym = (iso) => !!sessionFor(iso);
+  const weekNote = (iso) => (D.schedule && D.schedule.notes && D.schedule.notes[isoWeek(iso)]) || null;
+  function isoWeek(iso) { const d = parse(iso); const t = new Date(d); t.setUTCDate(t.getUTCDate() + 3 - ((t.getUTCDay() + 6) % 7)); const y = t.getUTCFullYear(), w1 = new Date(Date.UTC(y, 0, 4)); return `${y}-W${String(1 + Math.round(((t - w1) / 864e5 - 3 + ((w1.getUTCDay() + 6) % 7)) / 7)).padStart(2, "0")}`; }
+  // ---------- supplements from profile/supplements.yaml (names, doses, timing as recorded) ----------
+  const supList = () => D.supplements || [];
+  const supAt = (re) => supList().filter((x) => re.test(x.timing || "") && !["whey", "creatine"].includes(x.id));
+  function shakeTxt() { const s = supMap(); if (!s.whey) return null; return `${s.whey.dose || ""} ${s.whey.brand || s.whey.name}${s.creatine ? ` + ${s.creatine.dose || ""} creatine`.replace("  ", " ") : ""}`.trim(); }
+  const supNames = (xs) => xs.map((x) => x.name).join(" + ");
   const supMap = () => Object.fromEntries((D.supplements || []).map((x) => [x.id, x]));
 
   function animateRings() { document.querySelectorAll("[data-fill]").forEach((c) => (c.style.width = c.dataset.fill)); document.querySelectorAll("[data-left]").forEach((c) => (c.style.left = c.dataset.left)); }
@@ -719,23 +737,30 @@ input, textarea { font: inherit; color: inherit; }
   }
 
   // ---------- TODAY ----------
-  function timeline(iso) {
-    const m = menuMap()[menuLabel(iso)], gym = isGym(iso), s = sessionFor(iso), wkend = ["Sat", "Sun"].includes(dowOf(iso)), sup = supMap();
-    const it = [];
-    it.push({ t: "07:00", c: "var(--protein)", b: "Weigh in", s: "After the toilet, before food or drink" + (sup.brahmi ? ", then Brahmi" : "") });
-    if (m) it.push({ t: "13:00", c: "var(--kcal)", b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein` : "" });
-    else if (wkend) it.push({ t: "13:00", c: "var(--kcal)", b: "Lunch out", s: "Grilled protein, one carb, sauce on the side. Photo it." });
+  // one list drives both the whole-day timeline and "Next up"; supplements, shake and session come from data
+  function dayPlan(iso) {
+    const m = menuFor(iso), s = sessionFor(iso), wkend = ["Sat", "Sun"].includes(dowOf(iso)), sup = supMap(), T = D.targets;
+    const am = supAt(/morning/i), pm = supAt(/dinner|night|evening/i), shake = shakeTxt(), it = [];
+    it.push({ t: "07:00", c: "var(--protein)", b: "Weigh in", s: "After the toilet, before food or drink" + (am.length ? `, then ${supNames(am)}` : "") });
+    if (m) it.push({ t: "13:00", c: "var(--kcal)", b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein (label)` : "", act: "meal" });
+    else it.push({ t: "13:00", c: "var(--kcal)", b: wkend ? "Lunch out" : "Lunch", s: "Grilled protein, one carb, sauce on the side. Photo it.", act: "meal" });
     it.push({ t: "15:00", c: "var(--faint)", b: "Last tea", s: "Later caffeine costs sleep. Milk + sugar ≈ 60–100 kcal a cup." });
-    if (gym && s) {
+    if (s) {
       it.push({ t: "16:30", c: "var(--faint)", b: "Pre-gym snack", s: "Banana + eggs, if lunch was 5+ hours ago" });
-      it.push({ t: "18:00", c: "var(--steps)", b: s.name.split(" (")[0], s: `${s.exercises.length} exercises, ${s.duration} min${/upper/.test(s.id) ? " + 20 min incline walk" : ""}` });
-      if (sup.whey) it.push({ t: "19:30", c: "var(--protein)", b: "Shake", s: `2 scoops Isopure Zero Carb${sup.creatine ? " + creatine" : ""}`, kv: "≈ 50 g protein · 220 kcal (estimate)" });
+      it.push({ t: "18:00", c: "var(--steps)", b: s.name.split(" (")[0], s: `${s.exercises.length} exercises, ${s.duration} min${/upper/.test(s.id) ? " + 20 min incline walk" : ""}`, act: "gym" });
+      if (shake) {
+        const ne = sup.whey && sup.whey.nutrition_estimate;
+        it.push({ t: "19:30", c: "var(--protein)", b: "Shake", s: shake, kv: ne ? `≈ ${ne.protein_g.best} g protein, ${ne.kcal.best} kcal (estimate)` : "", act: "meal" });
+      }
     } else if (!wkend) it.push({ t: "18:00", c: "var(--faint)", b: "Rest day", s: "Walk 10 minutes after lunch and dinner for steps" });
-    if (m) it.push({ t: "20:30", c: "var(--kcal)", b: "Dinner + add-on", s: stripId(m.dinner) + (m.addon ? `, plus ${m.addon.items}` : ""), kv: m.addon ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "" });
-    else if (wkend) it.push({ t: "20:30", c: "var(--kcal)", b: "Dinner out", s: "Photo every plate; aim for 40+ g protein" });
-    it.push({ t: "21:00", c: "var(--faint)", b: "Supplements", s: [sup.d3 && "Vitamin D3", sup.multivitamin && "multivitamin"].filter(Boolean).join(" + ") || "As usual" });
-    it.push({ t: "22:30", c: "var(--sleep)", b: "Wind down", s: "Lights low, screens off, aim for 7+ hours" });
-    return `<div class="tl">${it.map((x) => `<div class="ti"><div class="time">${x.t}</div><div class="rail"><i style="--c:${x.c}"></i></div>
+    if (m) it.push({ t: "20:30", c: "var(--kcal)", b: m.addon ? "Dinner + add-on" : "Dinner", s: stripId(m.dinner) + (m.addon ? `, plus ${m.addon.items}` : ""), kv: m.addon ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "", act: "meal" });
+    else it.push({ t: "20:30", c: "var(--kcal)", b: wkend ? "Dinner out" : "Dinner", s: "Photo every plate; aim for 40+ g protein", act: "meal" });
+    if (pm.length) it.push({ t: "21:00", c: "var(--faint)", b: "Supplements", s: supNames(pm) });
+    it.push({ t: "22:30", c: "var(--sleep)", b: "Wind down", s: `Lights low, screens off, aim for ${T.sleep_min}+ hours` });
+    return it;
+  }
+  function timeline(iso) {
+    return `<div class="tl">${dayPlan(iso).map((x) => `<div class="ti"><div class="time">${x.t}</div><div class="rail"><i style="--c:${x.c}"></i></div>
       <div class="body"><b>${esc(x.b)}</b><span>${esc(x.s)}</span>${x.kv ? `<span class="kv">${esc(x.kv)}</span>` : ""}</div></div>`).join("")}</div>`;
   }
 
@@ -751,9 +776,11 @@ input, textarea { font: inherit; color: inherit; }
     return { title: L.date === today && L.weight != null ? "Logged in. Here's where you stand." : "New day. Start with the scale.", body: parts.join(" ") };
   }
   function oneThing() {
-    const c = coachFresh(); if (c && c.one_thing) return { text: c.one_thing, who: "coach" };
-    const L = D.latest, today = dubaiISO(), h = dubaiHour(), m = menuMap()[menuLabel(today)], s = sessionFor(today);
-    if (L.date !== today || L.weight == null) return { text: h < 12 ? "Weigh in now: after the toilet, before food or drink." : "Log today's weight if you weighed in this morning.", who: "rule", act: "log" };
+    const c = coachFresh(), L = D.latest, today = dubaiISO(), h = dubaiHour(), m = menuFor(today), s = sessionFor(today);
+    const weighed = L.date === today && L.weight != null;
+    // a note from last night doesn't outrank this morning's weigh-in; once weighed (or from noon) the coach's one thing leads
+    if (c && c.one_thing && (weighed || h >= 12 || (c.written_at || "").slice(0, 10) === today)) return { text: c.one_thing, who: "coach" };
+    if (!weighed) return { text: h < 12 ? "Weigh in now: after the toilet, before food or drink." + (c && c.one_thing ? ` Then: ${c.one_thing}` : "") : "Log today's weight if you weighed in this morning.", who: "rule", act: "log" };
     if (m && m.addon && h < 20) return { text: `Plan the add-on: ${m.addon.items}.`, who: "rule" };
     if (s && h < 18) return { text: `${s.name.split(" (")[0]} at 18:00. Pre-gym snack around 16:30.`, who: "rule" };
     return { text: "Log what you ate so today's numbers are complete.", who: "rule", act: "log" };
@@ -811,11 +838,11 @@ input, textarea { font: inherit; color: inherit; }
     const ins = (D.insights || [])[0];
     const kEst = isToday && L.kcal_low != null && L.kcal_high != null ? `estimate ${fmt(L.kcal_low)}–${fmt(L.kcal_high)}` : "";
     const sg = (k, label, v, unit, goalTxt, c) => `<button data-explain="${k}" style="--c:var(${c})"><span class="k"><i></i>${label}</span><b class="num">${v != null ? v + `<small>${unit}</small>` : "—"}</b><span class="g">${v != null ? goalTxt : "— missing"}</span></button>`;
-    const dayKind = isGym(today) ? "Gym day" : ["Sat", "Sun"].includes(dowOf(today)) ? "Weekend" : "Rest day";
+    const dayKind = dayKindOf(today), nMeals = ((D.meals || {})[today] || { items: [] }).items.length;
     return `
       ${waiting ? `<div class="span"><button class="sig" data-open-pane="entries"><i></i>${waiting} sent to your coach, waiting</button></div>` : ""}
       <section class="brief span" aria-label="Daily brief">
-        <span class="who ${c ? "" : "calc"}"><i></i>${c ? "Your coach, " + esc((c.written_at || "").slice(11)) : "Calculated from your data. No coach note yet"}</span>
+        <span class="who ${c ? "" : "calc"}"><i></i>${c ? "Your coach, " + ((c.written_at || "").slice(0, 10) === today ? "" : (c.written_at || "").slice(0, 10) === addDays(today, -1) ? "yesterday " : esc(longDate((c.written_at || today).slice(0, 10))) + " ") + esc((c.written_at || "").slice(11)) : "Calculated from your data. No coach note yet"}</span>
         <h2 class="serif-h">${esc(brief.title || "")}</h2>
         <p>${esc(brief.body || "")}</p>
         <div class="one"><span class="t"><span class="lbl">One thing today</span><span>${esc(one.text)}</span></span>${one.act === "log" ? `<button class="btn primary" data-open-pane="log">Log</button>` : ""}</div>
@@ -826,6 +853,7 @@ input, textarea { font: inherit; color: inherit; }
           ${meter({ label: "Protein", v: prot, lo: T.protein.low, hi: T.protein.high, floor: T.protein_floor, unit: "g", c: "--protein", explain: "protein", done })}
           ${meter({ label: "Calories", v: kcal, lo: T.kcal.low, hi: T.kcal.high, floor: T.kcal_floor, unit: "kcal", c: "--kcal", explain: "kcal", est: kEst, done })}
         </div>
+        ${nMeals ? `<button class="linkbtn" data-open-pane="meals" style="margin-top:var(--s3)">What's logged: ${nMeals} item${nMeals > 1 ? "s" : ""}<span aria-hidden="true">›</span></button>` : ""}
       </section>
       ${cutRuler()}
       <section class="card" aria-label="Next up">
@@ -843,31 +871,24 @@ input, textarea { font: inherit; color: inherit; }
       </div>
       ${recoveryCard()}`;
   }
-  function nextUp(iso) {
-    const m = menuMap()[menuLabel(iso)], gym = isGym(iso), s = sessionFor(iso), wk = ["Sat", "Sun"].includes(dowOf(iso)), sup = supMap(), it = [];
-    it.push({ t: "07:00", b: "Weigh in", s: "After the toilet, before food or drink" });
-    it.push({ t: "13:00", b: m ? "Lunch" : wk ? "Lunch out" : "Lunch", s: m ? stripId(m.lunch) : "Grilled protein, one carb, sauce on the side", act: "meal" });
-    if (gym && s) {
-      it.push({ t: "16:30", b: "Pre-gym snack", s: "Banana + eggs if lunch was 5+ h ago" });
-      it.push({ t: "18:00", b: s.name.split(" (")[0], s: `${s.exercises.length} exercises${/upper/.test(s.id) ? " + 20 min incline walk" : ""}`, act: "gym" });
-      if (sup.whey) it.push({ t: "19:30", b: "Shake", s: "2 scoops Isopure + 3 g creatine", act: "meal" });
-    }
-    it.push({ t: "20:30", b: m ? "Dinner + add-on" : "Dinner", s: m ? stripId(m.dinner) + (m.addon ? ", plus " + m.addon.items : "") : "Photo every plate", act: "meal" });
-    it.push({ t: "21:00", b: "Supplements", s: "Vitamin D3 + multivitamin" });
-    it.push({ t: "22:30", b: "Wind down", s: "Aim for 7+ hours" });
-    return it;
-  }
+  const nextUp = (iso) => dayPlan(iso).filter((x) => x.b !== "Last tea");
 
-  const EXPLAIN = {
-    trend: { title: "Trend weight", what: "The average of your last 7 morning weigh-ins. Daily weight swings up to 1.5 kg with water, salt and carbs; the average shows the real direction.", src: [["■", "Measured", "Scale weigh-ins, mornings."], ["□", "Calculated", "7-day average and weekly change. Needs 4+ weigh-ins in 7 days."]] },
-    protein: { title: "Protein", what: "Keeps your muscle while you lose fat. Your target is 150–175 g a day; never below 140 g.", src: [["■", "Label", "Meal-plan nutrition from the provider."], ["≈", "Estimate", "Add-ons and anything without a label, as a range."]] },
-    kcal: { title: "Calories", what: "Energy eaten. Your target is 1,900–2,100 kcal; the floor is 1,750. Zepp's 'calories burned' is never added back.", src: [["■", "Label", "Meal-plan nutrition."], ["≈", "Estimate", "Everything else, as a range."]] },
-    sleep: { title: "Sleep", what: "Hours asleep from your Zepp strap. Under 6 hours means an easier gym session; the target is 7+.", src: [["■", "Device", "Amazfit Helio via Zepp screenshots."]] },
-    steps: { title: "Steps", what: "Daily movement outside the gym. Target 8,000 now, rising to 10,000 from week 5.", src: [["■", "Device", "Zepp."]] },
-    water: { title: "Water", what: "2.5–3.5 L a day, plus 0.5–1 L per hour of training. Dubai heat counts.", src: [["■", "You said", "What you log."]] },
-  };
+
+  // explanations read the CURRENT targets, so they never contradict the charts after a target change
+  function explainOf(k) {
+    const T = D.targets, sp = T.steps_plan, w = T.water || [2.5, 3.5];
+    const stepsPlan = sp && sp.wk1_2_min ? ` The plan: ${fmt(sp.wk1_2_min)} in weeks 1–2, ${fmt(sp.wk3_4_min)} in weeks 3–4, ${fmt(sp.wk5_plus_min)} from week 5.` : "";
+    return {
+      trend: { title: "Trend weight", what: "The average of your last 7 morning weigh-ins. Daily weight swings up to 1.5 kg with water, salt and carbs; the average shows the real direction.", src: [["■", "Measured", "Scale weigh-ins, mornings."], ["□", "Calculated", "7-day average and weekly change. Needs 4+ weigh-ins in 7 days."]] },
+      protein: { title: "Protein", what: `Keeps your muscle while you lose fat. Your target is ${T.protein.low}–${T.protein.high} g a day; never below ${T.protein_floor} g.`, src: [["■", "Label", "Meal-plan nutrition from the provider."], ["≈", "Estimate", "Add-ons and anything without a label, as a range."]] },
+      kcal: { title: "Calories", what: `Energy eaten. Your target is ${fmt(T.kcal.low)}–${fmt(T.kcal.high)} kcal; the floor is ${fmt(T.kcal_floor)}. Your watch's "calories burned" is never added back.`, src: [["■", "Label", "Meal-plan nutrition."], ["≈", "Estimate", "Everything else, as a range."]] },
+      sleep: { title: "Sleep", what: `Hours asleep from your watch. Under 6 hours means an easier gym session; the target is ${T.sleep_min}+.`, src: [["■", "Device", "Your watch, synced from Zepp."]] },
+      steps: { title: "Steps", what: `Daily movement outside the gym. Your target now is ${fmt(T.steps_min)}.${stepsPlan}`, src: [["■", "Device", "Your watch, synced from Zepp. Today's count lands after the day ends."]] },
+      water: { title: "Water", what: `${w[0]}–${w[1]} L a day, plus 0.5–1 L per hour of training. Dubai heat counts.`, src: [["■", "You said", "What you log."]] },
+    }[k];
+  }
   function explainPane(k) {
-    const e = EXPLAIN[k], L = D.latest, T = D.targets, tr = D.trend, s = (D.series || []).slice(-30);
+    const e = explainOf(k), L = D.latest, T = D.targets, tr = D.trend, s = (D.series || []).slice(-30);
     const yours = k === "trend" ? `<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">${tr.avg7 != null ? `<span class="num" style="font:300 var(--t-2xl)/1 var(--f);letter-spacing:-.04em">${fmt(tr.avg7, 1)}</span><span class="muted">kg, 7-day average</span>` : `<span class="muted">Not enough weigh-ins for a trend yet: it needs 4 in 7 days.</span>`}${tr.change != null ? `<span class="pill ${-tr.change >= T.loss_band.low && -tr.change <= T.loss_band.high ? "ok" : "warn"}" style="margin-left:auto">${tr.change > 0 ? "+" : ""}${tr.change.toFixed(2)} kg/wk</span>` : ""}</div>${weightChart(s)}`
       : k === "protein" ? bars(s, "protein", "var(--protein)", { low: T.protein.low, high: T.protein.high, floor: T.protein_floor })
       : k === "kcal" ? bars(s, "kcal", "var(--kcal)", { low: T.kcal.low, high: T.kcal.high, floor: T.kcal_floor })
@@ -890,7 +911,7 @@ input, textarea { font: inherit; color: inherit; }
   let LD = null;
   function logPane() {
     LD = LD || ld();
-    const today = dubaiISO(), L = D.latest, m = menuMap()[menuLabel(today)], planned = m ? stripId(LD.meal === "lunch" ? m.lunch : m.dinner) : null;
+    const today = dubaiISO(), L = D.latest, m = menuFor(today), planned = m ? stripId(LD.meal === "lunch" ? m.lunch : m.dinner) : null;
     const weighed = L.date === today && L.weight != null;
     const o = (f, v, label) => `<button class="opt2" data-ld="${f}" data-v="${esc(v)}" aria-pressed="${String(LD[f]) === String(v)}">${label}</button>`;
     return `<div class="grab"></div>
@@ -911,14 +932,20 @@ input, textarea { font: inherit; color: inherit; }
       </section>
       <section class="sec"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lab">Water</span><span class="num" style="font:300 var(--t-xl) var(--f)">+${(LD.water / 1000).toFixed(2)} <span class="muted" style="font-size:var(--t-sm)">L to add</span></span></div>
         <div class="opts"><button class="opt2" data-water="250">+250 ml</button><button class="opt2" data-water="500">+500 ml</button><button class="opt2" data-water="0">Reset</button></div></section>
-      <section class="sec"><span class="lab">Supplements taken</span>${[["brahmi", "Brahmi (morning)"], ["d3", "Vitamin D3"], ["multi", "Multivitamin"], ["shake", "Shake: 2 scoops Isopure + 3 g creatine"]].map(([k, l]) => `<label class="chk"><input type="checkbox" data-sup="${k}" ${LD.sup[k] ? "checked" : ""}>${l}</label>`).join("")}</section>
+      ${supChoices().length ? `<section class="sec"><span class="lab">Supplements taken</span>${supChoices().map(([k, l]) => `<label class="chk"><input type="checkbox" data-sup="${k}" ${LD.sup[k] ? "checked" : ""}>${esc(l)}</label>`).join("")}</section>` : ""}
       <section class="sec"><label class="lab" for="ld-free">Something not on the plan</label><input class="inp" id="ld-free" data-ldi="free" placeholder="“Karak and 2 dates at 4pm”" value="${esc(LD.free)}">
         <span class="muted" style="font-size:var(--t-sm)">Plain words are fine. Attach photos in Claude. You'll get ranges, not guesses.</span></section>
       <button class="cta" data-ld-send style="width:100%;min-height:56px">Copy for your coach</button>
       <button class="linkbtn" data-open-pane="templates" style="justify-content:center;gap:6px">Workout or full-day template<span aria-hidden="true">›</span></button>`;
   }
+  // [key, label] for the Log checkboxes: each recorded supplement (with its timing), whey + creatine as one "Shake"
+  function supChoices() {
+    const out = supList().filter((x) => !["whey", "creatine"].includes(x.id)).map((x) => [x.id, x.name + (x.timing ? ` (${x.timing})` : "")]);
+    const sh = shakeTxt(); if (sh) out.push(["shake", `Shake: ${sh}`]);
+    return out;
+  }
   function ldMessage() {
-    const d = LD, today = dubaiISO(), m = menuMap()[menuLabel(today)], lines = [];
+    const d = LD, today = dubaiISO(), m = menuFor(today), lines = [];
     if (d.weight) lines.push(`MORNING ${today}`, `Weight (kg): ${num(d.weight)}`, `Feel (1-5): ${d.feel}`);
     if (d.ate) {
       const planned = m ? stripId(d.meal === "lunch" ? m.lunch : m.dinner) : "";
@@ -931,7 +958,8 @@ input, textarea { font: inherit; color: inherit; }
     const sups = Object.entries(d.sup).filter(([, v]) => v).map(([k]) => k);
     if (d.water || sups.length || d.free) lines.push(`NOTE ${today}`);
     if (d.water) lines.push(`Water: +${(d.water / 1000).toFixed(2)} L`);
-    if (sups.length) lines.push(`Supplements taken: ${sups.join(", ")}`);
+    const supName = (k) => (k === "shake" ? "shake" : (supMap()[k] || {}).name || k);
+    if (sups.length) lines.push(`Supplements taken: ${sups.map(supName).join(", ")}`);
     if (d.free) lines.push(`Also: ${d.free}`);
     return lines.length ? lines.join("\n") + "\n(sent from Cut Log)" : "";
   }
@@ -971,7 +999,8 @@ input, textarea { font: inherit; color: inherit; }
       <span class="muted" style="font-size:var(--t-xs);line-height:1.5">Your coach is an AI. It doesn't diagnose or change doses. Chest pain, fainting or unusual breathlessness: see a doctor promptly.</span>`;
   }
   function openPane(kind, arg) {
-    const html = kind === "log" ? logPane() : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : youPane();
+    const html = kind === "meals" ? `<div class="grab"></div><div class="ph"><h2>Logged today</h2><button class="btn" data-close-pane>Close</button></div>${loggedCard(dubaiISO()).replace('<div class="card-h"><h2>Logged today</h2>', '<div class="card-h"><h2 class="lab" style="font-size:var(--t-sm);color:var(--muted)">From your records</h2>')}`
+      : kind === "log" ? logPane() : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : youPane();
     const wasOpen = !$("#pane").hidden;
     if (!wasOpen) openPane.ret = document.activeElement;
     $("#pane-box").innerHTML = html; $("#pane").hidden = false; $("#pane").dataset.kind = kind; $("#pane-box").scrollTop = 0;
@@ -1078,22 +1107,49 @@ input, textarea { font: inherit; color: inherit; }
     add: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
     shake: '<svg viewBox="0 0 24 24"><path d="M7 4h10l-1.5 16h-7z"/><path d="M7.5 9h9"/></svg>',
   };
+  // what was actually logged on a date (day files via data.json "meals"): label values plain, estimates as ranges
+  const SRCNAME = { LABEL: "Label", ESTIMATE: "Estimate", USER: "You said", MEASURED: "Measured" };
+  function mealRows(iso) {
+    const day = (D.meals || {})[iso]; if (!day) return "";
+    const rg = (o, u) => !o ? "—" : o.low != null && o.high != null && o.low !== o.high ? `${fmt(o.low)}–${fmt(o.high)}${u}` : `${fmt(o.best)}${u}`;
+    return day.items.map((x) => `<div class="li">
+      <span><b>${esc(x.item)}</b></span><span class="num" style="text-align:right;white-space:nowrap">${rg(x.kcal, " kcal")}</span>
+      <span class="sub" style="display:flex;justify-content:space-between;gap:var(--s3)"><span>${esc(x.time || "")}${x.kind ? ", " + esc(x.kind) : ""}. <span class="src${x.source === "ESTIMATE" ? " est" : ""}">${esc(SRCNAME[x.source] || x.source || "Unknown")}</span></span><span class="num" style="white-space:nowrap">${rg(x.protein, " g")} protein</span></span>
+      ${x.source === "ESTIMATE" && x.assumptions ? `<span class="sub" style="font-size:var(--t-xs)">${esc(x.assumptions)}</span>` : ""}</div>`).join("");
+  }
+  function loggedCard(iso) {
+    const day = (D.meals || {})[iso]; if (!day) return "";
+    const sum = (k) => day.items.reduce((a, x) => a + ((x[k] && x[k].best) || 0), 0);
+    return `<section class="card" aria-label="Logged food"><div class="card-h"><h2>Logged${iso === dubaiISO() ? " today" : ""}</h2><span class="aside num">${fmt(sum("kcal"))} kcal, ${fmt(sum("protein"))} g protein${day.complete ? ", complete" : ", so far"}</span></div>
+      <div class="list">${mealRows(iso)}</div>
+      <p class="note">Labels are the provider's numbers. Estimates show a range; photo-only estimates can be off by 30% or more.</p></section>`;
+  }
+  function dayKindOf(iso) {
+    const pl = planOf(iso), s = sessionFor(iso);
+    if (pl && pl.status === "done") return "Trained: " + (progById(pl.logged) || { name: pl.logged }).name.split(" (")[0];
+    if (pl && pl.status === "missed") return "Session missed";
+    if (s) return s.name.split(" (")[0] + " day";
+    return ["Sat", "Sun"].includes(dowOf(iso)) ? "Weekend" : "Rest day";
+  }
   function viewFood() {
     const rows = Object.values(D.menus || {}).flat();
     if (!rows.length) return `<div class="card"><h2 class="h2" style="margin-bottom:var(--s2)">No menu yet</h2><p class="muted" style="margin:0">Send your coach the next subscription menu and it appears here, with protein add-ons planned.</p></div>`;
-    const todayL = menuLabel(dubaiISO());
-    if (!FOODSEL || !rows.find((r) => r.day === FOODSEL)) FOODSEL = (rows.find((r) => r.day === todayL) || rows[0]).day;
-    const r = rows.find((x) => x.day === FOODSEL), T = D.targets, gym = (D.gym_days || []).includes(r.day.slice(0, 3)), sup = supMap();
+    const today = dubaiISO(), isT = (x) => (x.date ? x.date === today : x.day === menuLabel(today));
+    if (!FOODSEL || !rows.find((r) => r.day === FOODSEL)) FOODSEL = (rows.find(isT) || rows.find((x) => x.date && x.date > today) || rows[0]).day;
+    const r = rows.find((x) => x.day === FOODSEL), T = D.targets, sup = supMap();
+    const gym = r.date ? isGym(r.date) : (D.gym_days || []).includes(r.day.slice(0, 3)), todayL = rows.find(isT) ? rows.find(isT).day : null;
+    const logged = r.date ? loggedCard(r.date) : "";
     const totK = r.addon ? r.addon.kcal : r.kcal, totP = r.addon ? r.addon.protein : r.protein;
     return `
       <div class="scroller span" role="group" aria-label="Menu days">${rows.map((x) => `<button class="chipday" data-food="${esc(x.day)}" aria-pressed="${x.day === FOODSEL}" aria-label="${esc(x.day)}${x.day === todayL ? ", today" : ""}"><span class="l">${x.day === todayL ? "Today" : esc(x.day.slice(0, 3))}</span><span class="n num">${esc(x.day.slice(4))}</span></button>`).join("")}</div>
+      ${logged}
       <div class="card">
-        <div class="card-h"><h2>${r.day === todayL ? "Today's plan" : esc(r.day)}</h2><span class="pill">${gym ? "Gym day" : "Rest day"}</span></div>
+        <div class="card-h"><h2>${r.day === todayL ? "Today's plan" : esc(r.day) + " plan"}</h2><span class="pill">${r.date ? esc(dayKindOf(r.date)) : gym ? "Gym day" : "Rest day"}</span></div>
         <div class="list">
           <div class="meal"><div class="ic" style="--c:var(--kcal)">${ICON.lunch}</div><div class="nm"><b>${esc(stripId(r.lunch))}</b><span>Lunch, meal plan</span></div><div class="q"><b>${pOf(r.lunch) || "—"} g</b>protein</div></div>
           <div class="meal"><div class="ic" style="--c:var(--steps)">${ICON.dinner}</div><div class="nm"><b>${esc(stripId(r.dinner))}</b><span>Dinner, meal plan</span></div><div class="q"><b>${pOf(r.dinner) || "—"} g</b>protein</div></div>
           ${r.addon ? `<div class="meal"><div class="ic" style="--c:var(--protein)">${ICON.add}</div><div class="nm"><b>Protein add-on</b><span>${esc(r.addon.items)}</span></div><div class="q"><b>+${fmt(r.addon.protein - r.protein)} g</b>protein</div></div>` : ""}
-          ${gym && sup.whey ? `<div class="meal"><div class="ic" style="--c:var(--protein)">${ICON.shake}</div><div class="nm"><b>Post-workout shake</b><span>2 scoops Isopure Zero Carb${sup.creatine ? " + creatine" : ""}. On gym days it replaces the tuna, or 150 g of the chicken.</span></div><div class="q"><b>≈ 50 g</b>protein</div></div>` : ""}
+          ${gym && sup.whey ? `<div class="meal"><div class="ic" style="--c:var(--protein)">${ICON.shake}</div><div class="nm"><b>Post-workout shake</b><span>${esc(shakeTxt())}. On gym days it replaces the tuna, or 150 g of the chicken.</span></div><div class="q"><b>${sup.whey.nutrition_estimate ? "≈ " + sup.whey.nutrition_estimate.protein_g.best + " g" : "—"}</b>protein</div></div>` : ""}
         </div>
       </div>
       <div class="card"><div class="card-h"><h2>Planned day total</h2><span class="src">Labels + estimates</span></div>
@@ -1172,7 +1228,7 @@ input, textarea { font: inherit; color: inherit; }
         <div class="field2"><label for="lg-cardio">Cardio (type, minutes, avg HR)</label><input id="lg-cardio" data-top="cardio" value="${esc(LOG.cardio)}"></div>
         <div class="field2"><label for="lg-pain">Pain (where, 0–10)</label><input id="lg-pain" data-top="pain" value="${esc(LOG.pain)}"></div>
         <div class="field2"><label for="lg-rpe">Whole session RPE (1–10)</label><input id="lg-rpe" data-top="sessRpe" inputmode="decimal" value="${esc(LOG.sessRpe)}"></div>
-        <button class="toggle" data-shake aria-pressed="${LOG.shake}"><span>Shake: 2 scoops Isopure + 3 g creatine</span><span class="sw"></span></button>
+        <button class="toggle" data-shake aria-pressed="${LOG.shake}"><span>Shake: ${esc(shakeTxt() || "post-workout protein")}</span><span class="sw"></span></button>
         <button class="cta" data-finish style="width:100%">Finish and copy for your coach</button>
         <button class="cta ghost" data-discard style="width:100%">Discard workout</button>
       </div>`;
@@ -1188,7 +1244,7 @@ input, textarea { font: inherit; color: inherit; }
       const warm = sets.filter((x) => x.warm), work = sets.filter((x) => !x.warm);
       lines.push(`${label}: ${warm.length ? "warm-up " + warm.map(fmtSet).join(", ") + "; " : ""}${work.map(fmtSet).join(", ") || "not done"}`);
     });
-    lines.push(`Cardio (type, min, avg HR): ${LOG.cardio}`, `Pain (where, 0-10): ${LOG.pain}`, `Shake: 2 scoops Isopure + creatine: ${LOG.shake ? "yes" : "no"}`, "(logged in Cut Log)");
+    lines.push(`Cardio (type, min, avg HR): ${LOG.cardio}`, `Pain (where, 0-10): ${LOG.pain}`, `Shake (${shakeTxt() || "protein"}): ${LOG.shake ? "yes" : "no"}`, "(logged in Cut Log)");
     return lines.join("\n");
   }
   // rest timer with -15 / +15 / skip
@@ -1203,7 +1259,7 @@ input, textarea { font: inherit; color: inherit; }
   function openMenu(title, opts) {
     $("#menu-panel").innerHTML = `<div class="grab"></div><div class="ph" style="margin-bottom:var(--s1)"><h2 style="font-size:var(--t-lg)">${esc(title)}</h2><button class="btn" data-menuclose>Close</button></div>` +
       opts.map((o, i) => `<button class="opt ${o.danger ? "danger" : ""}" data-opt="${i}">${esc(o.label)}${o.hint ? `<small>${esc(o.hint)}</small>` : ""}</button>`).join("");
-    openMenu.opts = opts; $("#menu").hidden = false;
+    openMenu.opts = opts; $("#menu").hidden = false; const o = $("#menu-panel .opt"); if (o) o.focus({ preventScroll: true });
   }
   function setMenu(id, k) {
     const arr = LOG.ex[id], st = arr[k];
@@ -1227,18 +1283,29 @@ input, textarea { font: inherit; color: inherit; }
 
   function viewTrain() {
     if (LOG && TAB_LOGGING) return viewLogger();
-    const prog = D.program || [], days = D.gym_days || [], today = dubaiISO();
-    let next = null;
-    for (let i = 0; i < 7 && !next; i++) { const iso = addDays(today, i); if (isGym(iso)) next = { iso, s: sessionFor(iso) }; }
-    if (TRAINSEL == null) TRAINSEL = Math.max(0, next ? prog.indexOf(next.s) : 0);
+    const prog = D.program || [], today = dubaiISO(), wk0 = mondayOf(today), wk1 = addDays(wk0, 7);
+    // when each session falls: the next planned date from today (this week or next), else what happened this week
+    const whenOf = (p) => {
+      let up = null;
+      for (let i = 0; i < 14 && !up; i++) { const iso = addDays(today, i); const pl = planOf(iso); if (sessionFor(iso) === p && !(pl && pl.status === "done")) up = iso; }
+      if (!inSched(today)) return up ? { iso: up, label: dowOf(up) + " " + +up.slice(8), up } : { label: "" };
+      const past = (D.schedule.days || []).filter((r) => r.date >= wk0 && r.date < today && (r.logged || r.session) === p.id);
+      const done = past.find((r) => r.status === "done"), missed = past.find((r) => r.status === "missed");
+      if (done && (!up || up >= wk1)) return { iso: done.date, label: "Done " + dowOf(done.date), done: true, up };
+      if (up) return { iso: up, label: (up === today ? "Today" : dowOf(up) + " " + +up.slice(8)) + (up >= wk1 ? ", next wk" : ""), up };
+      return { label: missed ? "Missed" : "Not this week" };
+    };
+    const when = prog.map(whenOf);
+    if (TRAINSEL == null) { const ups = when.map((w, i) => [w.up, i]).filter((x) => x[0]).sort(); TRAINSEL = ups.length ? ups[0][1] : 0; }
     const s = prog[TRAINSEL];
     if (!s) return `<div class="card"><p class="muted" style="margin:0">No program yet.</p></div>`;
-    const isNext = next && next.s === s, sub = (s.name.match(/\((.+)\)/) || [])[1] || "";
+    const w = when[TRAINSEL], sub = (s.name.match(/\((.+)\)/) || [])[1] || "", note = weekNote(today);
     const nextTxt = (e) => e.next ? (e.next.kg ? `next ${e.next.kg} kg × ${esc(e.next.reps)}` : e.next.action === "start" ? "first time: find your weight" : `next ${esc(e.next.reps)}`) : "";
     return `
-      <div class="daychips span" role="group" aria-label="Sessions">${prog.map((p, i) => `<button data-sess="${i}" aria-pressed="${i === TRAINSEL}"><span class="l">${days[i] || ""}</span><span class="nm">${esc(p.name.split(" (")[0])}</span></button>`).join("")}</div>
+      <div class="span" style="display:grid;gap:var(--s2)"><div class="daychips" role="group" aria-label="Sessions this week">${prog.map((p, i) => `<button data-sess="${i}" aria-pressed="${i === TRAINSEL}" aria-label="${esc(p.name.split(" (")[0])}: ${esc(when[i].label || "not scheduled")}"><span class="l">${esc(when[i].label || "—")}</span><span class="nm">${esc(p.name.split(" (")[0])}</span></button>`).join("")}</div>
+        ${note ? `<p class="insight" style="margin:0">Re-planned by your coach: ${esc(note)}</p>` : ""}</div>
       <section class="card session" aria-label="Session plan">
-        <span class="eyebrow">${isNext ? (next.iso === today ? "Today, after 18:00" : "Next: " + longDate(next.iso) + ", after 18:00") : (days[TRAINSEL] || "") + ", after 18:00"}</span>
+        <span class="eyebrow">${w.up ? (w.up === today ? "Today, after 18:00" : "Next: " + longDate(w.up) + ", after 18:00") : w.done ? "Done " + longDate(w.iso) + ". Not planned again this week" : "Not planned this week. You can still log it"}</span>
         <h3>${esc(s.name.split(" (")[0])}</h3>
         <span class="muted" style="font-size:var(--t-sm)">${sub ? esc(sub[0].toUpperCase() + sub.slice(1)) + ". " : ""}${s.exercises.length} exercises, ${esc(s.duration)} min${/upper/.test(s.id) ? ", then a 20 min incline walk" : ""}</span>
         <ol class="exlist" style="list-style:none;margin:var(--s2) 0 0;padding:0">${s.exercises.map((e, i) => `<li class="ex"><span class="n">${i + 1}</span><span style="font-weight:600">${esc(nice(e.id)[0].toUpperCase() + nice(e.id).slice(1))}</span><span class="m num">${e.sets} × ${esc(e.reps)}${e.rpe ? `, RPE ${esc(e.rpe)}` : ""}</span>${e.next ? `<span class="x">${e.last ? "last " + esc(e.last.text) + ", " : ""}${nextTxt(e)}</span>` : ""}</li>`).join("")}</ol>
@@ -1275,15 +1342,15 @@ input, textarea { font: inherit; color: inherit; }
 
   // ---------- check-in templates ----------
   function template(kind) {
-    const iso = SEL || dubaiISO(), m = menuMap()[menuLabel(iso)], s = sessionFor(iso), sup = supMap();
+    const iso = SEL || dubaiISO(), m = menuFor(iso), s = sessionFor(iso), sup = supMap();
     const plan = (x) => x ? `plan meal (${stripId(x)})` : "describe it";
     const h = dubaiHour(), mealGuess = h < 16 ? "lunch" : "dinner";
     const exLines = s ? s.exercises.map((e) => `${nice(e.id)}:`).join("\n") : "exercise: kg x reps, kg x reps @RPE";
     const T = {
       morning: `MORNING ${iso}\nWeight (kg):\nFeel (1-5):\n${dowOf(iso) === "Sun" ? "Waist navel / midpoint (cm):\n" : ""}Notes:\n+ attach Zepp: sleep, resting HR, HRV`,
       meal: `MEAL ${iso} ${mealGuess}\nWhat: ${plan(m && (mealGuess === "lunch" ? m.lunch : m.dinner))}\nAte: all / most / half\nExtras (oil, sauce, sides, drinks):\nAdd-on eaten:${m && m.addon && mealGuess === "dinner" ? " (" + m.addon.items + ")" : ""}\n+ attach photo`,
-      gym: `GYM ${iso} · ${s ? s.name.split(" (")[0] : "session"}\nDuration (min):\nSession RPE (1-10):\n${exLines}\nCardio (type, min, avg HR):${s && /upper/.test(s.id) ? " incline walk 20 min," : ""}\nPain (where, 0-10): none\nShake: 2 scoops Isopure${sup.creatine ? " + creatine" : ""}: yes/no`,
-      night: `NIGHT ${iso}\nSteps:\nWater (L):\nTea cups:\nSupplements (brahmi / D3 / multivitamin): all / missed:\nOther food or drinks not logged yet:\nAll food logged today: yes/no\nNotes:\n+ attach Zepp steps screenshot`,
+      gym: `GYM ${iso} · ${s ? s.name.split(" (")[0] : "session"}\nDuration (min):\nSession RPE (1-10):\n${exLines}\nCardio (type, min, avg HR):${s && /upper/.test(s.id) ? " incline walk 20 min," : ""}\nPain (where, 0-10): none\nShake (${shakeTxt() || "protein"}): yes/no`,
+      night: `NIGHT ${iso}\nSteps:\nWater (L):\nTea cups:\nSupplements (${supList().filter((x) => !["whey", "creatine"].includes(x.id)).map((x) => x.name).join(" / ") || "none recorded"}): all / missed:\nOther food or drinks not logged yet:\nAll food logged today: yes/no\nNotes:\n+ attach Zepp steps screenshot`,
       day: `DAY ${iso}\nWeight (kg):\nFeel (1-5):\nLunch: ${plan(m && m.lunch)}, ate all/most/half, extras:\nDinner: ${plan(m && m.dinner)}, ate all/most/half, extras:\nAdd-on / snacks:${m && m.addon ? " (" + m.addon.items + ")" : ""}\n${s ? `Gym: ${s.name.split(" (")[0]}, duration, RPE, sets per exercise:\nShake: yes/no\n` : ""}Steps:\nWater (L):\nTea cups:\nSupplements: all / missed:\nAll food logged: yes/no\nNotes:\n+ attach Zepp + food photos`,
     };
     return T[kind];
@@ -1295,7 +1362,7 @@ input, textarea { font: inherit; color: inherit; }
   }
   function openSheet(kind) {
     $("#sheet-title").textContent = { morning: "Morning check-in", meal: "Meal", gym: "Gym session", night: "Night check-in", day: "Full day" }[kind];
-    $("#sheet-text").value = template(kind); $("#sheet-clear").hidden = true; $("#sheet").hidden = false;
+    $("#sheet-text").value = template(kind); $("#sheet-clear").hidden = true; $("#sheet").hidden = false; $("#sheet-text").focus({ preventScroll: true });
   }
   async function copyText(text) {
     try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into Claude and send."); return true; }
@@ -1397,6 +1464,18 @@ input, textarea { font: inherit; color: inherit; }
   $("#sheet-copy").addEventListener("click", () => copyText($("#sheet-text").value));
   $("#sheet-close").addEventListener("click", () => { $("#sheet").hidden = true; $("#sheet-clear").hidden = true; });
   $("#sheet-clear").addEventListener("click", () => { $("#sheet").hidden = true; $("#sheet-clear").hidden = true; clearLog(); toast("Workout cleared from this phone"); });
+  // keep Tab inside the top-most open dialog (sheet > menu > pane)
+  const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), textarea, select, [tabindex]:not([tabindex="-1"])';
+  const topDialog = () => ["#sheet", "#menu", "#pane"].map((x) => $(x)).find((x) => !x.hidden) || null;
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const dlg = topDialog(); if (!dlg) return;
+    const f = [...dlg.querySelectorAll(FOCUSABLE)].filter((x) => x.offsetParent !== null); if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (!dlg.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { $("#sheet").hidden = true; $("#menu").hidden = true; closePane(); } });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && LOG && TAB_LOGGING) keepAwake(); });
   $("#sheet").addEventListener("click", (e) => { if (e.target.id === "sheet") $("#sheet").hidden = true; });

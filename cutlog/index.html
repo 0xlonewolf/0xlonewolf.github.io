@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cut Log">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#16140F" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Newsreader:opsz,ital,wght@6..72,0,400;6..72,1,400&display=swap">
 <style>
 /* Cut Log design system: "Clipboard".
-   A printed gym log sheet on a clipboard. Black print on white (night: inverted, true black), hard ruled lines,
+   A printed gym log sheet on a clipboard. Black print on white (night: warm near-black sheet, paper-white ink), hard ruled lines,
    form fields instead of cards. One accent: ballpoint blue, for the coach's notes and actions. Yellow highlighter
    marks what needs attention; red pen only for floors and out-of-range lab values. Data is drawn in ink.
    Archivo's width axis carries everything: heavy condensed numerals, condensed caps for form labels, normal body.
@@ -45,11 +45,11 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --paper: #000000; --ink: #FFFFFF; --ink-2: #C9C9C9; --ink-3: #9C9C9C; --rule-2: #363636; --tint: #141414;
-  --pen: #8FA8FF; --on-pen: #000000; --red: #FF6F63; --amber: #FFD84A; --scrim: rgb(0 0 0 / .7); color-scheme: dark; } }
+  --paper: #16140F; --ink: #EEE9DF; --ink-2: #C4BDB1; --ink-3: #A0998D; --rule-2: #3A362E; --tint: #211E18;
+  --pen: #A3B6FF; --on-pen: #16140F; --red: #FF8273; --amber: #FFD84A; --scrim: rgb(8 7 5 / .72); color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --paper: #000000; --ink: #FFFFFF; --ink-2: #C9C9C9; --ink-3: #9C9C9C; --rule-2: #363636; --tint: #141414;
-  --pen: #8FA8FF; --on-pen: #000000; --red: #FF6F63; --amber: #FFD84A; --scrim: rgb(0 0 0 / .7); color-scheme: dark; }
+  --paper: #16140F; --ink: #EEE9DF; --ink-2: #C4BDB1; --ink-3: #A0998D; --rule-2: #3A362E; --tint: #211E18;
+  --pen: #A3B6FF; --on-pen: #16140F; --red: #FF8273; --amber: #FFD84A; --scrim: rgb(8 7 5 / .72); color-scheme: dark; }
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -64,7 +64,7 @@ input, textarea { font: inherit; color: inherit; }
 .mono, .num { font-variant-numeric: tabular-nums; }
 .serif { font-family: var(--f-serif); }
 /* type roles */
-.lbl, .eyebrow, .lab, .fl { font: 700 var(--t-xs)/1.2 var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.lbl, .eyebrow, .lab, .fl { font: 700 var(--t-sm)/1.2 var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
 .big { font: 800 var(--t-3xl)/.9 var(--f); font-stretch: 62%; letter-spacing: -.01em; }
 .mid { font: 800 var(--t-2xl)/.95 var(--f); font-stretch: 62%; }
 .cond { font-stretch: 75%; }
@@ -122,7 +122,7 @@ input, textarea { font: inherit; color: inherit; }
 .who { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .who i { display: none; }
 .serif-h { margin: 2px 0 0; font: italic 400 1.95rem/1.1 var(--f-serif); color: var(--pen); letter-spacing: -.01em; text-wrap: balance; }
-.brief p { margin: 0; font: italic 400 1.0625rem/1.5 var(--f-serif); color: var(--pen); max-width: 62ch; }
+.brief p { margin: 0; font: italic 400 1.125rem/1.6 var(--f-serif); color: var(--pen); max-width: 62ch; }
 .who.calc + .serif-h, .who.calc ~ p { color: var(--ink); font-style: normal; }
 .one { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s3); margin-top: var(--s2); padding-top: var(--s3); border-top: var(--hair); }
 .one .t { display: contents; }
@@ -204,7 +204,7 @@ input, textarea { font: inherit; color: inherit; }
 .signals .k i { display: none; }
 .signals b, .rec b { font: 800 var(--t-2xl)/.95 var(--f); font-stretch: 62%; }
 .signals b small, .rec b small { font: 700 var(--t-sm) var(--f); font-stretch: 75%; color: var(--ink-2); margin-left: 3px; }
-.signals .g, .rec .u { font-size: var(--t-xs); color: var(--ink-2); }
+.signals .g, .rec .u { font-size: var(--t-sm); color: var(--ink-2); }
 .rec .u.unv { color: var(--amber); font-weight: 600; }
 .stat3 b, .kvg b { display: block; font: 800 var(--t-lg)/1.05 var(--f); font-stretch: 62%; }
 .kvg b small { font: 700 var(--t-xs) var(--f); color: var(--ink-2); }
@@ -231,7 +231,7 @@ input, textarea { font: inherit; color: inherit; }
 
 /* ---------- charts: ink only ---------- */
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.chart text { fill: var(--ink-2); font: 700 11px var(--f); font-stretch: 75%; font-variant-numeric: tabular-nums; }
+.chart text { fill: var(--ink-2); font: 700 12px var(--f); font-stretch: 75%; font-variant-numeric: tabular-nums; }
 .chart .hit { fill: transparent; cursor: crosshair; }
 .chart .hit.on { fill: var(--hi); fill-opacity: .55; }
 .chart-tip { min-height: 22px; font-size: var(--t-sm); color: var(--ink-2); margin-top: var(--s2); }
@@ -315,6 +315,7 @@ input, textarea { font: inherit; color: inherit; }
 .opts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: var(--rule); }
 .opt2 { min-height: 50px; background: var(--paper); color: var(--ink); font: 800 var(--t-md) var(--f); font-stretch: 75%; text-align: center; border-left: var(--rule); }
 .opts > .opt2:first-child { border-left: 0; }
+.logmodes .opt2 { min-height: 48px; font-size: var(--t-sm); letter-spacing: .04em; text-transform: uppercase; }
 .opt2[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .opt2.sm { min-height: 44px; padding: 0 14px; font-size: var(--t-sm); }
 .chk { display: flex; align-items: center; gap: 12px; font-size: var(--t-base); min-height: 44px; }
@@ -352,6 +353,47 @@ input, textarea { font: inherit; color: inherit; }
 .tabbar [aria-current="page"] { background: var(--ink); color: var(--paper); }
 .tabbar .logbtn { background: var(--pen); color: var(--on-pen); }
 .tabbar .logbtn span { display: contents; }
+
+/* ---------- body state panel (glanceable): stamp verdict + three instruments ---------- */
+.vitals { padding: var(--s4) 0 var(--s4); border-bottom: var(--rule); display: grid; gap: var(--s3); }
+.vh { display: flex; justify-content: space-between; align-items: center; gap: var(--s2); }
+.stamprow { display: grid; grid-template-columns: auto 1fr; gap: var(--s3); align-items: center; }
+.stamp { display: inline-block; padding: 6px 10px 5px; border: 3px solid var(--ink); font: 900 1.375rem/1 var(--f); font-stretch: 62%; letter-spacing: .03em; text-transform: uppercase; transform: rotate(-2deg); white-space: nowrap; }
+.stamp.ok { color: var(--ink); }
+.stamp.bad { color: var(--red); border-color: var(--red); background: var(--hi); }
+.stamp.wait { color: var(--ink-2); border-style: dashed; border-color: var(--ink-2); }
+.stamprow .say { font-size: var(--t-sm); line-height: 1.4; color: var(--ink-2); }
+.vgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1.5px solid var(--ink); }
+.vcell { display: grid; gap: 4px; align-content: start; padding: var(--s3) var(--s3) var(--s3); border-left: 1.5px solid var(--ink); text-align: left; min-width: 0; }
+.vcell:first-child { border-left: 0; }
+.vcell .k { font: 700 var(--t-xs)/1.2 var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.vcell b { font: 800 var(--t-2xl)/.95 var(--f); font-stretch: 62%; }
+.vcell b small { font: 700 var(--t-sm) var(--f); font-stretch: 75%; color: var(--ink-2); margin-left: 3px; }
+.vcell .g { font-size: var(--t-sm); line-height: 1.3; color: var(--ink-2); }
+.dev { display: block; position: relative; height: 12px; border: 1.5px solid var(--ink); margin: 2px 0; }
+.dev u { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(-45deg, var(--ink) 0 1.5px, transparent 1.5px 5px); opacity: .45; }
+.dev i { position: absolute; top: 0; bottom: 0; background: var(--ink); }
+.dev b { position: absolute; left: 50%; top: -5px; bottom: -5px; width: 2px; margin-left: -1px; background: var(--pen); }
+.dev.sleep b { display: none; }
+.dev s { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--red); }
+.dev em { position: absolute; top: -5px; bottom: -5px; width: 2px; background: var(--pen); }
+.vfoot { display: flex; flex-wrap: wrap; gap: 0 var(--s4); font-size: var(--t-sm); color: var(--ink-2); }
+.vfoot button { min-height: 44px; }
+.vfoot b { color: var(--ink); font: 800 var(--t-md) var(--f); font-stretch: 62%; }
+@media (max-width: 370px) { .stamprow { grid-template-columns: 1fr; } .vcell { padding: var(--s2); } }
+
+.journey { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); }
+.journey li { display: grid; grid-template-columns: 26px 1fr auto; gap: var(--s3); align-items: center; padding: var(--s3) 0; border-bottom: var(--hair); }
+.journey .jk { width: 22px; height: 22px; border: 2px solid var(--ink); display: grid; place-items: center; font: 900 14px/1 var(--f); }
+.journey li.done .jk { background: var(--ink); color: var(--paper); }
+.journey .jt { display: grid; min-width: 0; }
+.journey .jt b { font: 800 var(--t-md)/1.15 var(--f); font-stretch: 75%; text-transform: uppercase; letter-spacing: .03em; }
+.journey .jt span { font-size: var(--t-sm); color: var(--ink-2); line-height: 1.35; }
+.journey li.done .jt span { color: var(--ink-3); }
+.journey .jr { display: grid; justify-items: end; gap: 6px; text-align: right; }
+.journey .jn { font: 800 var(--t-lg)/1 var(--f); font-stretch: 62%; }
+.journey .boxes i { width: 16px; height: 16px; font-size: 10px; }
+@media (max-width: 420px) { .journey li { grid-template-columns: 26px 1fr; } .journey .jr { grid-column: 2; justify-items: start; text-align: left; } }
 
 /* ---------- sheets & panes ---------- */
 .pane, .sheet { position: fixed; z-index: 45; inset: 0; background: var(--scrim); display: grid; align-items: end; animation: fadein .15s ease; }
@@ -636,20 +678,36 @@ input, textarea { font: inherit; color: inherit; }
   const UNV = '<span class="src unv" title="Imported from Zepp, not yet checked against the Zepp app">Unverified</span>';
   const tags = (p) => `<span class="tags">${SRC}${isUnv(p) ? UNV : ""}</span>`;
   const dval = (o, k, nd = 0) => { const v = o ? o[k] : null; return v == null ? null : typeof v === "boolean" ? (v ? "yes" : "no") : Number.isNaN(+v) ? esc(v) : fmt(+v, nd); };
-  function recoveryCard() {
-    const d = DEV(); if (!d) return "";
-    const r = d.readiness, today = dubaiISO();
-    const tile = (label, v, unit, sub, path) => `<div><span class="eyebrow">${label}</span><b class="num">${v != null ? fmt(v) + (unit ? `<small>${unit}</small>` : "") : "—"}</b><span class="u">${v != null ? sub : "— missing"}</span>${v != null && isUnv(path) ? `<span class="u unv">Unverified</span>` : ""}</div>`;
-    const st = dv(r, "status");
-    return `<section class="card" aria-label="Recovery from your watch"><div class="card-h"><h2>Recovery</h2><span class="src">${d.date === today ? "Today" : esc(longDate(d.date))}, from your watch</span></div>
-      <div class="stat3 two rec">
-        ${tile("Readiness", dv(r, "score"), "", st != null ? `score, status ${fmt(st)}` : "score out of 100", "device.readiness.score")}
-        ${tile("BioCharge", dv(d.biocharge, "wake"), "", "on waking", "device.biocharge.wake")}
-        ${tile("Sleep HRV", dv(r, "sleep_hrv"), "ms", dv(r, "hrv_baseline") != null ? `baseline ${fmt(dv(r, "hrv_baseline"))} ms` : "overnight", "device.readiness.sleep_hrv")}
-        ${tile("Stress", dv(d.stress, "avg"), "", "day average", "device.stress.avg")}
+  // ---------- body state: the fatigue rule's verdict + sleep / HRV / resting HR against your own baselines ----------
+  // deviation bar: centre = baseline, hatched = the rule's normal zone, block = today's deviation
+  function devBar(delta, zone, span, worseLow) {
+    const P = (x) => Math.max(0, Math.min(100, 50 + (x / span) * 50));
+    const lo = worseLow ? P(-zone) : 0, hi = worseLow ? 100 : P(zone);
+    const a = Math.min(50, P(delta)), b = Math.max(50, P(delta));
+    return `<span class="dev" aria-hidden="true"><u style="left:${lo}%;width:${hi - lo}%"></u><i style="left:${a}%;width:${Math.max(.8, b - a)}%"></i><b></b></span>`;
+  }
+  function vitalsPanel() {
+    const R = D.recovery || {}, T = D.targets, pr = R.params || {}, L = D.latest, today = dubaiISO();
+    const when = R.date ? (R.date === today ? "this morning" : "morning of " + longDate(R.date)) : "";
+    const sl = R.sleep_today, hrv = R.hrv_today, rhr = R.rhr_today;
+    const hb = R.hrv_baseline, rb = R.rhr_baseline, hd = R.hrv_delta_pct, rd = R.rhr_delta;
+    let stamp, cls, say;
+    if (R.fatigue) { stamp = "Fatigue rule fired"; cls = "bad"; say = `${(R.flags || []).join("; ")}. The plan says an easier session or a rest day: check with your coach.`; }
+    else if (R.status === "ok") { stamp = "Within baseline"; cls = "ok"; say = `No fatigue flag: sleep ${pr.sleep_short_h ?? 6}+ h, resting HR and HRV inside your normal range. Train as planned.`; }
+    else { const need = Math.max(0, (pr.baseline_min_points || 14) - Math.min(R.rhr_points || 0, R.hrv_points || 0)); stamp = "Building baseline"; cls = "wait"; say = `Your normal range needs ${need} more night${need === 1 ? "" : "s"} of watch data. Until then, go by how you feel.`; }
+    const cell = (k, label, v, unit, sub, bar) => `<button class="vcell" data-explain="${k}"><span class="k">${label}</span><b class="${v == null ? "nil" : ""}">${v == null ? "–" : v}<small>${v == null ? "" : unit}</small></b>${bar || ""}<span class="g">${sub}</span></button>`;
+    const sleepBar = sl != null ? `<span class="dev sleep" aria-hidden="true"><i style="left:0;width:${Math.min(100, sl / 9 * 100)}%"></i><s style="left:${(pr.sleep_short_h || 6) / 9 * 100}%"></s><em style="left:${T.sleep_min / 9 * 100}%"></em></span>` : "";
+    const d = DEV(), rd2 = d && d.readiness && d.readiness.score;
+    return `<section class="vitals" aria-label="Body state, ${esc(when)}">
+      <div class="vh"><span class="lbl">Body, ${esc(when)}</span>${d ? `<button class="linkbtn" data-open-pane="watch" style="width:auto;min-height:32px">Watch details</button>` : ""}</div>
+      <div class="stamprow"><span class="stamp ${cls}">${stamp}</span><span class="say">${esc(say)}</span></div>
+      <div class="vgrid">
+        ${cell("sleep", "Sleep", sl != null ? fmt(sl, 1) : null, "h", sl != null ? `target ${T.sleep_min}+ h` : "— missing", sleepBar)}
+        ${cell("hrv", "HRV", hrv != null ? fmt(hrv) : null, "ms", hrv == null ? "— missing" : hb != null && hd != null ? `${hd > 0 ? "+" : hd < 0 ? "−" : "±"}${fmt(Math.abs(hd))}% vs ${fmt(hb)} baseline` : "baseline building", hrv != null && hd != null ? devBar(hd, pr.hrv_drop_pct || 15, 30, true) : "")}
+        ${cell("rhr", "Resting HR", rhr != null ? fmt(rhr) : null, "bpm", rhr == null ? "— missing" : rb != null && rd != null ? `${rd > 0 ? "+" : rd < 0 ? "−" : "±"}${fmt(Math.abs(rd))} vs ${fmt(rb)} baseline` : "baseline building", rhr != null && rd != null ? devBar(-rd, pr.rhr_elevated_bpm || 5, 10, true) : "")}
       </div>
-      <p class="note">Watch readings are trend signals, not a diagnosis. Read them with how you feel.${((D.device || {}).unverified || []).length ? ' "Unverified" values haven\'t been checked against the Zepp app yet.' : ""}</p>
-      <button class="linkbtn" data-open-pane="watch" style="margin-top:var(--s1)">All watch details<span aria-hidden="true">›</span></button></section>`;
+      <div class="vfoot"><button data-explain="steps">Steps <b>${L.steps != null && L.date === today ? fmt(L.steps) : "–"}</b> / ${fmt(T.steps_min)}</button><button data-explain="water">Water <b>${L.water != null && L.date === today ? fmt(L.water, 1) + " L" : "–"}</b> / ${T.water ? T.water[0] + "–" + T.water[1] : "2.5–3.5"} L</button>${rd2 != null ? `<button data-open-pane="watch">Watch readiness <b>${fmt(rd2)}</b></button>` : ""}</div>
+    </section>`;
   }
   // one pane section: fields [label, key, unit, decimals]; tags per value only where the section is mixed
   function devSec(title, blk, fields, extra = "", after = "") {
@@ -724,7 +782,7 @@ input, textarea { font: inherit; color: inherit; }
       <div class="list">${w.map((x) => `<div class="li"><b>Activity at ${x.start ? esc(x.start) : "— missing"}</b><span class="num">${v(x, "duration_min", " min")}</span>
         <span class="sub num">HR ${v(x, "avg_hr")} avg, ${v(x, "max_hr")} max, load ${v(x, "load")}, ${v(x, "kcal", " kcal")}${dv(x, "kcal") != null ? " watch estimate" : ""}</span>
         ${["aerobic_te", "anaerobic_te", "sets"].some((k) => dv(x, k) != null) ? `<span class="sub num">TE aerobic ${v(x, "aerobic_te", "", 1)}, anaerobic ${v(x, "anaerobic_te", "", 1)}${dv(x, "sets") != null ? `, ${fmt(dv(x, "sets"))} sets` : ""}</span>` : ""}</div>`).join("")}</div>
-      <p class="note">Activity names appear once you confirm what each Zepp type is${w.some((x) => x.type_code != null) ? ` (seen: type ${[...new Set(w.map((x) => x.type_code).filter((x) => x != null))].map(esc).join(", ")})` : ""}. Watch calories are never eaten back.</p></div>`;
+      <p class="note">Activities your watch detected on its own; tell your coach what they were to name them. Watch calories are never eaten back.</p></div>`;
   }
 
   // ---------- TODAY ----------
@@ -871,11 +929,12 @@ input, textarea { font: inherit; color: inherit; }
     return `<div class="cols">
       <div class="col">
         ${waiting ? `<div style="padding-top:var(--s3)"><button class="sig" data-open-pane="entries">${waiting} sent to your coach, waiting</button></div>` : ""}
+        ${vitalsPanel()}
         <section class="brief" aria-label="Coach note">
           <span class="who ${c ? "" : "calc"}"><span class="lbl">${c ? "Coach, " + cw : "Calculated from your data. No coach note yet"}</span></span>
           <h2 class="serif-h">${esc(brief.title || "")}</h2>
           <p>${esc(brief.body || "")}</p>
-          <div class="one"><span class="t"><span class="lbl">One thing</span><span><span class="mark">${esc(one.text)}</span></span></span>${one.act === "log" ? `<button class="btn primary" data-open-pane="log">Log</button>` : "<span></span>"}</div>
+          <div class="one"><span class="t"><span class="lbl">One thing</span><span><span class="mark">${esc(one.text)}</span></span></span>${one.act === "log" ? `<button class="btn primary" data-open-pane="log" data-mode="${/weigh/i.test(one.text) ? "weigh" : "meal"}">Log</button>` : "<span></span>"}</div>
         </section>
         <section class="nums" aria-label="Weight and today's food numbers">
           ${weightRow()}
@@ -887,18 +946,9 @@ input, textarea { font: inherit; color: inherit; }
         <section class="card" aria-label="Training today"><div class="card-h"><h2>${s ? esc(s.name.split(" (")[0]) + ", 18:00" : "Training"}</h2><span class="pill">${esc(dayKindOf(today))}</span></div>${train}
           ${weekNote(today) ? `<p class="note">Coach re-plan: ${esc(weekNote(today))}</p>` : ""}</section>
         <section class="card" aria-label="Next up"><div class="card-h"><h2>Next up</h2></div>
-          ${items.length ? items.map((x) => `<div class="nx"><span class="tm">${x.t}</span><span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span></span>${x.act === "meal" ? `<button class="btn" data-open-pane="log">Log</button>` : x.act === "gym" ? `<button class="btn train" data-go-train data-i="${si}">Start</button>` : ""}</div>`).join("") : `<p class="muted" style="margin:0">Nothing else planned today. Wind down for ${T.sleep_min}+ hours of sleep.</p>`}
+          ${items.length ? items.map((x) => `<div class="nx"><span class="tm">${x.t}</span><span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span></span>${x.act === "meal" ? `<button class="btn" data-open-pane="log" data-mode="meal" aria-label="Log ${esc(x.b)}">Log</button>` : x.act === "gym" ? `<button class="btn train" data-go-train data-i="${si}">Start</button>` : ""}</div>`).join("") : `<p class="muted" style="margin:0">Nothing else planned today. Wind down for ${T.sleep_min}+ hours of sleep.</p>`}
           <button class="linkbtn" data-open-pane="day">Whole day plan<span aria-hidden="true">›</span></button>
         </section>
-        <section class="card" aria-label="Sleep, steps and water"><div class="card-h"><h2>Body</h2></div>
-          <div class="signals" role="group">
-            ${sg("sleep", "Sleep", L.sleep != null && isToday ? fmt(L.sleep, 1) : null, "h", `target ${T.sleep_min}+ h`)}
-            ${sg("steps", "Steps", L.steps != null && isToday ? fmt(L.steps) : null, "", `target ${fmt(T.steps_min)}`)}
-            ${sg("water", "Water", L.water != null && isToday ? fmt(L.water, 1) : null, "L", `target ${T.water ? T.water[0] + "–" + T.water[1] : "2.5–3.5"} L`)}
-          </div>
-          ${ins ? `<p class="insight">${esc(ins.text)}</p>` : ""}
-        </section>
-        ${recoveryCard()}
       </div>
       <div class="col">
         <section class="card" aria-label="Food today"><div class="card-h"><h2>Food</h2><span class="aside">Plan, then what's logged</span></div>
@@ -923,6 +973,8 @@ input, textarea { font: inherit; color: inherit; }
       kcal: { title: "Calories", what: `Energy eaten. Your target is ${fmt(T.kcal.low)}–${fmt(T.kcal.high)} kcal; the floor is ${fmt(T.kcal_floor)}. Your watch's "calories burned" is never added back.`, src: [["■", "Label", "Meal-plan nutrition."], ["≈", "Estimate", "Everything else, as a range."]] },
       sleep: { title: "Sleep", what: `Hours asleep from your watch. Under 6 hours means an easier gym session; the target is ${T.sleep_min}+.`, src: [["■", "Device", "Your watch, synced from Zepp."]] },
       steps: { title: "Steps", what: `Daily movement outside the gym. Your target now is ${fmt(T.steps_min)}.${stepsPlan}`, src: [["■", "Device", "Your watch, synced from Zepp. Today's count lands after the day ends."]] },
+      hrv: { title: "Heart rate variability", what: `Measured overnight by your watch. Lower than your own 28-day baseline for ${(D.recovery && D.recovery.params && D.recovery.params.hrv_drop_pct) || 15}%+ on 2+ days in a row is one trigger of the fatigue rule. One low night means little.`, src: [["■", "Device", "Your watch, synced from Zepp."], ["□", "Calculated", "Baseline: median of the last 28 days (needs 14+ nights)."]] },
+      rhr: { title: "Resting heart rate", what: `Your lowest steady heart rate overnight. ${(D.recovery && D.recovery.params && D.recovery.params.rhr_elevated_bpm) || 5}+ bpm above your 28-day baseline on 2+ days in a row is one trigger of the fatigue rule. It also rises with heat, alcohol, late meals and illness.`, src: [["■", "Device", "Your watch, synced from Zepp."], ["□", "Calculated", "Baseline: median of the last 28 days (needs 14+ nights)."]] },
       water: { title: "Water", what: `${w[0]}–${w[1]} L a day, plus 0.5–1 L per hour of training. Dubai heat counts.`, src: [["■", "You said", "What you log."]] },
     }[k];
   }
@@ -932,7 +984,8 @@ input, textarea { font: inherit; color: inherit; }
       : k === "protein" ? bars(s, "protein", "var(--protein)", { low: T.protein.low, high: T.protein.high, floor: T.protein_floor })
       : k === "kcal" ? bars(s, "kcal", "var(--kcal)", { low: T.kcal.low, high: T.kcal.high, floor: T.kcal_floor })
       : k === "sleep" ? bars(s, "sleep", "var(--sleep)", { low: T.sleep_min, high: 9 })
-      : k === "steps" ? bars(s, "steps", "var(--steps)", { low: T.steps_min }) : `<p class="muted" style="margin:0">Today: ${L.water != null ? fmt(L.water, 1) + " L" : "— missing"}</p>`;
+      : k === "steps" ? bars(s, "steps", "var(--steps)", { low: T.steps_min })
+      : k === "hrv" ? bars(s, "hrv", "var(--ink)", { unit: " ms" }) : k === "rhr" ? bars(s, "rhr", "var(--ink)", { unit: " bpm" }) : `<p class="muted" style="margin:0">Today: ${L.water != null ? fmt(L.water, 1) + " L" : "— missing"}</p>`;
     const q = k === "trend" ? `What does my trend say this week? Trend ${tr.avg7 ?? "n/a"} kg, change ${tr.change ?? "n/a"} kg/wk, food logged ${D.week7.nutrition.coverage_pct}%.` : `Explain my ${e.title.toLowerCase()} today: ${k === "protein" ? (L.protein ?? "n/a") + " g" : k === "kcal" ? (L.kcal ?? "n/a") + " kcal" : ""}.`;
     const gl = { "■": "", "≈": "est", "□": "calc" };
     return `<div class="grab"></div><div class="ph"><h2>${e.title}</h2><button class="btn" data-close-pane>Close</button></div>
@@ -948,18 +1001,24 @@ input, textarea { font: inherit; color: inherit; }
   function ld() { try { const d = JSON.parse(localStorage.getItem(LD_KEY)); if (d && d.date === dubaiISO()) return d; } catch {} return { date: dubaiISO(), weight: "", feel: "", meal: dubaiHour() < 16 ? "lunch" : "dinner", ate: "", addon: true, adj: false, portion: "", sauce: "", out: "", added: "", water: 0, sup: {}, free: "" }; }
   function saveLd(d) { try { localStorage.setItem(LD_KEY, JSON.stringify(d)); } catch {} }
   let LD = null;
-  function logPane() {
+  // quick paths: one section at a time (weigh-in / meal / water / supplements), or All; entries persist across modes
+  const LOGMODES = [["weigh", "Weigh-in"], ["meal", "Meal"], ["water", "Water"], ["sup", "Supps"], ["all", "All"]];
+  function logPane(mode) {
     LD = LD || ld();
     const today = dubaiISO(), L = D.latest, m = menuFor(today), planned = m ? stripId(LD.meal === "lunch" ? m.lunch : m.dinner) : null;
     const weighed = L.date === today && L.weight != null;
+    if (mode) LD.mode = mode;
+    if (!LD.mode) LD.mode = !weighed && dubaiHour() < 12 ? "weigh" : "meal";
+    const show = (k) => LD.mode === "all" || LD.mode === k;
     const o = (f, v, label) => `<button class="opt2" data-ld="${f}" data-v="${esc(v)}" aria-pressed="${String(LD[f]) === String(v)}">${label}</button>`;
     return `<div class="grab"></div>
       <div class="ph"><h2>Log</h2><button class="btn" data-close-pane>Close</button></div>
-      <section class="sec"><span class="lab">Weigh-in</span>
+      <div class="opts logmodes" role="group" aria-label="What to log">${LOGMODES.filter(([k]) => k !== "sup" || supChoices().length).map(([k, l]) => `<button class="opt2" data-ldmode="${k}" aria-pressed="${LD.mode === k}">${l}</button>`).join("")}</div>
+      ${show("weigh") ? `<section class="sec"><span class="lab">Weigh-in</span>
         ${weighed ? `<span class="st done">✓ ${fmt(L.weight, 1)} kg is in your records</span>` : `<input class="inp big" inputmode="decimal" placeholder="kg" data-ldi="weight" value="${esc(LD.weight)}" aria-label="Weight in kg">
         <span class="lab" style="margin-top:2px">How do you feel? 1 is low, 5 is great</span><div class="opts">${[1, 2, 3, 4, 5].map((n) => o("feel", n, n)).join("")}</div>`}
-      </section>
-      <section class="sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="lab">${LD.meal === "lunch" ? "Lunch" : "Dinner"}${planned ? ", on your plan" : ""}</span><span class="opts" style="grid-auto-columns:auto">${o("meal", "lunch", "Lunch").replace('class="opt2"', 'class="opt2 sm"')}${o("meal", "dinner", "Dinner").replace('class="opt2"', 'class="opt2 sm"')}</span></div>
+      </section>` : ""}
+      ${show("meal") ? `<section class="sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="lab">${LD.meal === "lunch" ? "Lunch" : "Dinner"}${planned ? ", on your plan" : ""}</span><span class="opts" style="grid-auto-columns:auto">${o("meal", "lunch", "Lunch").replace('class="opt2"', 'class="opt2 sm"')}${o("meal", "dinner", "Dinner").replace('class="opt2"', 'class="opt2 sm"')}</span></div>
         ${planned ? `<b style="font-weight:600">${esc(planned)}</b>` : `<span class="muted">No plan meal today: describe it below or attach a photo in Claude.</span>`}
         ${planned ? `<div class="opts">${o("ate", "all", "All")}${o("ate", "most", "Most ¾")}${o("ate", "half", "Half")}${o("ate", "none", "Skipped")}</div>
         ${m && m.addon && LD.meal === "dinner" ? `<label class="chk"><input type="checkbox" data-ldc="addon" ${LD.addon ? "checked" : ""}>With the add-on: ${esc(m.addon.items)}</label>` : ""}
@@ -968,12 +1027,12 @@ input, textarea { font: inherit; color: inherit; }
           <span class="lab">Sauce or dressing</span><div class="opts">${o("sauce", "none", "None")}${o("sauce", "some", "Some")}${o("sauce", "lots", "Lots")}${o("sauce", "unsure", "Not sure")}</div>
           <label class="lab" for="ld-out">Left out</label><input class="inp" id="ld-out" data-ldi="out" placeholder="e.g. half the bread, no cheese" value="${esc(LD.out)}">
           <label class="lab" for="ld-add">Added</label><input class="inp" id="ld-add" data-ldi="added" placeholder="e.g. 1 tbsp tahini, small fries" value="${esc(LD.added)}"></div>` : ""}` : ""}
-      </section>
-      <section class="sec"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lab">Water</span><span class="num" style="font:300 var(--t-xl) var(--f)">+${(LD.water / 1000).toFixed(2)} <span class="muted" style="font-size:var(--t-sm)">L to add</span></span></div>
-        <div class="opts"><button class="opt2" data-water="250">+250 ml</button><button class="opt2" data-water="500">+500 ml</button><button class="opt2" data-water="0">Reset</button></div></section>
-      ${supChoices().length ? `<section class="sec"><span class="lab">Supplements taken</span>${supChoices().map(([k, l]) => `<label class="chk"><input type="checkbox" data-sup="${k}" ${LD.sup[k] ? "checked" : ""}>${esc(l)}</label>`).join("")}</section>` : ""}
-      <section class="sec"><label class="lab" for="ld-free">Something not on the plan</label><input class="inp" id="ld-free" data-ldi="free" placeholder="“Karak and 2 dates at 4pm”" value="${esc(LD.free)}">
-        <span class="muted" style="font-size:var(--t-sm)">Plain words are fine. Attach photos in Claude. You'll get ranges, not guesses.</span></section>
+      </section>` : ""}
+      ${show("water") ? `<section class="sec"><div style="display:flex;justify-content:space-between;align-items:center"><span class="lab">Water</span><span class="num" style="font:300 var(--t-xl) var(--f)">+${(LD.water / 1000).toFixed(2)} <span class="muted" style="font-size:var(--t-sm)">L to add</span></span></div>
+        <div class="opts"><button class="opt2" data-water="250">+250 ml</button><button class="opt2" data-water="500">+500 ml</button><button class="opt2" data-water="0">Reset</button></div></section>` : ""}
+      ${show("sup") ? `${supChoices().length ? `<section class="sec"><span class="lab">Supplements taken</span>${supChoices().map(([k, l]) => `<label class="chk"><input type="checkbox" data-sup="${k}" ${LD.sup[k] ? "checked" : ""}>${esc(l)}</label>`).join("")}</section>` : ""}` : ""}
+      ${show("meal") ? `<section class="sec"><label class="lab" for="ld-free">Something not on the plan</label><input class="inp" id="ld-free" data-ldi="free" placeholder="“Karak and 2 dates at 4pm”" value="${esc(LD.free)}">
+        <span class="muted" style="font-size:var(--t-sm)">Plain words are fine. Attach photos in Claude. You'll get ranges, not guesses.</span></section>` : ""}
       <button class="cta" data-ld-send style="width:100%;min-height:56px">Copy for your coach</button>
       <button class="linkbtn" data-open-pane="templates" style="justify-content:center;gap:6px">Workout or full-day template<span aria-hidden="true">›</span></button>`;
   }
@@ -1040,7 +1099,7 @@ input, textarea { font: inherit; color: inherit; }
   function openPane(kind, arg) {
     const html = kind === "week" ? `<div class="grab"></div><div class="ph"><h2>This week's menu</h2><button class="btn" data-close-pane>Close</button></div><div class="view">${viewFood()}</div>`
       : kind === "meals" ? `<div class="grab"></div><div class="ph"><h2>Logged today</h2><button class="btn" data-close-pane>Close</button></div>${loggedCard(dubaiISO()).replace('<div class="card-h"><h2>Logged today</h2>', '<div class="card-h"><h2 class="lab" style="font-size:var(--t-sm);color:var(--muted)">From your records</h2>')}`
-      : kind === "log" ? logPane() : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : youPane();
+      : kind === "log" ? logPane(arg) : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : youPane();
     const wasOpen = !$("#pane").hidden;
     if (!wasOpen) openPane.ret = document.activeElement;
     $("#pane-box").innerHTML = html; $("#pane").hidden = false; $("#pane").dataset.kind = kind; $("#pane-box").scrollTop = 0;
@@ -1080,7 +1139,7 @@ input, textarea { font: inherit; color: inherit; }
     </svg></div><div class="chart-tip" aria-live="polite">Tap a day to read it.</div>`;
   }
   function bars(series, key, color, { low, high, floor, unit = "", nd = 0 } = {}) {
-    const ok = (d) => d[key] != null && (key === "steps" || key === "sleep" || d.complete);
+    const ok = (d) => d[key] != null && (["steps", "sleep", "hrv", "rhr"].includes(key) || d.complete);
     if (!series.some(ok)) return emptyBox(key === "steps" || key === "sleep" ? "No watch data in this range yet." : "No fully logged days in this range yet.", 96);
     const W = 360, H = 112, m = { l: 34, r: 2, t: 4, b: 18 }, n = series.length, cw = (W - m.l - m.r) / n, bw = Math.max(2.5, Math.min(14, cw * .62));
     const top = Math.max(high || low || 0, floor || 0, ...series.filter(ok).map((d) => d[key])) * 1.1;
@@ -1096,6 +1155,29 @@ input, textarea { font: inherit; color: inherit; }
   }
   const rangeSeg = () => `<div class="seg" role="group" aria-label="Date range">${[14, 30, 90].map((n) => `<button data-range="${n}" aria-pressed="${n === RANGE}" aria-label="Last ${n} days">${n}d</button>`).join("")}</div>`;
   const boxes = (n, of, label) => `<span class="boxes" role="img" aria-label="${esc(label)}">${Array.from({ length: of }, (_, i) => `<i class="${i < n ? "on" : ""}">${i < n ? "✓" : ""}</i>`).join("")}</span>`;
+  // the first two weeks as a calibration journey: each milestone unlocks a real readout, dated from the plan start
+  function journey() {
+    const st = (D.plan && D.plan.start_date) || null; if (!st) return "";
+    const ser = (D.series || []).filter((x) => !x.pre_plan), today = dubaiISO(), dayN = Math.max(1, Math.round((parse(today) - parse(st)) / 864e5) + 1);
+    const wIns = ser.filter((x) => x.weight != null), n7 = (D.series || []).slice(-7).filter((x) => x.weight != null).length;
+    const food = ser.filter((x) => x.complete).length, R = D.recovery || {}, pr = R.params || {}, nights = Math.min(R.rhr_points || 0, R.hrv_points || 0);
+    const tr = D.trend, at = (n) => longDate(addDays(st, n));
+    const ms = [
+      { t: "First weigh-in", done: wIns.length > 0, when: wIns.length ? "done " + longDate(wIns[0].date) : "any morning", n: Math.min(1, wIns.length), of: 1, gives: "your start point on the ruler" },
+      { t: "Trend line", done: tr.avg7 != null, when: tr.avg7 != null ? "unlocked" : `earliest ${at(3)}`, n: Math.min(4, n7), of: 4, gives: "a 7-day average weight: 4 weigh-ins in 7 days" },
+      { t: "A full week of food", done: food >= 7, when: food >= 7 ? "done" : `earliest ${at(6)}`, n: Math.min(7, food), of: 7, gives: "weekly calorie and protein averages you can trust" },
+      { t: "Recovery baselines", done: R.status === "ok", when: R.status === "ok" ? "done" : `${Math.max(0, (pr.baseline_min_points || 14) - nights)} more nights`, n: Math.min(pr.baseline_min_points || 14, nights), of: pr.baseline_min_points || 14, gives: "your normal resting HR and HRV, for the fatigue rule", compact: true },
+      { t: "Weekly pace", done: tr.change != null, when: tr.change != null ? "unlocked" : `earliest ${at(13)}`, n: tr.change != null ? 2 : Math.min(2, Math.floor((dayN - 1) / 7)), of: 2, gives: "kg lost per week, judged against the 0.4–0.85 band" },
+      { t: "First target review", done: dayN > 14, when: dayN > 14 ? "due now with your weekly report" : at(13), n: Math.min(2, Math.floor((dayN - 1) / 7)), of: 2, gives: "your coach proposes any target change; nothing changes without your yes" },
+    ];
+    if (ms.every((m) => m.done)) return "";
+    const left = ms.filter((m) => !m.done).length;
+    return `<section class="card" aria-label="Calibration: the first two weeks"><div class="card-h"><h2>Calibration, day ${Math.min(dayN, 14)} of 14</h2><span class="aside">${ms.length - left} of ${ms.length} unlocked</span></div>
+      <ol class="journey">${ms.map((m) => `<li class="${m.done ? "done" : ""}"><span class="jk" aria-hidden="true">${m.done ? "✓" : ""}</span>
+        <span class="jt"><b>${m.t}</b><span>${esc(m.gives)}</span></span>
+        <span class="jr"><span class="lbl">${esc(m.when)}</span>${m.done ? "" : m.compact ? `<span class="jn">${m.n}/${m.of}</span>` : boxes(m.n, m.of, `${m.n} of ${m.of}`)}</span></li>`).join("")}</ol>
+      <p class="note">The app shows each readout once there is enough data for it to mean something. Until then it waits instead of guessing.</p></section>`;
+  }
   // Progress is one ruled report: Weight, Habits | Recovery, Health. Day 1 is a designed state, not an apology.
   function viewProgress() {
     const s = (D.series || []).slice(-RANGE), T = D.targets, tr = D.trend, w = D.week7, today = dubaiISO();
@@ -1107,16 +1189,14 @@ input, textarea { font: inherit; color: inherit; }
     const sec = (title, aside, body) => `<section class="card"><div class="card-h"><h2>${title}</h2>${aside ? `<span class="aside">${aside}</span>` : ""}</div>${body}</section>`;
     const hb = (title, aside, chart) => `<div class="subh"><span class="lbl" style="color:var(--ink)">${title}</span><span class="aside" style="font-size:var(--t-sm);color:var(--ink-2)">${aside}</span></div>${chart}`;
     const weight = `<section class="nums" style="border-bottom:var(--rule)">${weightRow()}</section>
-      ${tr.avg7 == null ? `<section class="card"><div class="card-h"><h2>Trend line</h2><span class="aside">${n7} of 4 weigh-ins this week</span></div>
-          ${boxes(n7, 4, `${n7} of 4 weigh-ins in the last 7 days`)}
-          <p class="note">The trend line starts at 4 morning weigh-ins in 7 days. Single days swing up to 1.5 kg with water and salt, so the app waits instead of guessing.</p></section>` : ""}
+      ${journey()}
       ${weighIns >= 2 ? sec("Weight", rangeSeg(), weightChart(s) + `<p class="note">Line: 7-day average. Dots: daily scale readings.</p>`) : ""}
-      ${sec("Weekly pace", rate != null ? `<span class="pill ${inBand ? "ok" : "warn"}">${fmt(rate, 2)} kg a week, ${inBand ? "in band" : rate < band.low ? "slower than band" : "faster than band"}</span>` : "",
+      ${rate == null ? "" : sec("Weekly pace", rate != null ? `<span class="pill ${inBand ? "ok" : "warn"}">${fmt(rate, 2)} kg a week, ${inBand ? "in band" : rate < band.low ? "slower than band" : "faster than band"}</span>` : "",
         rate != null ? `<div class="band" role="img" aria-label="Weekly loss ${fmt(rate, 2)} kg against the ${band.low} to ${band.high} kg target band"><u style="left:${band.low / bmax * 100}%;width:${(band.high - band.low) / bmax * 100}%"></u><i style="left:${Math.max(0, Math.min(100, rate / bmax * 100))}%"></i></div>
           <div class="row" style="font-size:var(--t-xs);color:var(--ink-2)"><span>0 kg</span><span>target ${band.low}–${band.high} kg a week</span><span>${bmax} kg</span></div>
           <div class="stat3" style="margin-top:var(--s3)"><div><span class="eyebrow">Goal</span><b>${D.goal_kg} kg</b></div><div><span class="eyebrow">At this pace</span><b>${eta}</b></div><div><span class="eyebrow">Plan week</span><b>${D.plan.week ?? "—"}</b></div></div>
           <p class="note">"At this pace" is an estimate from the current trend.</p>`
-        : `${boxes(Math.min(2, Math.max(0, (D.plan.week || 1) - 1)), 2, "Weeks of trend collected out of 2")}<p class="note">Pace compares two 7-day averages, so it starts after about 2 weeks of weigh-ins (plan week ${D.plan.week ?? 1} now). Target: ${band.low}–${band.high} kg a week.</p>`)}
+        : "")}
       ${sec("Last 7 days", `${w.nutrition.coverage_pct}% logged${w.nutrition.days_in_window < 7 ? `, ${w.nutrition.days_in_window} plan day${w.nutrition.days_in_window > 1 ? "s" : ""}` : ""}`,
         `<div class="stat3"><div><span class="eyebrow">Calories</span><b>${fmt(w.nutrition.kcal) ?? "—"}</b></div><div><span class="eyebrow">Protein</span><b>${w.nutrition.protein_g != null ? fmt(w.nutrition.protein_g) + " g" : "—"}</b></div><div><span class="eyebrow">Steps</span><b>${fmt(w.activity.steps) ?? "—"}</b></div></div>
         <p class="note">Daily averages. Calories and protein count fully logged days only.</p>`)}`;
@@ -1430,10 +1510,11 @@ input, textarea { font: inherit; color: inherit; }
     const f = e.target.closest("[data-food]"); if (f) { FOODSEL = f.dataset.food; drawFood(); return; }
     const s = e.target.closest("[data-sess]"); if (s) { TRAINSEL = +s.dataset.sess; drawTrain(); return; }
     const t = e.target.closest("[data-tpl]"); if (t) { closePane(); openSheet(t.dataset.tpl); return; }
-    const op2 = e.target.closest("[data-open-pane]"); if (op2) { openPane(op2.dataset.openPane); return; }
+    const op2 = e.target.closest("[data-open-pane]"); if (op2) { openPane(op2.dataset.openPane, op2.dataset.mode); return; }
+    const lm = e.target.closest("[data-ldmode]"); if (lm) { LD.mode = lm.dataset.ldmode; saveLd(LD); openPane("log"); return; }
     const ex = e.target.closest("[data-explain]"); if (ex) { openPane("explain", ex.dataset.explain); return; }
     if (e.target.closest("[data-close-pane]") || e.target.id === "pane") { closePane(); return; }
-    if (e.target.closest("#fab")) { openPane("log"); return; }
+    if (e.target.closest("#fab")) { if (LD) LD.mode = ""; openPane("log"); return; }
     const gt = e.target.closest("[data-go-train]"); if (gt) { const i = parseInt(gt.dataset.i, 10); if (i >= 0) TRAINSEL = i; drawTrain(); showTab("train"); window.scrollTo({ top: 0 }); return; }
     if (e.target.closest("[data-setup]")) { closePane(); showSetup(); return; }
     const tsb = e.target.closest("[data-theme-set]"); if (tsb) { applyTheme(tsb.dataset.themeSet); openPane("you"); return; }

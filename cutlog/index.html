@@ -9,486 +9,484 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cut Log">
-<meta name="theme-color" content="#0E1B22" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#EDF2F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300..700&family=Newsreader:opsz,ital,wght@6..72,0,400;6..72,1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Newsreader:opsz,ital,wght@6..72,0,400;6..72,1,400&display=swap">
 <style>
-/* Cut Log design system: "Dusk".
-   A personal cut companion read mostly at night after training. Petrol-ink night, sand for actions,
-   four metric hues (energy, protein, movement, sleep) with equal weight; status colours always paired with words.
-   Hanken Grotesk carries UI and numerals (tabular); Newsreader is reserved for the coach's voice. */
+/* Cut Log design system: "Clipboard".
+   A printed gym log sheet on a clipboard. Black print on white (night: inverted, true black), hard ruled lines,
+   form fields instead of cards. One accent: ballpoint blue, for the coach's notes and actions. Yellow highlighter
+   marks what needs attention; red pen only for floors and out-of-range lab values. Data is drawn in ink.
+   Archivo's width axis carries everything: heavy condensed numerals, condensed caps for form labels, normal body.
+   Newsreader italic is the coach's hand. */
 :root {
-  --bg: #0E1B22; --surface: #142530; --raised: #1B2F3B; --sunken: #0B161C;
-  --line: rgba(205, 228, 238, .085); --line-2: rgba(205, 228, 238, .16);
-  --ink: #E7EEF0; --muted: #98ABB5; --faint: #8299A4;
-  --accent: #E8D3A6; --on-accent: #14222A; --accent-ink: #E8D3A6;
-  --kcal: #F2A766; --protein: #72D9C0; --steps: #ADB6FF; --sleep: #8BC0F0;
-  --ok: #86DB9F; --warn: #F2C66B; --bad: #FF8F80; --info: #8BC0F0;
-  --scrim: rgb(3 9 12 / .62); --nav: rgba(14, 27, 34, .92); --shadow: 0 18px 50px rgb(0 0 0 / .38);
-  --f: "Hanken Grotesk", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  --paper: #FFFFFF; --ink: #000000; --ink-2: #3B3B3B; --ink-3: #5E5E5E; --rule-2: #CFCFCF; --tint: #F1F1EF;
+  --pen: #1B3BCF; --on-pen: #FFFFFF; --hi: #FFE24A; --on-hi: #000000; --red: #C2161B; --amber: #7A5200;
+  /* legacy names used by view code: everything maps onto paper / ink / pen */
+  --bg: var(--paper); --surface: var(--paper); --raised: var(--tint); --sunken: var(--tint);
+  --line: var(--rule-2); --line-2: var(--rule-2); --muted: var(--ink-2); --faint: var(--ink-3);
+  --accent: var(--pen); --on-accent: var(--on-pen); --accent-ink: var(--pen);
+  --kcal: var(--ink); --protein: var(--ink); --steps: var(--ink); --sleep: var(--ink); --info: var(--ink);
+  --ok: var(--ink); --warn: var(--amber); --bad: var(--red);
+  --scrim: rgb(0 0 0 / .45); --nav: var(--paper); --shadow: none;
+  --f: "Archivo", -apple-system, "SF Pro Text", system-ui, sans-serif;
   --f-serif: "Newsreader", "Iowan Old Style", Georgia, serif;
-  /* type scale (15px base, ~1.2 ratio) */
-  --t-xs: .75rem; --t-sm: .8125rem; --t-base: .9375rem; --t-md: 1.0625rem; --t-lg: 1.3125rem; --t-xl: 1.75rem; --t-2xl: 2.375rem; --t-3xl: 3.25rem;
-  /* spacing */
+  --t-xs: .75rem; --t-sm: .8125rem; --t-base: .9375rem; --t-md: 1.0625rem; --t-lg: 1.3125rem; --t-xl: 1.75rem; --t-2xl: 2.5rem; --t-3xl: 3.75rem;
   --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s7: 32px; --s8: 44px;
-  /* radii: hierarchy, not one size for all */
-  --r-xs: 6px; --r-sm: 12px; --r: 18px; --r-lg: 28px;
+  --r-xs: 2px; --r-sm: 2px; --r: 0; --r-lg: 0;
+  --rule: 2px solid var(--ink); --hair: 1px solid var(--rule-2);
   --gutter: max(16px, env(safe-area-inset-left, 0px));
-  --nav-h: 64px;
+  --nav-h: 60px;
   --ease: cubic-bezier(.2, .8, .2, 1);
-  color-scheme: dark;
+  color-scheme: light;
 }
-@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
-  --bg: #EDF2F2; --surface: #FFFFFF; --raised: #F3F7F7; --sunken: #E3EAEA;
-  --line: rgba(16, 40, 50, .08); --line-2: rgba(16, 40, 50, .16);
-  --ink: #10232C; --muted: #3F555F; --faint: #5A6E77;
-  --accent: #23404D; --on-accent: #F3F7F7; --accent-ink: #7A5A1E;
-  --kcal: #C9661E; --protein: #0E8C75; --steps: #5260D6; --sleep: #2A77C0;
-  --ok: #1D8546; --warn: #9C6300; --bad: #C2372B; --info: #2A77C0;
-  --scrim: rgb(16 35 44 / .38); --nav: rgba(255, 255, 255, .94); --shadow: 0 18px 50px rgb(16 35 44 / .16); color-scheme: light; } }
-:root[data-theme="light"] {
-  --bg: #EDF2F2; --surface: #FFFFFF; --raised: #F3F7F7; --sunken: #E3EAEA;
-  --line: rgba(16, 40, 50, .08); --line-2: rgba(16, 40, 50, .16);
-  --ink: #10232C; --muted: #3F555F; --faint: #5A6E77;
-  --accent: #23404D; --on-accent: #F3F7F7; --accent-ink: #7A5A1E;
-  --kcal: #C9661E; --protein: #0E8C75; --steps: #5260D6; --sleep: #2A77C0;
-  --ok: #1D8546; --warn: #9C6300; --bad: #C2372B; --info: #2A77C0;
-  --scrim: rgb(16 35 44 / .38); --nav: rgba(255, 255, 255, .94); --shadow: 0 18px 50px rgb(16 35 44 / .16); color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #000000; --ink: #FFFFFF; --ink-2: #C9C9C9; --ink-3: #9C9C9C; --rule-2: #363636; --tint: #141414;
+  --pen: #8FA8FF; --on-pen: #000000; --red: #FF6F63; --amber: #FFD84A; --scrim: rgb(0 0 0 / .7); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #000000; --ink: #FFFFFF; --ink-2: #C9C9C9; --ink-3: #9C9C9C; --rule-2: #363636; --tint: #141414;
+  --pen: #8FA8FF; --on-pen: #000000; --red: #FF6F63; --amber: #FFD84A; --scrim: rgb(0 0 0 / .7); color-scheme: dark; }
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
 html, body { margin: 0; min-height: 100%; }
-body { background: var(--bg); color: var(--ink); font: 400 var(--t-base)/1.5 var(--f); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body { background: var(--paper); color: var(--ink); font: 400 var(--t-base)/1.5 var(--f); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
 input, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; border-radius: var(--r-xs); }
-::selection { background: color-mix(in srgb, var(--accent-ink) 35%, transparent); }
-.muted { color: var(--muted); }
-.mono { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+::selection { background: var(--hi); color: var(--on-hi); }
+.muted { color: var(--ink-2); }
+.mono, .num { font-variant-numeric: tabular-nums; }
 .serif { font-family: var(--f-serif); }
-.num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+/* type roles */
+.lbl, .eyebrow, .lab, .fl { font: 700 var(--t-xs)/1.2 var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.big { font: 800 var(--t-3xl)/.9 var(--f); font-stretch: 62%; letter-spacing: -.01em; }
+.mid { font: 800 var(--t-2xl)/.95 var(--f); font-stretch: 62%; }
+.cond { font-stretch: 75%; }
+.mark { background: linear-gradient(transparent 12%, var(--hi) 12%, var(--hi) 88%, transparent 88%); color: var(--on-hi); padding: 0 .15em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
 /* ---------- shell ---------- */
-.wrap { max-width: 600px; margin: 0 auto; padding: var(--s3) var(--gutter) calc(var(--nav-h) + 36px + env(safe-area-inset-bottom, 0px)); display: grid; gap: var(--s5); }
-.view { display: grid; gap: var(--s4); }
-.head { display: flex; align-items: center; gap: var(--s3); padding-top: var(--s2); }
-.head .t { flex: 1; min-width: 0; }
-.eyebrow, .lbl { font: 500 var(--t-sm)/1.3 var(--f); color: var(--muted); letter-spacing: 0; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 0 var(--gutter) calc(var(--nav-h) + 32px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 0; }
+.view { display: grid; gap: 0; }
+.head { display: flex; align-items: flex-end; gap: var(--s3); padding: calc(var(--s4) + env(safe-area-inset-top, 0px)) 0 var(--s3); border-bottom: 4px solid var(--ink); }
+.head .t { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.head h1 { margin: 0; font: 800 2.75rem/.9 var(--f); font-stretch: 62%; letter-spacing: -.005em; text-transform: uppercase; }
 #dateline { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-.head h1 { margin: 2px 0 0; font: 600 var(--t-xl)/1.1 var(--f); letter-spacing: -0.025em; text-wrap: balance; }
-.roundbtn { width: 44px; height: 44px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; flex: none; transition: background .2s; }
-.roundbtn:hover { background: var(--raised); }
-.roundbtn svg { width: 19px; height: 19px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.roundbtn { width: 44px; height: 44px; border: var(--rule); display: grid; place-items: center; flex: none; background: var(--paper); }
+.roundbtn svg { width: 20px; height: 20px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: square; }
 .roundbtn.spin svg { animation: spin .9s linear infinite; }
-.avatar { font: 650 var(--t-sm) var(--f); letter-spacing: .02em; background: var(--accent); color: var(--on-accent); }
+.avatar { font: 800 var(--t-sm) var(--f); font-stretch: 75%; background: var(--ink); color: var(--paper); }
 @keyframes spin { to { transform: rotate(360deg); } }
-.stale { color: var(--warn); }
+.stale { background: var(--hi); color: var(--on-hi); padding: 0 4px; }
 
-/* ---------- surfaces ---------- */
-.card { background: var(--surface); border-radius: var(--r); padding: var(--s5); min-width: 0; }
-.card-h { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin-bottom: var(--s4); }
-.card-h h2, .h2 { margin: 0; font: 600 var(--t-md)/1.25 var(--f); letter-spacing: -0.01em; }
-.card-h .aside { font-size: var(--t-sm); color: var(--muted); text-align: right; }
-.note { font-size: var(--t-sm); line-height: 1.5; color: var(--muted); margin: var(--s3) 0 0; }
+/* ---------- sheet sections: ruled blocks, never cards ---------- */
+.card, .sec-block { padding: var(--s4) 0 var(--s5); border-bottom: var(--rule); min-width: 0; }
+.card-h { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin-bottom: var(--s3); }
+.card-h h2, .h2 { margin: 0; font: 800 var(--t-md)/1.1 var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; }
+.card-h .aside { font-size: var(--t-sm); color: var(--ink-2); text-align: right; }
+.note { font-size: var(--t-sm); line-height: 1.5; color: var(--ink-2); margin: var(--s3) 0 0; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
 
-/* ---------- pills, tags, status ---------- */
-.pill { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 3px 10px; border-radius: 999px; font: 500 var(--t-xs)/1.2 var(--f); background: var(--raised); color: var(--muted); white-space: nowrap; }
-.pill.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); }
-.pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); }
-.pill.bad { color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, transparent); }
-.pill .dot, .pill::before { flex: none; }
-.pill.ok::before, .pill.warn::before, .pill.bad::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.pill.btn { min-height: 44px; padding: 0 14px; font-weight: 600; font-size: var(--t-sm); color: var(--ink); }
-.src { display: inline-flex; align-items: center; gap: 5px; font: 500 var(--t-xs)/1 var(--f); color: var(--faint); white-space: nowrap; }
-.src::before { content: ""; width: 5px; height: 5px; border-radius: 50%; border: 1.5px solid currentColor; }
-.src.unv { color: var(--warn); }
-.src.unv::before { border-style: dotted; }
-.src.est::before { border-style: dashed; }
+/* ---------- tags & status: words first, then ink marks ---------- */
+.pill { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 2px 8px; border: 1.5px solid var(--ink); font: 700 var(--t-xs)/1.1 var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+.pill.ok::before { content: "✓"; }
+.pill.warn { background: var(--hi); color: var(--on-hi); border-color: var(--hi); }
+.pill.bad { border-color: var(--red); color: var(--red); }
+.pill.bad::before { content: "▲"; font-size: .8em; }
+.pill.btn { min-height: 44px; padding: 0 12px; }
+.src { display: inline-flex; align-items: center; gap: 5px; font: 600 var(--t-xs)/1 var(--f); font-stretch: 75%; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+.src::before { content: ""; width: 6px; height: 6px; background: currentColor; }
+.src.est::before { background: transparent; border: 1.5px dashed currentColor; width: 7px; height: 7px; }
+.src.unv { color: var(--amber); }
+.src.unv::before { background: transparent; border: 1.5px dotted currentColor; }
 .tags { display: inline-flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 
 /* ---------- buttons ---------- */
-.btn { min-height: 44px; padding: 0 16px; border-radius: var(--r-sm); background: var(--raised); color: var(--ink); font: 600 var(--t-sm) var(--f); display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; transition: background .15s, transform .1s; white-space: nowrap; }
-.btn:hover { background: color-mix(in srgb, var(--raised) 80%, var(--ink) 8%); }
-.btn:active, .cta:active, .opt2:active { transform: scale(.97); }
-.btn.primary, .cta { background: var(--accent); color: var(--on-accent); }
-.btn.train { background: var(--accent); color: var(--on-accent); }
-.cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 14px; font: 650 var(--t-base) var(--f); text-decoration: none; transition: filter .15s, transform .1s; }
-.cta:hover { filter: brightness(1.06); }
-.cta.ghost { background: var(--raised); color: var(--ink); }
-.cta[disabled] { opacity: .6; cursor: progress; }
-.linkbtn { color: var(--accent-ink); font: 600 var(--t-sm) var(--f); text-align: left; min-height: 44px; display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.addset { justify-self: start; font: 600 var(--t-sm) var(--f); color: var(--accent-ink); min-height: 44px; padding: 0 8px 0 2px; }
+.btn { min-height: 44px; padding: 0 14px; border: var(--rule); background: var(--paper); color: var(--ink); font: 800 var(--t-sm) var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; white-space: nowrap; transition: background .12s; }
+.btn:active, .cta:active, .opt2:active { transform: translateY(1px); }
+.btn.primary, .btn.train { background: var(--pen); border-color: var(--pen); color: var(--on-pen); }
+.cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 54px; padding: 0 20px; border: var(--rule); background: var(--ink); color: var(--paper); font: 800 var(--t-md) var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; text-decoration: none; }
+.cta.ghost { background: var(--paper); color: var(--ink); }
+.cta.pen { background: var(--pen); border-color: var(--pen); color: var(--on-pen); }
+.linkbtn { color: var(--pen); font: 700 var(--t-sm) var(--f); min-height: 44px; display: flex; align-items: center; justify-content: space-between; width: 100%; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+.linkbtn span { text-decoration: none; }
+.addset { justify-self: start; font: 800 var(--t-sm) var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; color: var(--pen); min-height: 44px; padding: 0 8px 0 2px; }
 
-/* ---------- daily brief (no card: it is the page's lead) ---------- */
-.brief { display: grid; gap: var(--s3); padding: var(--s2) 0 var(--s1); }
-.who { display: inline-flex; align-items: center; gap: 8px; font-size: var(--t-sm); color: var(--muted); }
-.who i { width: 8px; height: 8px; border-radius: 50%; background: var(--protein); box-shadow: 0 0 0 3px color-mix(in srgb, var(--protein) 22%, transparent); }
-.who.calc i { background: transparent; border: 1.5px solid var(--muted); box-shadow: none; }
-.serif-h { margin: 0; font: 400 2.125rem/1.08 var(--f-serif); letter-spacing: -0.015em; text-wrap: balance; }
-.brief p { margin: 0; color: var(--muted); font-size: var(--t-md); line-height: 1.55; max-width: 62ch; }
-.one { display: flex; align-items: center; gap: var(--s3); margin-top: var(--s2); padding: var(--s4); border-radius: var(--r); background: var(--surface); box-shadow: inset 3px 0 0 var(--accent-ink); }
-.one .t { flex: 1; display: grid; gap: 2px; min-width: 0; }
-.one .t > span:last-child { font-size: var(--t-base); line-height: 1.45; font-weight: 500; }
+/* ---------- coach note (the coach's hand, in ballpoint) ---------- */
+.brief { display: grid; gap: var(--s2); padding: var(--s4) 0 var(--s4); border-bottom: var(--rule); }
+.who { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.who i { display: none; }
+.serif-h { margin: 2px 0 0; font: italic 400 1.95rem/1.1 var(--f-serif); color: var(--pen); letter-spacing: -.01em; text-wrap: balance; }
+.brief p { margin: 0; font: italic 400 1.0625rem/1.5 var(--f-serif); color: var(--pen); max-width: 62ch; }
+.who.calc + .serif-h, .who.calc ~ p { color: var(--ink); font-style: normal; }
+.one { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s3); margin-top: var(--s2); padding-top: var(--s3); border-top: var(--hair); }
+.one .t { display: contents; }
+.one .t > span:last-child { font: 600 var(--t-md)/1.4 var(--f); min-width: 0; }
 
-/* ---------- fuel meters ---------- */
-.meters { display: grid; gap: var(--s5); }
-.meter { display: grid; gap: var(--s2); width: 100%; border-radius: var(--r-sm); }
+/* ---------- numbers block: label | big number | target, then a tally bar ---------- */
+.nums { border-bottom: var(--rule); }
+.nrow { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3); align-items: end; padding: var(--s3) 0 var(--s4); border-bottom: var(--hair); width: 100%; text-align: left; }
+.nrow:last-child { border-bottom: 0; }
+@media (hover: hover) { button.nrow:hover .lbl > span:first-child { color: var(--pen); text-decoration: underline; } }
+.nrow .lbl { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: var(--s2); }
+.nrow .val { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.nrow .val small { font: 700 var(--t-sm) var(--f); font-stretch: 75%; color: var(--ink-2); }
+.nrow .tgt { text-align: right; font: 600 var(--t-sm)/1.3 var(--f); color: var(--ink-2); }
+.nrow .tgt b { display: block; font: 800 var(--t-lg)/1 var(--f); font-stretch: 62%; color: var(--ink); }
+.nrow .bar, .nrow .ruler { grid-column: 1 / -1; margin-top: var(--s2); display: block; }
+.nil { color: var(--ink-3); font-weight: 400 !important; }
+.nrow .foot { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: var(--s2); font-size: var(--t-sm); color: var(--ink-2); flex-wrap: wrap; }
+.meter { display: grid; gap: var(--s2); width: 100%; }
 .meter .mh { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+.meter .ml { font: 700 var(--t-xs) var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.meter .ml i { display: none; }
 .meter .mv { display: flex; align-items: baseline; gap: 6px; }
-.meter .mv b { font: 300 var(--t-2xl)/1 var(--f); letter-spacing: -0.035em; }
-.meter .mv small { font-size: var(--t-sm); color: var(--muted); }
-.meter .ml { display: inline-flex; align-items: center; gap: 8px; font: 600 var(--t-sm) var(--f); }
-.meter .ml i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
-.meter .mf { font-size: var(--t-sm); color: var(--muted); display: flex; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
-.track { position: relative; height: 10px; border-radius: 99px; background: var(--raised); }
-.track u { position: absolute; top: -3px; bottom: -3px; border-radius: 4px; border: 1.5px dashed color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); }
-.track s { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--muted); border-radius: 1px; }
-.track i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: var(--c); transition: width 1s var(--ease); }
-.track.sm { height: 6px; }
-.track.sm u { top: -2px; bottom: -2px; }
+.meter .mv b { font: 800 var(--t-2xl)/.95 var(--f); font-stretch: 62%; }
+.meter .mv small { font-size: var(--t-sm); color: var(--ink-2); }
+.meter .mf { font-size: var(--t-sm); color: var(--ink-2); display: flex; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
+.meters { display: grid; gap: var(--s5); }
+/* tally bar: outlined box, solid ink fill, target range hatched, floor in red pen */
+.track { display: block; position: relative; height: 16px; border: 1.5px solid var(--ink); background: var(--paper); }
+.track u { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(-45deg, var(--ink) 0 1.5px, transparent 1.5px 6px); opacity: .55; }
+.track s { position: absolute; top: -6px; bottom: -6px; width: 2.5px; margin-left: -1.25px; background: var(--red); }
+.track i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--ink); transition: width .9s var(--ease); }
+.track.sm { height: 10px; }
 
-/* ---------- the cut ruler (signature) ---------- */
-.cut { display: grid; gap: var(--s4); }
-.cut-top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
-.cut-now { display: grid; gap: 2px; }
-.cut-now b { font: 300 var(--t-3xl)/.95 var(--f); letter-spacing: -0.045em; }
-.cut-now b small { font: 500 var(--t-base) var(--f); color: var(--muted); letter-spacing: 0; margin-left: 4px; }
-.cut-side { text-align: right; display: grid; gap: 2px; font-size: var(--t-sm); color: var(--muted); }
-.cut-side b { color: var(--ink); font-size: var(--t-md); font-weight: 600; }
-.ruler { position: relative; height: 58px; margin: 0 6px; }
-.ruler .base { position: absolute; left: 0; right: 0; top: 0; height: 30px; border-bottom: 1.5px solid var(--line-2); }
-.ruler .tk { position: absolute; top: 14px; width: 1.5px; height: 16px; margin-left: -.75px; background: var(--line-2); }
-.ruler .tk.maj { top: 4px; height: 26px; background: var(--faint); }
-.ruler .tl { position: absolute; top: 36px; transform: translateX(-50%); font-size: var(--t-xs); color: var(--faint); white-space: nowrap; }
-.ruler .tl.end { color: var(--muted); font-weight: 600; }
-.ruler .done { position: absolute; top: 26px; height: 5px; border-radius: 3px; background: var(--protein); transition: width 1.1s var(--ease); }
-.ruler .mark { position: absolute; top: -2px; width: 3px; height: 34px; margin-left: -1.5px; border-radius: 2px; background: var(--ink); transition: left 1.1s var(--ease); }
-.ruler .mark::after { content: ""; position: absolute; left: 50%; top: -7px; width: 11px; height: 11px; transform: translateX(-50%); border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 3px var(--surface); }
-.cut .legend2 { display: flex; gap: var(--s4); flex-wrap: wrap; font-size: var(--t-xs); color: var(--muted); }
-.cut .legend2 span { display: inline-flex; align-items: center; gap: 6px; }
-.cut .legend2 i { width: 12px; height: 4px; border-radius: 2px; background: var(--protein); }
-.cut .legend2 i.m { width: 3px; height: 12px; background: var(--ink); }
+/* ---------- ruler (tape from start weight to goal) ---------- */
+.cut { display: grid; gap: var(--s3); }
+.ruler { position: relative; height: 52px; margin: 0 4px; }
+.ruler .base { position: absolute; left: 0; right: 0; top: 0; height: 28px; border-bottom: 2px solid var(--ink); }
+.ruler .tk { position: absolute; top: 16px; width: 1.5px; height: 12px; margin-left: -.75px; background: var(--ink-3); }
+.ruler .tk.maj { top: 6px; height: 22px; width: 2px; background: var(--ink); }
+.ruler .tl { position: absolute; top: 33px; transform: translateX(-50%); font: 700 var(--t-xs) var(--f); font-stretch: 75%; color: var(--ink-2); white-space: nowrap; }
+.ruler .tl.end { color: var(--ink); text-transform: uppercase; letter-spacing: .04em; }
+.ruler .tl.end.l { transform: none; } .ruler .tl.end.r { transform: translateX(-100%); }
+.ruler .done { position: absolute; top: 22px; height: 6px; background: var(--ink); transition: width 1s var(--ease); }
+.ruler .mark { position: absolute; top: -4px; width: 0; height: 0; transition: left 1s var(--ease); }
+.ruler .mark::before { content: ""; position: absolute; left: -7px; top: 0; border: 7px solid transparent; border-top: 10px solid var(--pen); }
+.ruler .mark::after { content: ""; position: absolute; left: -1.5px; top: 8px; width: 3px; height: 22px; background: var(--pen); }
 
-/* ---------- next up ---------- */
-.nx { display: grid; grid-template-columns: 52px 1fr auto; gap: var(--s3); align-items: center; padding: var(--s3) 0; border-top: 1px solid var(--line); }
-.nx:first-of-type { border-top: 0; padding-top: 0; }
-.nx .tm { font: 600 var(--t-sm) var(--f); color: var(--muted); }
-.nx .w { display: grid; min-width: 0; }
-.nx .w b { font-weight: 600; }
-.nx .w span { font-size: var(--t-sm); color: var(--muted); overflow-wrap: anywhere; }
-
-/* ---------- signal strip (sleep / steps / water) ---------- */
-.signals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--surface); border-radius: var(--r); }
-.signals button { display: grid; gap: 2px; padding: var(--s4); min-width: 0; border-left: 1px solid var(--line); transition: background .15s; }
-.signals button:first-child { border-left: 0; border-radius: var(--r) 0 0 var(--r); }
-.signals button:last-child { border-radius: 0 var(--r) var(--r) 0; }
-.signals button:hover { background: var(--raised); }
-.signals .k { display: flex; align-items: center; gap: 6px; font-size: var(--t-xs); color: var(--muted); font-weight: 500; }
-.signals .k i { width: 7px; height: 7px; border-radius: 2px; background: var(--c); }
-.signals b { font: 400 var(--t-lg)/1.2 var(--f); letter-spacing: -0.02em; }
-.signals b small { font-size: var(--t-xs); color: var(--muted); margin-left: 2px; letter-spacing: 0; }
-.signals .g { font-size: var(--t-xs); color: var(--faint); }
-.insight { margin: 0; font-size: var(--t-sm); line-height: 1.5; color: var(--muted); display: flex; gap: 8px; align-items: baseline; }
-.insight::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--muted); transform: translateY(-1px); }
-.sig { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; background: color-mix(in srgb, var(--warn) 14%, transparent); font-size: var(--t-sm); font-weight: 500; color: var(--warn); }
-.sig i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-
-/* ---------- stat tiles ---------- */
-.stat3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); }
-.stat3.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.stat3 > div { background: var(--raised); border-radius: var(--r-sm); padding: var(--s3); min-width: 0; display: grid; gap: 4px; align-content: start; }
-.stat3 .eyebrow { font-size: var(--t-xs); }
-.stat3 b { display: block; font: 500 var(--t-md) var(--f); }
-.rec b { font: 300 var(--t-xl)/1 var(--f); letter-spacing: -0.03em; margin-top: 2px; }
-.rec b small { font: 500 var(--t-xs) var(--f); color: var(--muted); letter-spacing: 0; margin-left: 3px; }
-.rec .u { font-size: var(--t-xs); color: var(--muted); }
-.rec .u.unv { color: var(--warn); }
-.kvg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s2); }
-.kvg > div { background: var(--raised); border-radius: var(--r-sm); padding: 10px; min-width: 0; display: grid; gap: 3px; align-content: start; justify-items: start; }
-.kvg .k { font-size: var(--t-xs); line-height: 1.25; color: var(--muted); }
-.kvg b { font: 500 var(--t-md) var(--f); }
-.kvg b small { font: 500 var(--t-xs) var(--f); color: var(--muted); }
-
-/* ---------- lists ---------- */
+/* ---------- ruled tables / lists ---------- */
 .list { display: grid; }
-.li { display: grid; grid-template-columns: 1fr auto; gap: 4px var(--s3); align-items: center; padding: var(--s3) 0; border-top: 1px solid var(--line); }
+.li { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--s3); align-items: baseline; padding: var(--s3) 0; border-top: var(--hair); }
 .li:first-child { border-top: 0; padding-top: 0; }
 .li:last-child { padding-bottom: 0; }
-.li .sub { grid-column: 1 / -1; color: var(--muted); font-size: var(--t-sm); min-width: 0; }
-.li b { font-weight: 600; }
-
-/* ---------- segmented controls & day chips ---------- */
-.seg { display: inline-flex; background: var(--raised); border-radius: var(--r-sm); padding: 3px; gap: 2px; }
-.seg button { min-height: 40px; padding: 0 12px; border-radius: 9px; font: 600 var(--t-sm) var(--f); color: var(--muted); transition: background .2s, color .2s; }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .18); }
-.seg.wide { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; background: var(--surface); }
-.seg.wide button[aria-pressed="true"] { background: var(--raised); box-shadow: none; }
-.scroller { display: flex; gap: var(--s2); overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 2px var(--gutter); scroll-snap-type: x mandatory; }
-.scroller::-webkit-scrollbar { display: none; }
-.chipday, .daychips button { flex: none; scroll-snap-align: start; min-width: 60px; padding: 10px 12px; border-radius: 14px; background: var(--surface); display: grid; gap: 1px; text-align: center; transition: background .2s, color .2s; }
-.chipday .l, .daychips .l { font: 500 var(--t-xs) var(--f); color: var(--muted); }
-.chipday .n { font: 600 var(--t-md) var(--f); }
-.chipday[aria-pressed="true"], .daychips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.chipday[aria-pressed="true"] .l, .daychips button[aria-pressed="true"] .l { color: var(--bg); opacity: .7; }
-.daychips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s2); }
-.daychips .nm { font: 600 var(--t-sm) var(--f); }
-
-/* ---------- food ---------- */
-.meal { display: grid; grid-template-columns: 40px 1fr auto; gap: var(--s3); align-items: center; padding: var(--s3) 0; border-top: 1px solid var(--line); }
+.li .sub { grid-column: 1 / -1; color: var(--ink-2); font-size: var(--t-sm); min-width: 0; }
+.li b { font-weight: 700; }
+.nx { display: grid; grid-template-columns: 56px 1fr auto; gap: var(--s3); align-items: center; padding: var(--s2) 0; border-top: var(--hair); min-height: 52px; }
+.nx:first-of-type { border-top: 0; }
+.nx .tm { font: 800 var(--t-lg) var(--f); font-stretch: 62%; }
+.nx .w { display: grid; min-width: 0; }
+.nx .w b { font-weight: 700; }
+.nx .w span { font-size: var(--t-sm); color: var(--ink-2); overflow-wrap: anywhere; }
+.meal { display: grid; grid-template-columns: 62px 1fr auto; gap: var(--s3); align-items: baseline; padding: var(--s3) 0; border-top: var(--hair); }
 .meal:first-child { border-top: 0; padding-top: 0; }
-.meal:last-child { padding-bottom: 0; }
-.meal .ic { width: 40px; height: 40px; border-radius: var(--r-sm); display: grid; place-items: center; background: color-mix(in srgb, var(--c) 14%, transparent); }
-.meal .ic svg { width: 20px; height: 20px; stroke: var(--c, var(--ink)); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.meal .ic { width: 16px; height: 16px; border: 2px solid var(--ink); align-self: start; margin-top: 3px; }
+.meal .ic svg { display: none; }
+.meal .ic.chk-on { background: var(--ink); }
 .meal .nm { min-width: 0; }
-.meal .nm b { display: block; font-weight: 600; }
-.meal .nm span { color: var(--muted); font-size: var(--t-sm); }
-.meal .q { text-align: right; font-size: var(--t-xs); color: var(--muted); }
-.meal .q b { display: block; color: var(--ink); font: 600 var(--t-base) var(--f); white-space: nowrap; }
+.meal .nm b { display: block; font-weight: 700; }
+.meal .nm span { color: var(--ink-2); font-size: var(--t-sm); }
+.meal .q { text-align: right; font: 600 var(--t-xs) var(--f); font-stretch: 75%; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); }
+.meal .q b { display: block; color: var(--ink); font: 800 var(--t-lg)/1 var(--f); font-stretch: 62%; letter-spacing: 0; white-space: nowrap; }
+.subh { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s2); margin: var(--s4) 0 var(--s2); padding-top: var(--s3); border-top: 1.5px solid var(--ink); }
 
-/* ---------- charts ---------- */
+/* ---------- grid cells (signals, recovery, stats): ruled boxes, no fills ---------- */
+.signals, .stat3, .kvg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1.5px solid var(--ink); border-left: 1.5px solid var(--ink); }
+.stat3.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.signals > *, .stat3 > div, .kvg > div { border-right: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); padding: var(--s3); min-width: 0; display: grid; gap: 3px; align-content: start; text-align: left; }
+.signals .k, .stat3 .eyebrow, .kvg .k { font: 700 var(--t-xs)/1.2 var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.signals .k i { display: none; }
+.signals b, .rec b { font: 800 var(--t-2xl)/.95 var(--f); font-stretch: 62%; }
+.signals b small, .rec b small { font: 700 var(--t-sm) var(--f); font-stretch: 75%; color: var(--ink-2); margin-left: 3px; }
+.signals .g, .rec .u { font-size: var(--t-xs); color: var(--ink-2); }
+.rec .u.unv { color: var(--amber); font-weight: 600; }
+.stat3 b, .kvg b { display: block; font: 800 var(--t-lg)/1.05 var(--f); font-stretch: 62%; }
+.kvg b small { font: 700 var(--t-xs) var(--f); color: var(--ink-2); }
+.insight { margin: var(--s3) 0 0; font-size: var(--t-sm); line-height: 1.5; color: var(--ink); display: flex; gap: 8px; align-items: baseline; }
+.insight::before { content: "!"; flex: none; width: 16px; height: 16px; display: grid; place-items: center; background: var(--hi); color: var(--on-hi); font: 800 11px/1 var(--f); }
+.sig { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; background: var(--hi); color: var(--on-hi); font: 800 var(--t-sm) var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; }
+.sig i { display: none; }
+
+/* ---------- segmented controls & chips: boxed options ---------- */
+.seg { display: inline-flex; border: var(--rule); }
+.seg button { min-height: 44px; padding: 0 12px; font: 800 var(--t-sm) var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; color: var(--ink); border-left: var(--rule); }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.scroller { display: flex; overflow-x: auto; scrollbar-width: none; border: var(--rule); }
+.scroller::-webkit-scrollbar { display: none; }
+.chipday, .daychips button { flex: 1 0 64px; min-height: 56px; padding: 8px 6px; display: grid; gap: 1px; text-align: center; align-content: center; border-left: var(--rule); background: var(--paper); }
+.chipday:first-child, .daychips button:first-child { border-left: 0; }
+.chipday .l, .daychips .l { font: 700 var(--t-xs) var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+.chipday .n { font: 800 var(--t-lg)/1 var(--f); font-stretch: 62%; }
+.daychips .nm { font: 800 var(--t-md)/1.05 var(--f); font-stretch: 62%; text-transform: uppercase; }
+.chipday[aria-pressed="true"], .daychips button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.chipday[aria-pressed="true"] .l, .daychips button[aria-pressed="true"] .l { color: var(--paper); }
+.daychips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: var(--rule); }
+
+/* ---------- charts: ink only ---------- */
 .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-.chart text { fill: var(--faint); font: 500 10.5px var(--f); font-variant-numeric: tabular-nums; }
+.chart text { fill: var(--ink-2); font: 700 11px var(--f); font-stretch: 75%; font-variant-numeric: tabular-nums; }
 .chart .hit { fill: transparent; cursor: crosshair; }
-.chart .hit.on { fill: var(--ink); fill-opacity: .07; }
-.chart-tip { min-height: 20px; font-size: var(--t-sm); color: var(--muted); margin-top: var(--s2); }
-.chart-tip b { color: var(--ink); font-weight: 600; }
-.empty { display: grid; place-items: center; gap: 6px; text-align: center; padding: var(--s6) var(--s4); border-radius: var(--r-sm); background: var(--raised); color: var(--muted); font-size: var(--t-sm); }
-.empty svg { width: 22px; height: 22px; stroke: var(--faint); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.band { position: relative; height: 10px; border-radius: 99px; background: var(--raised); margin: var(--s2) 0 var(--s2); }
-.band u { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: color-mix(in srgb, var(--ok) 30%, transparent); }
-.band i { position: absolute; top: -5px; width: 4px; height: 20px; border-radius: 3px; background: var(--ink); transform: translateX(-50%); }
-.dtr { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 4px var(--s3); align-items: center; padding: var(--s3) 0; border-top: 1px solid var(--line); }
+.chart .hit.on { fill: var(--hi); fill-opacity: .55; }
+.chart-tip { min-height: 22px; font-size: var(--t-sm); color: var(--ink-2); margin-top: var(--s2); }
+.chart-tip b { color: var(--ink); font-weight: 800; }
+.empty { display: grid; gap: var(--s2); padding: var(--s4); border: 1.5px dashed var(--ink-3); color: var(--ink-2); font-size: var(--t-sm); }
+.empty svg { display: none; }
+.boxes { display: flex; gap: 6px; }
+.boxes i { width: 22px; height: 22px; border: 2px solid var(--ink); display: grid; place-items: center; font: 900 14px/1 var(--f); font-style: normal; }
+.boxes i.on { background: var(--ink); color: var(--paper); }
+.band { position: relative; height: 16px; border: 1.5px solid var(--ink); margin: var(--s2) 0; }
+.band u { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(-45deg, var(--ink) 0 1.5px, transparent 1.5px 6px); opacity: .55; }
+.band i { position: absolute; top: -6px; width: 4px; height: 26px; background: var(--pen); transform: translateX(-50%); }
+.dtr { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 4px var(--s3); align-items: center; padding: var(--s3) 0; border-top: var(--hair); }
 .dtr:first-child { border-top: 0; padding-top: 0; }
-.dtr .eyebrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--ink); font-weight: 600; }
-.dtr .val { margin-top: 3px; font-size: var(--t-base); }
-.dtr .val small { color: var(--muted); font-size: var(--t-xs); }
-.stack { display: flex; gap: 2px; height: 12px; border-radius: 99px; overflow: hidden; background: var(--raised); }
-.stack i { display: block; height: 100%; min-width: 2px; }
-.lgd { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--t-sm); color: var(--muted); }
+.dtr .eyebrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--ink); }
+.dtr .val { margin-top: 2px; font: 800 var(--t-lg)/1 var(--f); font-stretch: 62%; }
+.dtr .val small { color: var(--ink-2); font: 600 var(--t-xs) var(--f); }
+.stack { display: flex; height: 16px; border: 1.5px solid var(--ink); }
+.stack i { display: block; height: 100%; min-width: 2px; border-right: 1.5px solid var(--paper); }
+.lgd { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--t-sm); color: var(--ink-2); }
 .lgd span { display: inline-flex; align-items: center; gap: 6px; }
-.lgd i { width: 8px; height: 8px; border-radius: 2px; }
-.lgd b { color: var(--ink); font-weight: 500; }
+.lgd i { width: 10px; height: 10px; border: 1px solid var(--ink); }
+.lgd b { color: var(--ink); font-weight: 700; }
 
 /* ---------- labs ---------- */
-.lab { padding: var(--s4) 0; border-top: 1px solid var(--line); display: grid; gap: var(--s2); }
-.lab:first-of-type { border-top: 0; padding-top: 0; }
-.lab .v { font: 500 var(--t-md) var(--f); }
-.rtrack { position: relative; height: 6px; border-radius: 99px; background: var(--raised); margin: 6px 0; }
-.rtrack u { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--ok) 38%, transparent); border-radius: 99px; }
-.rtrack i { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--c); border: 3px solid var(--surface); }
+.labrow { padding: var(--s3) 0; border-top: var(--hair); display: grid; gap: 6px; }
+.labrow:first-of-type { border-top: 0; padding-top: 0; }
+.labrow .v { font: 800 var(--t-lg) var(--f); font-stretch: 62%; }
+.rtrack { position: relative; height: 10px; border: 1.5px solid var(--ink); margin: 6px 0; }
+.rtrack u { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(-45deg, var(--ink) 0 1.5px, transparent 1.5px 6px); opacity: .55; }
+.rtrack i { position: absolute; top: 50%; width: 14px; height: 14px; transform: translate(-50%, -50%) rotate(45deg); background: var(--c); }
 
 /* ---------- train ---------- */
-.session { background: var(--surface); display: grid; gap: var(--s2); }
-.session h3 { margin: 0; font: 600 var(--t-xl)/1.1 var(--f); letter-spacing: -0.025em; }
-.exlist { display: grid; margin-top: var(--s2); }
-.ex { display: grid; grid-template-columns: 26px 1fr auto; gap: 2px var(--s3); align-items: baseline; padding: var(--s3) 0; border-top: 1px solid var(--line); }
-.ex .n { font: 600 var(--t-xs) var(--f); color: var(--faint); }
-.ex .m { font-size: var(--t-sm); color: var(--muted); text-align: right; white-space: nowrap; }
-.ex .x { grid-column: 2 / -1; font-size: var(--t-xs); color: var(--muted); }
-.goalbar { height: 6px; border-radius: 99px; background: var(--raised); overflow: hidden; }
-.goalbar i { display: block; height: 100%; border-radius: 99px; background: var(--accent-ink); transition: width .4s var(--ease); }
+.session { display: grid; gap: var(--s2); }
+.session h3 { margin: 0; font: 800 var(--t-3xl)/.9 var(--f); font-stretch: 62%; text-transform: uppercase; }
+.exlist { display: grid; margin-top: var(--s2); border-top: var(--rule); }
+.ex { display: grid; grid-template-columns: 28px 1fr auto; gap: 2px var(--s3); align-items: baseline; padding: var(--s3) 0; border-bottom: var(--hair); }
+.ex .n { font: 800 var(--t-lg) var(--f); font-stretch: 62%; color: var(--ink); }
+.ex .m { font: 800 var(--t-md) var(--f); font-stretch: 62%; text-align: right; white-space: nowrap; }
+.ex .x { grid-column: 2 / -1; font-size: var(--t-xs); color: var(--ink-2); }
+.goalbar { height: 12px; border: 1.5px solid var(--ink); }
+.goalbar i { display: block; height: 100%; background: var(--ink); transition: width .4s var(--ease); }
 .lgx { display: grid; gap: var(--s3); }
 .lgx .exh { display: flex; justify-content: space-between; align-items: center; gap: var(--s2); }
-.lgx .exh b { font-size: var(--t-md); font-weight: 600; }
+.lgx .exh b { font: 800 var(--t-xl)/1 var(--f); font-stretch: 62%; text-transform: uppercase; }
 .tgt { display: flex; gap: 6px; flex-wrap: wrap; }
-.colh, .setrow { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) 62px 48px; gap: var(--s2); align-items: center; }
-.colh { font: 500 var(--t-xs) var(--f); color: var(--faint); text-align: center; }
-.setrow input { width: 100%; min-width: 0; height: 48px; font: 600 var(--t-md) var(--f); text-align: center; padding: 0 4px; border-radius: var(--r-sm); border: 1.5px solid transparent; background: var(--raised); color: var(--ink); transition: border-color .15s, background .15s; }
-.setrow input:focus { outline: none; border-color: var(--accent-ink); background: var(--surface); }
-.setrow input::placeholder { color: var(--faint); font-weight: 500; }
-.setrow .ok { height: 48px; border-radius: var(--r-sm); background: var(--raised); display: grid; place-items: center; transition: background .2s; }
-.setrow .ok svg { width: 20px; height: 20px; stroke: var(--faint); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.setrow.done .ok { background: var(--ok); }
-.setrow.done .ok svg { stroke: #0B1A12; }
-.setrow.done input { background: color-mix(in srgb, var(--ok) 10%, var(--raised)); }
-.setrow .sn { height: 48px; border-radius: var(--r-sm); display: grid; place-items: center; font: 600 var(--t-sm) var(--f); color: var(--muted); border: 1.5px dashed var(--line-2); }
-.setrow.warm .sn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 50%, transparent); }
-.setrow input.need { border-color: var(--bad); animation: shake .3s; }
+.colh, .setrow { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) 60px 52px; gap: 6px; align-items: center; }
+.colh { font: 700 var(--t-xs) var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); text-align: center; }
+.setrow input { width: 100%; min-width: 0; height: 52px; font: 800 var(--t-xl) var(--f); font-stretch: 62%; text-align: center; padding: 0 4px; border: var(--rule); border-radius: 0; background: var(--paper); color: var(--ink); }
+.setrow input:focus { outline: none; border-color: var(--pen); box-shadow: inset 0 0 0 1.5px var(--pen); }
+.setrow input::placeholder { color: var(--ink-3); font-weight: 600; font-size: var(--t-md); }
+.setrow .ok { height: 52px; border: var(--rule); display: grid; place-items: center; background: var(--paper); }
+.setrow .ok svg { width: 22px; height: 22px; stroke: var(--ink-3); fill: none; stroke-width: 3; stroke-linecap: square; }
+.setrow.done .ok { background: var(--ink); }
+.setrow.done .ok svg { stroke: var(--paper); }
+.setrow.done input { background: var(--tint); }
+.setrow .sn { height: 52px; display: grid; place-items: center; font: 800 var(--t-lg) var(--f); font-stretch: 62%; border: 2px dashed var(--ink-3); }
+.setrow.warm .sn { background: var(--hi); color: var(--on-hi); border: 2px solid var(--hi); }
+.setrow input.need { border-color: var(--red); animation: shake .3s; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
-.exh .more { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); margin: -10px -10px -10px 0; }
+.exh .more { width: 44px; height: 44px; display: grid; place-items: center; border: var(--rule); }
 .exh .more svg { width: 20px; height: 20px; fill: currentColor; }
-.lgx.skipped { opacity: .55; }
-.lgx .sum { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 36px; }
-.lgx .sum .tick { width: 28px; height: 28px; border-radius: 50%; background: var(--ok); display: grid; place-items: center; flex: none; }
-.lgx .sum .tick svg { width: 15px; height: 15px; stroke: #0B1A12; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.rest { position: fixed; z-index: 35; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + 20px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg);
-  padding: 6px; border-radius: 999px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 4px; animation: rise .3s var(--ease); }
-.rest button { color: inherit; font: 600 var(--t-sm) var(--f); min-height: 40px; padding: 0 12px; border-radius: 999px; background: color-mix(in srgb, var(--bg) 14%, transparent); min-width: 48px; }
-.rest .clock { font: 600 var(--t-md) var(--f); padding: 0 10px; min-width: 64px; text-align: center; }
-.rest.go { background: var(--ok); color: #0B1A12; }
+.lgx.skipped { opacity: .5; }
+.lgx .sum { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
+.lgx .sum .tick { width: 30px; height: 30px; background: var(--ink); display: grid; place-items: center; flex: none; }
+.lgx .sum .tick svg { width: 16px; height: 16px; stroke: var(--paper); fill: none; stroke-width: 3.5; stroke-linecap: square; }
+.rest { position: fixed; z-index: 35; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--paper); padding: 4px; display: flex; align-items: center; gap: 4px; border: var(--rule); }
+.rest button { color: inherit; font: 800 var(--t-sm) var(--f); font-stretch: 75%; min-height: 44px; padding: 0 12px; min-width: 52px; border: 1.5px solid currentColor; }
+.rest .clock { font: 800 1.75rem/1 var(--f); font-stretch: 62%; padding: 0 12px; min-width: 76px; text-align: center; }
+.rest.go { background: var(--hi); color: var(--on-hi); border-color: var(--hi); }
 
-/* ---------- forms ---------- */
+/* ---------- forms: boxes on a form ---------- */
 .field, .field2 { display: grid; gap: 6px; }
-.field label, .field2 label { font: 500 var(--t-sm) var(--f); color: var(--muted); }
-.field input, .field2 input, .inp { width: 100%; min-height: 50px; border-radius: 14px; border: 1.5px solid transparent; background: var(--raised); color: var(--ink); padding: 0 14px; font: 400 var(--t-md) var(--f); transition: border-color .15s, background .15s; }
-.field input:focus, .field2 input:focus, .inp:focus { outline: none; border-color: var(--accent-ink); background: var(--surface); }
-.field input::placeholder, .field2 input::placeholder, .inp::placeholder { color: var(--faint); }
-.inp.big { font: 300 var(--t-2xl) var(--f); letter-spacing: -0.03em; text-align: center; min-height: 72px; }
-.err { color: var(--bad); font-size: var(--t-sm); margin: 0; display: flex; gap: 8px; align-items: baseline; }
-.err::before { content: "!"; flex: none; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--bad); color: var(--bg); font-weight: 700; font-size: 11px; }
-.opts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--s2); }
-.opt2 { min-height: 48px; border-radius: 14px; background: var(--raised); color: var(--ink); font: 500 var(--t-base) var(--f); text-align: center; transition: background .15s, color .15s, transform .1s; }
-.opt2[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 600; }
+.field label, .field2 label { font: 700 var(--t-xs)/1.2 var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.field input, .field2 input, .inp { width: 100%; min-height: 52px; border: var(--rule); border-radius: 0; background: var(--paper); color: var(--ink); padding: 0 14px; font: 500 var(--t-md) var(--f); }
+.field input:focus, .field2 input:focus, .inp:focus { outline: none; border-color: var(--pen); box-shadow: inset 0 0 0 1.5px var(--pen); }
+.field input::placeholder, .field2 input::placeholder, .inp::placeholder { color: var(--ink-3); }
+.inp.big { font: 800 var(--t-3xl) var(--f); font-stretch: 62%; text-align: center; min-height: 84px; }
+.err { color: var(--red); font-size: var(--t-sm); font-weight: 600; margin: 0; display: flex; gap: 8px; align-items: baseline; }
+.err::before { content: "▲"; flex: none; }
+.opts { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: var(--rule); }
+.opt2 { min-height: 50px; background: var(--paper); color: var(--ink); font: 800 var(--t-md) var(--f); font-stretch: 75%; text-align: center; border-left: var(--rule); }
+.opts > .opt2:first-child { border-left: 0; }
+.opt2[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .opt2.sm { min-height: 44px; padding: 0 14px; font-size: var(--t-sm); }
 .chk { display: flex; align-items: center; gap: 12px; font-size: var(--t-base); min-height: 44px; }
-.chk input { width: 22px; height: 22px; accent-color: var(--protein); flex: none; }
-.adj { display: grid; gap: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); }
-.toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 56px; padding: 0 14px; border-radius: 14px; background: var(--raised); text-align: left; }
-.toggle .sw { width: 50px; height: 30px; border-radius: 99px; background: var(--line-2); position: relative; flex: none; transition: background .2s; }
-.toggle .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .2s var(--ease); box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
-.toggle[aria-pressed="true"] .sw { background: var(--ok); }
-.toggle[aria-pressed="true"] .sw::after { left: 23px; }
-.st { font-size: var(--t-sm); font-weight: 500; } .st.wait { color: var(--warn); } .st.done { color: var(--ok); }
+.chk input { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; border: 2px solid var(--ink); flex: none; display: grid; place-items: center; margin: 0; background: var(--paper); }
+.chk input:checked { background: var(--ink); }
+.chk input:checked::after { content: ""; width: 6px; height: 12px; border: solid var(--paper); border-width: 0 3px 3px 0; transform: rotate(45deg) translate(-1px, -1px); }
+.adj { display: grid; gap: var(--s3); padding-top: var(--s3); border-top: var(--hair); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 56px; padding: 0 14px; border: var(--rule); text-align: left; font-weight: 600; }
+.toggle .sw { width: 52px; height: 30px; border: var(--rule); position: relative; flex: none; }
+.toggle .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: var(--ink-3); transition: left .15s; }
+.toggle[aria-pressed="true"] .sw { background: var(--ink); }
+.toggle[aria-pressed="true"] .sw::after { left: 25px; background: var(--paper); }
+.st { font: 800 var(--t-xs) var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; } .st.wait { background: var(--hi); color: var(--on-hi); padding: 1px 5px; } .st.done { color: var(--ink); }
 
 /* ---------- lock screen ---------- */
-.setup { display: grid; gap: var(--s5); padding-top: min(12vh, 90px); max-width: 440px; width: 100%; margin: 0 auto; }
-.setup .logo { width: 60px; height: 60px; border-radius: 18px; background: var(--surface); display: grid; place-items: center; }
-.setup .logo svg { width: 34px; height: 34px; }
-.setup h2 { margin: 0; font: 400 2.5rem/1.05 var(--f-serif); letter-spacing: -0.02em; text-wrap: balance; }
-.setup p { margin: 0; color: var(--muted); font-size: var(--t-md); line-height: 1.55; }
+.setup { display: grid; gap: var(--s5); padding-top: max(10vh, 40px); max-width: 440px; width: 100%; margin: 0 auto; }
+.setup .logo { display: flex; align-items: center; gap: var(--s3); }
+.setup .logo svg { width: 40px; height: 40px; }
+.setup .logo b { font: 900 2rem/1 var(--f); font-stretch: 62%; letter-spacing: .02em; }
+.setup h2 { margin: 0; font: 800 3.5rem/.9 var(--f); font-stretch: 62%; text-transform: uppercase; border-top: 4px solid var(--ink); padding-top: var(--s3); }
+.setup p { margin: 0; color: var(--ink-2); font-size: var(--t-md); }
 .setup form { display: grid; gap: var(--s4); }
-.setup .fine { font-size: var(--t-xs); color: var(--faint); display: flex; gap: 8px; align-items: center; }
+.setup .passwrap { position: relative; }
+.setup .passwrap input { padding-right: 72px; }
+.setup .passwrap button { position: absolute; right: 2px; top: 2px; bottom: 2px; padding: 0 12px; font: 800 var(--t-xs) var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--pen); }
+.setup .fine { font-size: var(--t-xs); color: var(--ink-2); display: flex; gap: 8px; align-items: center; }
 .setup .fine svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; flex: none; }
 
-/* ---------- navigation: docked bar on phones, rail on desktop ---------- */
-.tabbar { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; background: var(--nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line);
-  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; }
-.tabbar > * { max-width: 120px; justify-self: center; width: 100%; }
-.tabbar [data-tab] { position: relative; display: grid; justify-items: center; gap: 2px; min-height: 52px; padding: 6px 0 4px; border-radius: 14px; color: var(--faint); font: 600 .6875rem var(--f); transition: color .2s; }
-.tabbar [data-tab]:hover { color: var(--muted); }
-.tabbar svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.tabbar [aria-current="page"] { color: var(--ink); }
-.tabbar [aria-current="page"]::before { content: ""; position: absolute; top: -7px; left: 30%; right: 30%; height: 2.5px; border-radius: 0 0 3px 3px; background: var(--accent-ink); }
-.tabbar .logbtn { display: grid; justify-items: center; align-content: end; gap: 2px; min-height: 52px; padding-bottom: 4px; font: 600 .6875rem var(--f); color: var(--muted); }
-.tabbar [data-tab] { align-content: end; }
-.tabbar .logbtn span { width: 48px; height: 36px; border-radius: 12px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; transition: transform .15s; }
-.tabbar .logbtn:active span { transform: scale(.92); }
-.tabbar .logbtn svg { stroke-width: 2.4; width: 20px; height: 20px; }
+/* ---------- navigation: bottom bar on phones, top bar on wide screens ---------- */
+.tabbar { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; background: var(--paper); border-top: 4px solid var(--ink);
+  padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); display: grid; grid-template-columns: repeat(4, 1fr); }
+.tabbar [data-tab], .tabbar .logbtn { display: grid; justify-items: center; align-content: center; gap: 3px; min-height: var(--nav-h); font: 800 var(--t-sm) var(--f); font-stretch: 75%; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); border-left: 2px solid var(--ink); }
+.tabbar > :first-child { border-left: 0; }
+.tabbar svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: square; stroke-linejoin: miter; }
+.tabbar [aria-current="page"] { background: var(--ink); color: var(--paper); }
+.tabbar .logbtn { background: var(--pen); color: var(--on-pen); }
+.tabbar .logbtn span { display: contents; }
 
 /* ---------- sheets & panes ---------- */
-.pane, .sheet { position: fixed; z-index: 45; inset: 0; background: var(--scrim); display: grid; align-items: end; animation: fadein .2s ease; }
+.pane, .sheet { position: fixed; z-index: 45; inset: 0; background: var(--scrim); display: grid; align-items: end; animation: fadein .15s ease; }
 .sheet { z-index: 50; }
-.pane .sheetbox, .sheet .panel { background: var(--bg); border-radius: var(--r-lg) var(--r-lg) 0 0; max-height: 92vh; overflow-y: auto; overscroll-behavior: contain;
-  padding: 10px max(var(--s4), env(safe-area-inset-right, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)) max(var(--s4), env(safe-area-inset-left, 0px));
-  display: grid; gap: var(--s4); max-width: 600px; width: 100%; margin: 0 auto; box-shadow: var(--shadow); animation: rise .32s var(--ease); }
-.sheet .panel { background: var(--surface); }
-.grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line-2); justify-self: center; }
-.ph { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); }
-.ph h2, .pane-title { margin: 0; font: 600 var(--t-xl)/1.15 var(--f); letter-spacing: -0.025em; }
-.sec { background: var(--surface); border-radius: var(--r); padding: var(--s4); display: grid; gap: var(--s3); }
-.sec .lab { font: 600 var(--t-sm) var(--f); color: var(--ink); padding: 0; border: 0; }
+.pane .sheetbox, .sheet .panel { background: var(--paper); border-top: 4px solid var(--ink); max-height: 92vh; overflow-y: auto; overscroll-behavior: contain;
+  padding: var(--s3) max(var(--s4), env(safe-area-inset-right, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)) max(var(--s4), env(safe-area-inset-left, 0px));
+  display: grid; gap: var(--s4); max-width: 640px; width: 100%; margin: 0 auto; animation: rise .22s var(--ease); }
+.grab { width: 44px; height: 4px; background: var(--ink); justify-self: center; }
+.ph { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); padding-bottom: var(--s3); border-bottom: var(--rule); }
+.ph h2, .pane-title { margin: 0; font: 800 var(--t-2xl)/.95 var(--f); font-stretch: 62%; text-transform: uppercase; }
+.sec { padding: 0 0 var(--s4); border-bottom: var(--hair); display: grid; gap: var(--s3); }
+.sec:last-of-type { border-bottom: 0; }
 .sec > .row .lab { margin: 0; }
-.sheet textarea { width: 100%; min-height: 240px; border-radius: 14px; border: 0; background: var(--raised); color: var(--ink); font: var(--t-sm)/1.55 var(--f); padding: var(--s3); resize: vertical; }
-.menu .panel { gap: var(--s2); }
-.menu .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 54px; padding: 0 var(--s4); border-radius: 14px; background: var(--raised); font: 500 var(--t-base) var(--f); text-align: left; gap: var(--s3); }
-.menu .opt.danger { color: var(--bad); }
-.menu .opt small { color: var(--muted); font-size: var(--t-xs); }
-.srcs { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: var(--t-base); line-height: 1.45; }
-.srcs b { font-weight: 600; }
-.srcs .g { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: var(--muted); }
-.srcs .g.est { background: transparent; border: 1.5px dashed var(--muted); }
-.srcs .g.calc { background: transparent; border: 1.5px solid var(--muted); }
-.layer { display: grid; grid-template-columns: 28px 1fr; gap: 10px; font-size: var(--t-base); line-height: 1.45; }
-.layer .n { font: 600 var(--t-sm) var(--f); color: var(--muted); }
-.explain-what { margin: 0; font: 400 1.1875rem/1.5 var(--f-serif); }
-.divide { display: grid; gap: var(--s3); padding-top: var(--s4); border-top: 1px solid var(--line); }
-.tpl { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s2); }
-.tpl button { display: grid; justify-items: center; gap: 8px; padding: 14px 4px 12px; border-radius: var(--r); background: var(--surface); font: 600 var(--t-xs) var(--f); }
-.tpl button i { width: 36px; height: 36px; border-radius: var(--r-sm); display: grid; place-items: center; background: color-mix(in srgb, var(--c) 16%, transparent); }
-.tpl button svg { width: 18px; height: 18px; stroke: var(--c); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sec .lab { padding: 0; border: 0; }
+.sheet textarea { width: 100%; min-height: 240px; border: var(--rule); border-radius: 0; background: var(--paper); color: var(--ink); font: var(--t-sm)/1.55 var(--f); padding: var(--s3); resize: vertical; }
+.menu .panel { gap: 0; }
+.menu .opt { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 56px; padding: 0 var(--s2); border-bottom: var(--hair); font: 600 var(--t-md) var(--f); text-align: left; gap: var(--s3); }
+.menu .opt.danger { color: var(--red); }
+.menu .opt small { color: var(--ink-2); font-size: var(--t-xs); }
+.srcs { display: grid; grid-template-columns: 18px 1fr; gap: 10px; font-size: var(--t-base); line-height: 1.45; }
+.srcs b { font-weight: 700; }
+.srcs .g { width: 10px; height: 10px; margin-top: 6px; background: var(--ink); }
+.srcs .g.est { background: transparent; border: 1.5px dashed var(--ink); }
+.srcs .g.calc { background: transparent; border: 1.5px solid var(--ink); }
+.layer { display: grid; grid-template-columns: 28px 1fr; gap: 10px; line-height: 1.45; }
+.layer .n { font: 800 var(--t-lg) var(--f); font-stretch: 62%; }
+.explain-what { margin: 0; font: italic 400 1.1875rem/1.5 var(--f-serif); color: var(--pen); }
+.divide { display: grid; gap: var(--s3); padding-top: var(--s4); border-top: var(--hair); }
+.tpl { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: var(--rule); }
+.tpl button { display: grid; justify-items: center; gap: 6px; padding: 14px 4px; border-left: var(--rule); font: 800 var(--t-xs) var(--f); font-stretch: 75%; letter-spacing: .05em; text-transform: uppercase; }
+.tpl button:first-child { border-left: 0; }
+.tpl button i { display: grid; place-items: center; }
+.tpl button svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 2; }
 .tl { display: grid; }
-.ti { display: grid; grid-template-columns: 46px 16px 1fr; gap: 0 10px; }
-.ti .time { font: 600 var(--t-xs) var(--f); color: var(--muted); padding-top: 3px; text-align: right; }
-.ti .rail { position: relative; display: flex; justify-content: center; }
-.ti .rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; background: var(--line); }
-.ti:first-child .rail::before { top: 9px; }
-.ti:last-child .rail::before { bottom: calc(100% - 9px); }
-.ti .rail i { position: relative; width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; border: 3px solid var(--surface); background: var(--c, var(--faint)); box-shadow: 0 0 0 1.5px var(--c, var(--faint)); }
-.ti .body { padding-bottom: var(--s4); min-width: 0; }
-.ti .body b { font-weight: 600; display: block; }
-.ti .body span { color: var(--muted); font-size: var(--t-sm); }
-.ti .body .kv { font-size: var(--t-xs); color: var(--muted); margin-top: 3px; display: block; }
+.ti { display: grid; grid-template-columns: 52px 1fr; gap: 0 var(--s3); border-top: var(--hair); padding: var(--s2) 0; }
+.ti:first-child { border-top: 0; }
+.ti .time { font: 800 var(--t-lg)/1.2 var(--f); font-stretch: 62%; }
+.ti .rail { display: none; }
+.ti .body { min-width: 0; }
+.ti .body b { font-weight: 700; display: block; }
+.ti .body span { color: var(--ink-2); font-size: var(--t-sm); }
+.ti .body .kv { font-size: var(--t-xs); color: var(--ink-2); margin-top: 2px; display: block; }
 
 /* ---------- toast ---------- */
-.toast { position: fixed; z-index: 60; left: 50%; transform: translateX(-50%); top: calc(14px + env(safe-area-inset-top, 0px)); background: var(--ink); color: var(--bg);
-  min-height: 44px; padding: 8px 16px; border-radius: 14px; font: 600 var(--t-sm) var(--f); box-shadow: var(--shadow); max-width: calc(100% - 32px); display: flex; align-items: center; gap: 14px; animation: drop .28s var(--ease); }
-.toast button { font: 700 var(--t-sm) var(--f); color: var(--bg); text-decoration: underline; text-underline-offset: 3px; padding: 6px 2px; }
+.toast { position: fixed; z-index: 60; left: 50%; transform: translateX(-50%); top: calc(12px + env(safe-area-inset-top, 0px)); background: var(--ink); color: var(--paper); border: var(--rule);
+  min-height: 48px; padding: 8px 16px; font: 700 var(--t-sm) var(--f); max-width: calc(100% - 32px); display: flex; align-items: center; gap: 14px; animation: drop .2s var(--ease); }
+.toast button { font: 800 var(--t-sm) var(--f); color: var(--hi); text-decoration: underline; text-underline-offset: 3px; padding: 6px 2px; text-transform: uppercase; }
 
-/* ---------- loading skeleton ---------- */
-.skel { display: grid; gap: var(--s4); }
-.skel i { display: block; border-radius: var(--r); background: linear-gradient(90deg, var(--surface) 30%, var(--raised) 50%, var(--surface) 70%); background-size: 300% 100%; animation: shimmer 1.4s linear infinite; }
+/* ---------- loading ---------- */
+.skel { display: grid; gap: var(--s3); padding-top: var(--s4); }
+.skel i { display: block; border: 1.5px dashed var(--ink-3); animation: blink 1.2s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .4; } }
 
 /* ---------- motion ---------- */
-.fade { animation: fadein .35s var(--ease) both; }
+.fade { animation: fadein .2s ease both; }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
-@keyframes rise { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
-@keyframes drop { from { transform: translate(-50%, -12px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@keyframes rise { from { transform: translateY(16px); } to { transform: none; } }
+@keyframes drop { from { transform: translate(-50%, -10px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-/* ---------- responsive ---------- */
-@media (max-width: 370px) {
-  .serif-h { font-size: 1.85rem; }
-  .meter .mv b { font-size: 2rem; }
-  .colh, .setrow { grid-template-columns: 38px minmax(0, 1fr) minmax(0, 1fr) 52px 44px; gap: 6px; }
-  .signals button { padding: var(--s3); }
-  .tpl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (hover: hover) {
+  .roundbtn:hover { background: var(--tint); }
+  .avatar:hover { background: var(--ink); }
+  .btn:hover { background: var(--tint); }
+  .cta:hover { background: var(--ink-2); border-color: var(--ink-2); }
+  .cta.ghost:hover { background: var(--tint); }
+  .signals button:hover { background: var(--tint); }
+  .menu .opt:hover { background: var(--tint); }
+  .tpl button:hover { background: var(--tint); }
+  .btn.primary:hover, .btn.train:hover, .cta.pen:hover { background: var(--pen); border-color: var(--pen); filter: brightness(1.12); }
 }
-@media (min-width: 640px) {
-  .wrap { padding-top: var(--s6); }
-  .serif-h { font-size: 2.5rem; }
+/* ---------- responsive ---------- */
+.cols { display: grid; gap: 0; }
+.col { display: grid; align-content: start; gap: 0; min-width: 0; }
+@media (max-width: 370px) {
+  .big, .session h3 { font-size: 3.1rem; }
+  .head h1 { font-size: 2.3rem; }
+  .colh, .setrow { grid-template-columns: 38px minmax(0, 1fr) minmax(0, 1fr) 52px 46px; gap: 4px; }
+  .tpl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (min-width: 1000px) {
   :root { --nav-h: 0px; }
-  body { padding-left: 96px; }
-  .wrap { max-width: 1080px; padding: var(--s7) var(--s7) var(--s8); gap: var(--s6); }
-  .tabbar { top: 0; right: auto; width: 96px; border-top: 0; border-right: 1px solid var(--line); grid-template-columns: 1fr; grid-auto-rows: min-content; align-content: start; gap: var(--s2); padding: var(--s6) var(--s2); }
-  .tabbar .logbtn { order: -1; margin-bottom: var(--s5); }
-  .tabbar .logbtn span { width: 52px; height: 52px; border-radius: 16px; }
-  .tabbar [data-tab] { min-height: 64px; }
-  .tabbar [aria-current="page"] { background: var(--surface); }
-  .tabbar [aria-current="page"]::before { top: 18%; bottom: 18%; left: -8px; right: auto; width: 3px; height: auto; border-radius: 0 3px 3px 0; }
-  .view.cols { display: block; columns: 2; column-gap: var(--s6); }
-  .view.cols > * { break-inside: avoid; margin-bottom: var(--s6); }
-  .view.cols > .span { column-span: all; }
-  .view.narrow { max-width: 680px; }
-  .pane, .sheet { align-items: center; }
-  .pane .sheetbox, .sheet .panel { border-radius: var(--r-lg); max-height: 86vh; padding-bottom: var(--s6); }
-  .rest { bottom: 28px; }
+  .wrap { max-width: 1320px; padding: 0 var(--s7) var(--s8); }
+  .head { padding-top: var(--s5); }
+  .head h1 { font-size: 3.5rem; }
+  .tabbar { position: sticky; top: 0; bottom: auto; border-top: 0; border-bottom: 4px solid var(--ink); display: flex; padding: 0; width: calc(100% - 2 * var(--s7)); max-width: calc(1320px - 2 * var(--s7)); margin: 0 auto; }
+  .tabbar > :first-child { border-left: 2px solid var(--ink); }
+  .tabbar [data-tab], .tabbar .logbtn { grid-auto-flow: column; gap: 8px; min-height: 52px; padding: 0 var(--s5); border-left: 0; border-right: 2px solid var(--ink); font-size: var(--t-md); }
+  .tabbar .logbtn { order: 9; margin-left: auto; border-right: 0; border-left: 2px solid var(--ink); }
+  .tabbar svg { width: 20px; height: 20px; }
+  body.authed .wrap { padding-top: 0; }
+  .cols { grid-template-columns: 1.15fr 1fr 1fr; column-gap: var(--s7); }
+  .cols.two { grid-template-columns: 1fr 1fr; }
+  .view.narrow { max-width: 760px; }
+  .pane { align-items: stretch; justify-items: end; }
+  .pane .sheetbox { max-width: 480px; max-height: none; height: 100%; margin: 0; border-top: 0; border-left: 4px solid var(--ink); animation: slide .22s var(--ease); }
+  .sheet { align-items: center; }
+  .sheet .panel { border: 4px solid var(--ink); max-height: 86vh; }
+  .grab { display: none; }
+  .rest { bottom: 24px; }
 }
+@keyframes slide { from { transform: translateX(24px); } to { transform: none; } }
+@media (min-width: 640px) and (max-width: 999px) { .wrap { max-width: 720px; } }
 </style>
 </head>
 <body>
+<nav class="tabbar" id="tabs" aria-label="Main" hidden>
+  <button data-tab="today" aria-current="page"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17"/><path d="M9 2.5h6v3H9zM8.5 10h7M8.5 14h7M8.5 18h4"/></svg>Today</button>
+  <button data-tab="train"><svg viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 10v4M20.5 10v4M6.5 12h11"/></svg>Train</button>
+  <button data-tab="progress"><svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 15l3.5-4 3 2.5L19 8"/></svg>Progress</button>
+  <button class="logbtn" id="fab" aria-label="Log weight, a meal, water or supplements"><span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Log</button>
+</nav>
 <div class="wrap" id="app">
   <header class="head" id="head" hidden>
-    <div class="t"><span class="eyebrow" id="dateline">—</span><h1 id="greet">Hello</h1></div>
+    <div class="t"><h1 id="greet">Cut Log</h1><span class="lbl" id="dateline">—</span></div>
     <button class="roundbtn" id="refresh" aria-label="Refresh data"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
     <button class="roundbtn avatar" id="settings" aria-label="You: profile, appearance and privacy">CL</button>
   </header>
 
   <section id="v-setup" class="setup" hidden aria-labelledby="setup-h">
-    <div class="logo" aria-hidden="true"><svg viewBox="0 0 34 34"><path d="M5 6v22M11 9v19M17 12v16M23 15v13" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round"/><path d="M29 18v10" stroke="var(--protein)" stroke-width="2.6" stroke-linecap="round"/></svg></div>
-    <h2 id="setup-h">Your cut, one honest page a day.</h2>
-    <p>Your records are locked with your Cut Log password. Type it once; this phone remembers the key until you remove it.</p>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 34 34"><path d="M5 6v22M11 9v19M17 12v16M23 15v13" stroke="var(--ink)" stroke-width="3.2" stroke-linecap="square"/><path d="M29 18v10" stroke="var(--pen)" stroke-width="3.2" stroke-linecap="square"/></svg><b>CUT LOG</b></div>
+    <h2 id="setup-h">Today's sheet is locked</h2>
+    <p>Type your Cut Log password once. This phone remembers it.</p>
     <form id="setup-form" novalidate>
-      <div class="field"><label for="f-pass">Cut Log password</label><input id="f-pass" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" placeholder="xxxxx-xxxxx-xxxxx-xxxxx" aria-describedby="setup-err"></div>
+      <div class="field"><label for="f-pass">Password</label><div class="passwrap"><input id="f-pass" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" aria-describedby="setup-err"><button type="button" id="peek" aria-pressed="false">Show</button></div></div>
       <p class="err" id="setup-err" role="alert" hidden></p>
       <button class="cta" type="submit" id="unlock">Unlock</button>
       <button class="cta ghost" type="button" id="forget" hidden>Remove password from this phone</button>
     </form>
-    <span class="fine"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Decrypted on this phone only. Nothing you type here leaves it.</span>
+    <span class="fine"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Unlocked on this phone only. The password never leaves it.</span>
   </section>
 
   <div id="loading" class="skel" hidden aria-label="Loading your data" role="status"><i style="height:120px"></i><i style="height:180px"></i><i style="height:120px"></i></div>
   <section id="v-today" hidden aria-label="Today"></section>
   <section id="v-progress" hidden aria-label="Progress"></section>
-  <section id="v-food" hidden aria-label="Food"></section>
   <section id="v-train" hidden aria-label="Train"></section>
 </div>
 
@@ -505,13 +503,6 @@ input, textarea { font: inherit; color: inherit; }
   <button class="cta ghost" id="sheet-clear" hidden style="width:100%">Sent it: clear this workout from the phone</button>
 </div></div>
 
-<nav class="tabbar" id="tabs" aria-label="Main" hidden>
-  <button data-tab="today" aria-current="page"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>Today</button>
-  <button data-tab="train"><svg viewBox="0 0 24 24"><path d="M6.5 7v10M17.5 7v10M3.5 10v4M20.5 10v4M6.5 12h11"/></svg>Train</button>
-  <button class="logbtn" id="fab" aria-label="Log weight, a meal, water or supplements"><span><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>Log</button>
-  <button data-tab="food"><svg viewBox="0 0 24 24"><path d="M5 11h14a7 7 0 0 1-14 0z"/><path d="M8 7c0-1.5 1-2 1-3M12 7c0-1.5 1-2 1-3M16 7c0-1.5 1-2 1-3"/></svg>Food</button>
-  <button data-tab="progress"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="M8 15l3.5-4 3 2.5L19 8"/></svg>Progress</button>
-</nav>
 
 <script>
 (() => {
@@ -581,7 +572,7 @@ input, textarea { font: inherit; color: inherit; }
   }
 
   function showSetup(err) {
-    ["today", "train", "food", "progress"].forEach((t) => ($(`#v-${t}`).hidden = true));
+    ["today", "train", "progress"].forEach((t) => ($(`#v-${t}`).hidden = true));
     $("#v-setup").hidden = false; $("#tabs").hidden = true; $("#loading").hidden = true; $("#pane").hidden = true; $("#head").hidden = !D;
     const c = store.get();
     $("#forget").hidden = !c.key;
@@ -590,7 +581,7 @@ input, textarea { font: inherit; color: inherit; }
   function showTab(t) {
     if (t === "trend" || t === "health") t = "progress";
     TAB = t; $("#v-setup").hidden = true; $("#loading").hidden = true;
-    ["today", "train", "food", "progress"].forEach((x) => ($(`#v-${x}`).hidden = x !== t));
+    ["today", "train", "progress"].forEach((x) => ($(`#v-${x}`).hidden = x !== t));
     document.querySelectorAll("#tabs [data-tab]").forEach((b) => (b.dataset.tab === t ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current")));
     try { localStorage.setItem(KEY + ".tab", t); } catch {}
     const v = $(`#v-${t}`); v.classList.remove("fade"); void v.offsetWidth; v.classList.add("fade");
@@ -712,7 +703,7 @@ input, textarea { font: inherit; color: inherit; }
     const rows = [["Sleep", C("sleep"), "h", 1, "var(--sleep)", "recovery.sleep_h"], ["Resting HR", C("rhr"), "bpm", 0, "var(--kcal)", "recovery.rhr_bpm"],
       ["HRV", C("hrv"), "ms", 0, "var(--protein)", "recovery.hrv_ms"], ["Deep sleep", Dv("sleep", "deep_min"), "min", 0, "var(--sleep)", "device.sleep.deep_min"],
       ["Readiness", Dv("readiness", "score"), "", 0, "var(--protein)", "device.readiness.score"], ["BioCharge on waking", Dv("biocharge", "wake"), "", 0, "var(--sleep)", "device.biocharge.wake"],
-      ["Stress average", Dv("stress", "avg"), "", 0, "var(--warn)", "device.stress.avg"], ["PAI this week", Dv("pai", "week_total"), "", 1, "var(--steps)", "device.pai.week_total"],
+      ["Stress average", Dv("stress", "avg"), "", 0, "var(--ink)", "device.stress.avg"], ["PAI this week", Dv("pai", "week_total"), "", 1, "var(--steps)", "device.pai.week_total"],
       ["Night SpO2 ODI", Dv("spo2", "odi"), "", 1, "var(--muted)", "device.spo2.odi"]];
     const pre = core.find((x) => x.pre_plan && days.includes(x.date) && (x.sleep != null || x.rhr != null || x.hrv != null));
     return `<div class="card span"><div class="card-h"><h2>Recovery trends</h2><span class="src">Watch, last ${n} days</span></div><div class="dtrs">
@@ -730,10 +721,10 @@ input, textarea { font: inherit; color: inherit; }
     const v = (x, k, u = "", nd = 0) => (dv(x, k) != null ? fmt(dv(x, k), nd) : "—") + u;
     return `<div class="card"><div class="card-h"><h2>Detected by your watch</h2><span class="src">${d.date === dubaiISO() ? "Today" : esc(longDate(d.date))}</span></div>
       <p class="muted" style="margin:calc(-1 * var(--s2)) 0 var(--s3);font-size:var(--t-sm)">Auto-detected activity, not your gym log.</p>
-      <div class="list">${w.map((x) => `<div class="li"><b>${x.type_code != null ? "Type " + esc(x.type_code) : "Type — missing"}<span class="muted" style="font-weight:400;font-size:var(--t-sm)">, ${x.start ? esc(x.start) : "—"}</span></b><span class="num">${v(x, "duration_min", " min")}</span>
+      <div class="list">${w.map((x) => `<div class="li"><b>Activity at ${x.start ? esc(x.start) : "— missing"}</b><span class="num">${v(x, "duration_min", " min")}</span>
         <span class="sub num">HR ${v(x, "avg_hr")} avg, ${v(x, "max_hr")} max, load ${v(x, "load")}, ${v(x, "kcal", " kcal")}${dv(x, "kcal") != null ? " watch estimate" : ""}</span>
         ${["aerobic_te", "anaerobic_te", "sets"].some((k) => dv(x, k) != null) ? `<span class="sub num">TE aerobic ${v(x, "aerobic_te", "", 1)}, anaerobic ${v(x, "anaerobic_te", "", 1)}${dv(x, "sets") != null ? `, ${fmt(dv(x, "sets"))} sets` : ""}</span>` : ""}</div>`).join("")}</div>
-      <p class="note">Zepp's type numbers are shown until you confirm their names. Watch calories are never eaten back.</p></div>`;
+      <p class="note">Activity names appear once you confirm what each Zepp type is${w.some((x) => x.type_code != null) ? ` (seen: type ${[...new Set(w.map((x) => x.type_code).filter((x) => x != null))].map(esc).join(", ")})` : ""}. Watch calories are never eaten back.</p></div>`;
   }
 
   // ---------- TODAY ----------
@@ -790,42 +781,64 @@ input, textarea { font: inherit; color: inherit; }
   function entryStatus(x) { const gen = new Date((D.generated_at || "").replace(" ", "T") + ":00+04:00"); return gen > new Date(x.at) ? "done" : "wait"; }
 
   // ---------- shared components ----------
-  // meter: a value against a target band (low–high) with an optional floor tick. Range targets, never a single "goal".
-  function meter({ label, v, lo, hi, floor, unit, c, explain, est, done, nd = 0 }) {
+  // tally bar: value against a target band (low–high) with an optional floor tick in red pen
+  function tally(v, lo, hi, floor) {
     const max = hi * 1.18, P = (x) => `${Math.max(0, Math.min(100, (x / max) * 100)).toFixed(2)}%`;
-    let foot = "";
-    if (v == null) foot = `<span>Nothing logged yet</span>`;
-    else if (v > hi) foot = `<span>${fmt(v - hi, nd)} ${unit} over the range</span>`;
-    else if (v >= lo) foot = `<span>In range</span>`;
-    else if (floor != null && v < floor) foot = `<span>${done ? `Below the ${fmt(floor, nd)} ${unit} floor` : `${fmt(lo - v, nd)}–${fmt(hi - v, nd)} ${unit} to go`}</span>`;
-    else foot = `<span>${fmt(lo - v, nd)}–${fmt(hi - v, nd)} ${unit} to go</span>`;
-    return `<${explain ? `button data-explain="${explain}"` : "div"} class="meter" style="--c:var(${c})" aria-label="${esc(label)}: ${v != null ? fmt(v, nd) + " " + unit : "not logged"}, target ${fmt(lo, nd)} to ${fmt(hi, nd)} ${unit}${floor != null ? ", floor " + fmt(floor, nd) : ""}">
-      <span class="mh"><span class="ml"><i></i>${esc(label)}</span><span class="mv"><b>${v != null ? fmt(v, nd) : "—"}</b><small>/ ${fmt(lo, nd)}–${fmt(hi, nd)} ${unit}</small></span></span>
-      <span class="track" aria-hidden="true"><u style="left:${P(lo)};width:calc(${P(hi)} - ${P(lo)})"></u>${floor != null ? `<s style="left:${P(floor)}"></s>` : ""}<i data-fill="${P(v || 0)}"></i></span>
-      <span class="mf">${foot}<span>${est || (floor != null ? `floor ${fmt(floor, nd)}` : "")}</span></span>
+    return `<span class="track" aria-hidden="true"><u style="left:${P(lo)};width:calc(${P(hi)} - ${P(lo)})"></u><i data-fill="${P(v || 0)}"></i>${floor != null ? `<s style="left:${P(floor)}"></s>` : ""}</span>`;
+  }
+  function standing(v, lo, hi, floor, unit, done, nd = 0) {
+    if (v == null) return "Nothing logged yet";
+    if (v > hi) return `${fmt(v - hi, nd)} ${unit} over the range`;
+    if (v >= lo) return "In range";
+    if (floor != null && v < floor && done) return `<span class="mark">Below the ${fmt(floor, nd)} ${unit} floor</span>`;
+    return `${fmt(lo - v, nd)}–${fmt(hi - v, nd)} ${unit} to go`;
+  }
+  function meter({ label, v, lo, hi, floor, unit, explain, est, done, nd = 0 }) {
+    return `<${explain ? `button data-explain="${explain}"` : "div"} class="meter" aria-label="${esc(label)}: ${v != null ? fmt(v, nd) + " " + unit : "not logged"}, target ${fmt(lo, nd)} to ${fmt(hi, nd)} ${unit}${floor != null ? ", floor " + fmt(floor, nd) : ""}">
+      <span class="mh"><span class="ml">${esc(label)}</span><span class="mv"><b>${v != null ? fmt(v, nd) : "—"}</b><small>/ ${fmt(lo, nd)}–${fmt(hi, nd)} ${unit}</small></span></span>
+      ${tally(v, lo, hi, floor)}<span class="mf"><span>${standing(v, lo, hi, floor, unit, done, nd)}</span><span>${est || (floor != null ? `floor ${fmt(floor, nd)}` : "")}</span></span>
     </${explain ? "button" : "div"}>`;
   }
-  // the cut ruler: start weight → goal on a tape, trend marker, distance covered filled
-  function cutRuler() {
-    const L = D.latest, tr = D.trend, today = dubaiISO(), start = +D.start_weight_kg, goal = +D.goal_kg;
-    const cur = tr.avg7 != null ? tr.avg7 : L.weight != null ? L.weight : null, isAvg = tr.avg7 != null;
-    const hi = Math.ceil(Math.max(start, cur ?? start)) + 1, lo = Math.floor(goal) - 1, P = (x) => `${(((hi - x) / (hi - lo)) * 100).toFixed(2)}%`;
+  // tape from the start weight to the goal; minor tick per kg, major per 5; labels never collide with start/goal
+  function rulerHTML(cur) {
+    const start = +D.start_weight_kg, goal = +D.goal_kg, hi = Math.max(start, cur ?? start) + .6, lo = goal - .6;
+    const P = (x) => `${(((hi - x) / (hi - lo)) * 100).toFixed(2)}%`;
     let ticks = "";
-    for (let k = hi; k >= lo; k--) { const maj = k % 5 === 0; ticks += `<span class="tk${maj ? " maj" : ""}" style="left:${P(k)}"></span>${maj && k !== start && k !== goal ? `<span class="tl" style="left:${P(k)}">${k}</span>` : ""}`; }
-    const lost = cur != null ? start - cur : null, left = cur != null ? cur - goal : null;
-    return `<section class="card cut" aria-label="The cut: from ${start} to ${goal} kg">
-      <div class="cut-top">
-        <button class="cut-now" data-explain="trend" style="text-align:left"><span class="eyebrow">${isAvg ? "Trend weight, 7-day average" : cur != null ? (L.date === today ? "Today's scale" : "Last weigh-in, " + esc(longDate(L.date))) : "Trend weight"}</span><b class="num">${cur != null ? fmt(cur, 1) : "—"}<small>kg</small></b></button>
-        <div class="cut-side"><span>${left != null ? `<b class="num">${fmt(Math.max(0, left), 1)} kg</b> to ${goal} kg` : `Goal <b>${goal} kg</b>`}</span><span>${lost != null ? (lost >= 0 ? `${fmt(lost, 1)} kg down from ${start}` : `${fmt(-lost, 1)} kg above the ${start} kg start`) : "Log a weigh-in to start"}</span></div>
-      </div>
-      <div class="ruler" role="img" aria-label="Weight scale from ${start} kg start to ${goal} kg goal${cur != null ? `, now ${fmt(cur, 1)} kg` : ""}">
-        <span class="base"></span>${ticks}
-        ${cur != null && cur < start ? `<span class="done" style="left:${P(start)};width:0" data-fill="calc(${P(cur)} - ${P(start)})"></span>` : ""}
-        <span class="tl end" style="left:${P(start)}">${start} start</span><span class="tl end" style="left:${P(goal)}">${goal} goal</span>
-        ${cur != null ? `<span class="mark" style="left:${P(start)}" data-left="${P(cur)}"></span>` : ""}
-      </div>
-      ${isAvg ? "" : `<p class="note" style="margin:0">${cur != null ? "This is one scale reading. " : ""}The trend line needs 4 weigh-ins in 7 days; single days swing up to 1.5 kg with water and salt.</p>`}
-    </section>`;
+    for (let k = Math.floor(hi); k >= Math.ceil(lo); k--) {
+      const maj = k % 5 === 0, near = Math.abs(k - start) < 1.6 || Math.abs(k - goal) < 1.6;
+      ticks += `<span class="tk${maj ? " maj" : ""}" style="left:${P(k)}"></span>${maj && !near ? `<span class="tl" style="left:${P(k)}">${k}</span>` : ""}`;
+    }
+    return `<div class="ruler" role="img" aria-label="Scale from ${start} kg start to ${goal} kg goal${cur != null ? `, now ${fmt(cur, 1)} kg` : ""}">
+      <span class="base"></span>${ticks}
+      ${cur != null && cur < start ? `<span class="done" style="left:${P(start)};width:0" data-fill="calc(${P(cur)} - ${P(start)})"></span>` : ""}
+      <span class="tl end l" style="left:${P(start)}">Start ${start}</span><span class="tl end r" style="left:${P(goal)}">Goal ${goal}</span>
+      ${cur != null ? `<span class="mark" style="left:${P(start)}" data-left="${P(cur)}"></span>` : ""}
+    </div>`;
+  }
+  function weightNow() {
+    const L = D.latest, tr = D.trend, today = dubaiISO();
+    const cur = tr.avg7 != null ? tr.avg7 : L.weight != null ? L.weight : null;
+    const what = tr.avg7 != null ? "7-day average" : cur != null ? (L.date === today ? "Scale, today" : "Scale, " + longDate(L.date)) : "No weigh-in yet";
+    return { cur, what, isAvg: tr.avg7 != null };
+  }
+  function weightRow() {
+    const { cur, what, isAvg } = weightNow(), start = +D.start_weight_kg, goal = +D.goal_kg, lost = cur != null ? start - cur : null;
+    return `<button class="nrow" data-explain="trend" aria-label="Weight ${cur != null ? fmt(cur, 1) + " kg, " + what : "not logged"}; goal ${goal} kg">
+      <span class="lbl"><span>Weight</span><span>${esc(what)}</span></span>
+      <span class="val"><span class="big${cur != null ? "" : " nil"}">${cur != null ? fmt(cur, 1) : "–"}</span><small>kg</small></span>
+      <span class="tgt"><b>${fmt(goal, 1)}</b>goal</span>
+      ${rulerHTML(cur)}
+      <span class="foot"><span>${cur != null ? `${fmt(Math.max(0, cur - goal), 1)} kg to go` : "Log a weigh-in to start"}</span><span>${lost == null ? "" : Math.abs(lost) < .05 ? "At the start weight" : lost > 0 ? `${fmt(lost, 1)} kg down` : `${fmt(-lost, 1)} kg above start`}${isAvg ? "" : ". Trend after 4 weigh-ins"}</span></span>
+    </button>`;
+  }
+  function fuelRow(label, k, v, lo, hi, floor, unit, done, est) {
+    return `<button class="nrow" data-explain="${k}" aria-label="${label}: ${v != null ? fmt(v) + " " + unit : "not logged"}, target ${fmt(lo)} to ${fmt(hi)} ${unit}, floor ${fmt(floor)}">
+      <span class="lbl"><span>${label}</span><span>${est || `floor ${fmt(floor)}`}</span></span>
+      <span class="val"><span class="big${v != null ? "" : " nil"}">${v != null ? fmt(v) : "–"}</span><small>${unit}</small></span>
+      <span class="tgt"><b>${fmt(lo)}–${fmt(hi)}</b>target</span>
+      <span class="bar">${tally(v, lo, hi, floor)}</span>
+      <span class="foot"><span>${standing(v, lo, hi, floor, unit, done)}</span></span>
+    </button>`;
   }
 
   function viewToday() {
@@ -834,42 +847,68 @@ input, textarea { font: inherit; color: inherit; }
     const waiting = outbox().filter((x) => x.date === today && entryStatus(x) === "wait").length;
     const prot = isToday ? L.protein : null, kcal = isToday ? L.kcal : null, done = isToday && L.complete;
     const nowMin = dubaiHour() * 60 + +new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dubai", minute: "2-digit" }).format(new Date());
-    const items = nextUp(today).filter((x) => { const [hh, mm] = x.t.split(":").map(Number); return hh * 60 + mm >= nowMin - 60; }).slice(0, 3);
+    const items = nextUp(today).filter((x) => { const [hh, mm] = x.t.split(":").map(Number); return hh * 60 + mm >= nowMin - 60; }).slice(0, 4);
     const ins = (D.insights || [])[0];
     const kEst = isToday && L.kcal_low != null && L.kcal_high != null ? `estimate ${fmt(L.kcal_low)}–${fmt(L.kcal_high)}` : "";
-    const sg = (k, label, v, unit, goalTxt, c) => `<button data-explain="${k}" style="--c:var(${c})"><span class="k"><i></i>${label}</span><b class="num">${v != null ? v + `<small>${unit}</small>` : "—"}</b><span class="g">${v != null ? goalTxt : "— missing"}</span></button>`;
-    const dayKind = dayKindOf(today), nMeals = ((D.meals || {})[today] || { items: [] }).items.length;
-    return `
-      ${waiting ? `<div class="span"><button class="sig" data-open-pane="entries"><i></i>${waiting} sent to your coach, waiting</button></div>` : ""}
-      <section class="brief span" aria-label="Daily brief">
-        <span class="who ${c ? "" : "calc"}"><i></i>${c ? "Your coach, " + ((c.written_at || "").slice(0, 10) === today ? "" : (c.written_at || "").slice(0, 10) === addDays(today, -1) ? "yesterday " : esc(longDate((c.written_at || today).slice(0, 10))) + " ") + esc((c.written_at || "").slice(11)) : "Calculated from your data. No coach note yet"}</span>
-        <h2 class="serif-h">${esc(brief.title || "")}</h2>
-        <p>${esc(brief.body || "")}</p>
-        <div class="one"><span class="t"><span class="lbl">One thing today</span><span>${esc(one.text)}</span></span>${one.act === "log" ? `<button class="btn primary" data-open-pane="log">Log</button>` : ""}</div>
-      </section>
-      <section class="card" aria-label="Today's food">
-        <div class="card-h"><h2>Today's food</h2><span class="aside">${isToday ? (done ? "Day fully logged" : "Logged so far") : "Nothing logged today"}</span></div>
-        <div class="meters">
-          ${meter({ label: "Protein", v: prot, lo: T.protein.low, hi: T.protein.high, floor: T.protein_floor, unit: "g", c: "--protein", explain: "protein", done })}
-          ${meter({ label: "Calories", v: kcal, lo: T.kcal.low, hi: T.kcal.high, floor: T.kcal_floor, unit: "kcal", c: "--kcal", explain: "kcal", est: kEst, done })}
-        </div>
-        ${nMeals ? `<button class="linkbtn" data-open-pane="meals" style="margin-top:var(--s3)">What's logged: ${nMeals} item${nMeals > 1 ? "s" : ""}<span aria-hidden="true">›</span></button>` : ""}
-      </section>
-      ${cutRuler()}
-      <section class="card" aria-label="Next up">
-        <div class="card-h"><h2>Next up</h2><span class="pill">${dayKind}</span></div>
-        ${items.length ? items.map((x) => `<div class="nx"><span class="tm num">${x.t}</span><span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span></span>${x.act === "meal" ? `<button class="btn" data-open-pane="log">Log</button>` : x.act === "gym" ? `<button class="btn train" data-go-train>Start</button>` : ""}</div>`).join("") : `<p class="muted" style="margin:0">Nothing else planned today. Wind down for 7+ hours of sleep.</p>`}
-        <button class="linkbtn" data-open-pane="day" style="margin-top:var(--s2)">Whole day plan<span aria-hidden="true">›</span></button>
-      </section>
-      <div style="display:grid;gap:var(--s3)">
-        <div class="signals" role="group" aria-label="Sleep, steps and water today">
-          ${sg("sleep", "Sleep", L.sleep != null && isToday ? fmt(L.sleep, 1) : null, " h", `target ${T.sleep_min}+ h`, "--sleep")}
-          ${sg("steps", "Steps", L.steps != null && isToday ? fmt(L.steps) : null, "", `target ${fmt(T.steps_min)}`, "--steps")}
-          ${sg("water", "Water", L.water != null && isToday ? fmt(L.water, 1) : null, " L", `target ${T.water ? T.water[0] + "–" + T.water[1] : "2.5–3.5"} L`, "--sleep")}
-        </div>
-        ${ins ? `<p class="insight">${esc(ins.text)}</p>` : ""}
+    const cw = c ? ((c.written_at || "").slice(0, 10) === today ? "today " : (c.written_at || "").slice(0, 10) === addDays(today, -1) ? "yesterday " : esc(longDate((c.written_at || today).slice(0, 10))) + " ") + esc((c.written_at || "").slice(11)) : "";
+    const sg = (k, label, v, unit, goalTxt) => `<button data-explain="${k}"><span class="k">${label}</span><b class="${v != null ? "" : "nil"}">${v != null ? v + `<small>${unit}</small>` : "–"}</b><span class="g">${v != null ? goalTxt : "— missing"}</span></button>`;
+    // training block
+    const s = sessionFor(today), si = s ? (D.program || []).indexOf(s) : -1, pl = planOf(today);
+    let nextS = null; for (let i = 1; i < 14 && !nextS; i++) { const iso = addDays(today, i); if (sessionFor(iso)) nextS = { iso, s: sessionFor(iso) }; }
+    const train = pl && pl.status === "done"
+      ? `<p style="margin:0;font-weight:600">Trained today: ${esc((progById(pl.logged) || { name: pl.logged }).name.split(" (")[0])}. Logged.</p>`
+      : s ? `<div class="exlist" style="margin-top:0">${s.exercises.map((e, i) => `<div class="ex"><span class="n">${i + 1}</span><span style="font-weight:600">${esc(cap(nice(e.id)))}</span><span class="m">${e.sets}×${esc(e.reps)}</span></div>`).join("")}</div>
+          <button class="cta" data-go-train data-i="${si}" style="width:100%;margin-top:var(--s3)">${draftFor(s.id) ? "Resume workout" : "Open the session"}</button>`
+      : `<p style="margin:0">Rest day. Walk 10 minutes after lunch and dinner for steps.${nextS ? ` Next: <b>${esc(nextS.s.name.split(" (")[0])}</b>, ${esc(longDate(nextS.iso))}.` : ""}</p>`;
+    // food block (Food tab merged here): today's plan, then what's logged
+    const m = menuFor(today), sup = supMap(), shake = s && shakeTxt(), day = (D.meals || {})[today];
+    const prow = (k, name, sub, q) => `<div class="meal"><span class="lbl" style="padding-top:3px">${k}</span><div class="nm"><b>${esc(name)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}</div><div class="q">${q}</div></div>`;
+    const planRows = m ? [prow("Lunch", stripId(m.lunch), "Meal plan", `<b>${pOf(m.lunch) || "—"} g</b>protein`), prow("Dinner", stripId(m.dinner), "Meal plan", `<b>${pOf(m.dinner) || "—"} g</b>protein`),
+      m.addon ? prow("Add-on", m.addon.items, `Day ≈ ${fmt(m.addon.kcal)} kcal`, `<b>+${fmt(m.addon.protein - m.protein)} g</b>protein`) : "",
+      shake ? prow("Shake", shake, "After training", sup.whey.nutrition_estimate ? `<b>≈ ${sup.whey.nutrition_estimate.protein_g.best} g</b>protein` : "") : ""].join("")
+      : `<p class="muted" style="margin:0">No meal-plan delivery today. Grilled protein, one carb, sauce on the side; photo every plate.</p>`;
+    const sum = (k) => day ? day.items.reduce((a, x) => a + ((x[k] && x[k].best) || 0), 0) : 0;
+    return `<div class="cols">
+      <div class="col">
+        ${waiting ? `<div style="padding-top:var(--s3)"><button class="sig" data-open-pane="entries">${waiting} sent to your coach, waiting</button></div>` : ""}
+        <section class="brief" aria-label="Coach note">
+          <span class="who ${c ? "" : "calc"}"><span class="lbl">${c ? "Coach, " + cw : "Calculated from your data. No coach note yet"}</span></span>
+          <h2 class="serif-h">${esc(brief.title || "")}</h2>
+          <p>${esc(brief.body || "")}</p>
+          <div class="one"><span class="t"><span class="lbl">One thing</span><span><span class="mark">${esc(one.text)}</span></span></span>${one.act === "log" ? `<button class="btn primary" data-open-pane="log">Log</button>` : "<span></span>"}</div>
+        </section>
+        <section class="nums" aria-label="Weight and today's food numbers">
+          ${weightRow()}
+          ${fuelRow("Protein", "protein", prot, T.protein.low, T.protein.high, T.protein_floor, "g", done, "")}
+          ${fuelRow("Calories", "kcal", kcal, T.kcal.low, T.kcal.high, T.kcal_floor, "kcal", done, kEst)}
+        </section>
       </div>
-      ${recoveryCard()}`;
+      <div class="col">
+        <section class="card" aria-label="Training today"><div class="card-h"><h2>${s ? esc(s.name.split(" (")[0]) + ", 18:00" : "Training"}</h2><span class="pill">${esc(dayKindOf(today))}</span></div>${train}
+          ${weekNote(today) ? `<p class="note">Coach re-plan: ${esc(weekNote(today))}</p>` : ""}</section>
+        <section class="card" aria-label="Next up"><div class="card-h"><h2>Next up</h2></div>
+          ${items.length ? items.map((x) => `<div class="nx"><span class="tm">${x.t}</span><span class="w"><b>${esc(x.b)}</b><span>${esc(x.s)}</span></span>${x.act === "meal" ? `<button class="btn" data-open-pane="log">Log</button>` : x.act === "gym" ? `<button class="btn train" data-go-train data-i="${si}">Start</button>` : ""}</div>`).join("") : `<p class="muted" style="margin:0">Nothing else planned today. Wind down for ${T.sleep_min}+ hours of sleep.</p>`}
+          <button class="linkbtn" data-open-pane="day">Whole day plan<span aria-hidden="true">›</span></button>
+        </section>
+        <section class="card" aria-label="Sleep, steps and water"><div class="card-h"><h2>Body</h2></div>
+          <div class="signals" role="group">
+            ${sg("sleep", "Sleep", L.sleep != null && isToday ? fmt(L.sleep, 1) : null, "h", `target ${T.sleep_min}+ h`)}
+            ${sg("steps", "Steps", L.steps != null && isToday ? fmt(L.steps) : null, "", `target ${fmt(T.steps_min)}`)}
+            ${sg("water", "Water", L.water != null && isToday ? fmt(L.water, 1) : null, "L", `target ${T.water ? T.water[0] + "–" + T.water[1] : "2.5–3.5"} L`)}
+          </div>
+          ${ins ? `<p class="insight">${esc(ins.text)}</p>` : ""}
+        </section>
+        ${recoveryCard()}
+      </div>
+      <div class="col">
+        <section class="card" aria-label="Food today"><div class="card-h"><h2>Food</h2><span class="aside">Plan, then what's logged</span></div>
+          ${planRows}
+          <div class="subh"><span class="lbl" style="color:var(--ink)">Logged ${day ? "" : "today"}</span><span class="aside num" style="font-size:var(--t-sm)">${day ? `${fmt(sum("kcal"))} kcal, ${fmt(sum("protein"))} g protein${day.complete ? ", complete" : ", so far"}` : ""}</span></div>
+          ${day ? `<div class="list">${mealRows(today)}</div>` : `<p class="muted" style="margin:0">Nothing logged yet today.</p>`}
+          <button class="linkbtn" data-open-pane="week">This week's menu<span aria-hidden="true">›</span></button>
+        </section>
+      </div>
+    </div>`;
   }
   const nextUp = (iso) => dayPlan(iso).filter((x) => x.b !== "Last tea");
 
@@ -999,7 +1038,8 @@ input, textarea { font: inherit; color: inherit; }
       <span class="muted" style="font-size:var(--t-xs);line-height:1.5">Your coach is an AI. It doesn't diagnose or change doses. Chest pain, fainting or unusual breathlessness: see a doctor promptly.</span>`;
   }
   function openPane(kind, arg) {
-    const html = kind === "meals" ? `<div class="grab"></div><div class="ph"><h2>Logged today</h2><button class="btn" data-close-pane>Close</button></div>${loggedCard(dubaiISO()).replace('<div class="card-h"><h2>Logged today</h2>', '<div class="card-h"><h2 class="lab" style="font-size:var(--t-sm);color:var(--muted)">From your records</h2>')}`
+    const html = kind === "week" ? `<div class="grab"></div><div class="ph"><h2>This week's menu</h2><button class="btn" data-close-pane>Close</button></div><div class="view">${viewFood()}</div>`
+      : kind === "meals" ? `<div class="grab"></div><div class="ph"><h2>Logged today</h2><button class="btn" data-close-pane>Close</button></div>${loggedCard(dubaiISO()).replace('<div class="card-h"><h2>Logged today</h2>', '<div class="card-h"><h2 class="lab" style="font-size:var(--t-sm);color:var(--muted)">From your records</h2>')}`
       : kind === "log" ? logPane() : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : youPane();
     const wasOpen = !$("#pane").hidden;
     if (!wasOpen) openPane.ret = document.activeElement;
@@ -1054,50 +1094,41 @@ input, textarea { font: inherit; color: inherit; }
       ${hits(series, X, cw, H - m.b, (d) => `${shortD(d.date)}: <b>${ok(d) ? fmt(d[key], nd) + unit : d[key] != null ? fmt(d[key], nd) + unit + " (day not fully logged)" : "not logged"}</b>`)}
     </svg></div><div class="chart-tip" aria-live="polite">${floor != null ? "Dashed red line: the floor. " : ""}Tap a bar to read it.</div>`;
   }
-  const PSECS = [["weight", "Weight"], ["habits", "Habits"], ["recovery", "Recovery"], ["health", "Health"]];
-  let PSEC = (() => { try { return localStorage.getItem(KEY + ".psec") || "weight"; } catch { return "weight"; } })();
-  function viewProgress() {
-    const seg = `<div class="seg wide span" role="group" aria-label="Progress sections">${PSECS.map(([k, l]) => `<button data-psec="${k}" aria-pressed="${k === PSEC}">${l}</button>`).join("")}</div>`;
-    const body = PSEC === "habits" ? viewHabits() : PSEC === "recovery" ? (deviceTrendCard() || `<div class="card">${emptyBox("No watch data yet.")}</div>`) : PSEC === "health" ? viewHealth() : viewTrend();
-    return seg + body;
-  }
   const rangeSeg = () => `<div class="seg" role="group" aria-label="Date range">${[14, 30, 90].map((n) => `<button data-range="${n}" aria-pressed="${n === RANGE}" aria-label="Last ${n} days">${n}d</button>`).join("")}</div>`;
-  function viewTrend() {
-    const s = (D.series || []).slice(-RANGE), T = D.targets, tr = D.trend, w = D.week7;
-    const rate = tr.change != null ? -tr.change : null, band = T.loss_band, bmax = 1.2;
+  const boxes = (n, of, label) => `<span class="boxes" role="img" aria-label="${esc(label)}">${Array.from({ length: of }, (_, i) => `<i class="${i < n ? "on" : ""}">${i < n ? "✓" : ""}</i>`).join("")}</span>`;
+  // Progress is one ruled report: Weight, Habits | Recovery, Health. Day 1 is a designed state, not an apology.
+  function viewProgress() {
+    const s = (D.series || []).slice(-RANGE), T = D.targets, tr = D.trend, w = D.week7, today = dubaiISO();
+    const rate = tr.change != null ? -tr.change : null, band = T.loss_band, bmax = 1.2, inBand = rate != null && rate >= band.low && rate <= band.high;
+    const weighIns = (D.series || []).filter((x) => x.weight != null).length;
+    const n7 = (D.series || []).slice(-7).filter((x) => x.weight != null).length;
     let eta = "—";
-    if (rate != null && rate > 0.05 && tr.avg7 != null && D.latest.date) {
-      const weeks = (tr.avg7 - D.goal_kg) / rate;
-      eta = parse(addDays(D.latest.date, Math.round(weeks * 7))).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
-    }
-    const inBand = rate != null && rate >= band.low && rate <= band.high;
-    return `
-      ${cutRuler().replace('class="card cut"', 'class="card cut span"')}
-      <div class="card">
-        <div class="card-h"><h2>Weight</h2>${rangeSeg()}</div>
-        ${weightChart(s)}
-        <p class="note">Line: 7-day average (needs 4+ weigh-ins). Dots: daily scale readings, which swing with water and salt.</p>
-      </div>
-      <div class="card"><div class="card-h"><h2>Weekly pace</h2><span class="pill ${rate == null ? "" : inBand ? "ok" : "warn"}">${rate != null ? `${fmt(rate, 2)} kg a week, ${inBand ? "in band" : rate < band.low ? "slower than band" : "faster than band"}` : "After 2 weeks of weigh-ins"}</span></div>
-        <div class="band" role="img" aria-label="Weekly loss against the ${band.low} to ${band.high} kg target band${rate != null ? `, now ${fmt(rate, 2)}` : ""}"><u style="left:${band.low / bmax * 100}%;width:${(band.high - band.low) / bmax * 100}%"></u>${rate != null ? `<i style="left:${Math.max(0, Math.min(100, rate / bmax * 100))}%"></i>` : ""}</div>
-        <div class="row muted" style="font-size:var(--t-xs)"><span>0 kg</span><span>target ${band.low}–${band.high} kg a week</span><span>${bmax} kg</span></div>
-        <div class="stat3" style="margin-top:var(--s4)">
-          <div><span class="eyebrow">Goal</span><b>${D.goal_kg} kg</b></div>
-          <div><span class="eyebrow">At this pace</span><b>${eta}</b></div>
-          <div><span class="eyebrow">Plan week</span><b>${D.plan.week ?? "—"}</b></div></div>
-        <p class="note">"At this pace" is an estimate from the current trend and moves as the trend does. Judged on 7-day averages only, never one day.</p></div>
-      <div class="card"><div class="card-h"><h2>Last 7 days</h2><span class="pill">${w.nutrition.coverage_pct}% logged${w.nutrition.days_in_window < 7 ? `, ${w.nutrition.days_in_window} plan day${w.nutrition.days_in_window > 1 ? "s" : ""}` : ""}</span></div>
-        <div class="stat3"><div><span class="eyebrow">Calories</span><b>${fmt(w.nutrition.kcal) ?? "—"}</b></div><div><span class="eyebrow">Protein</span><b>${w.nutrition.protein_g != null ? fmt(w.nutrition.protein_g) + " g" : "—"}</b></div><div><span class="eyebrow">Steps</span><b>${fmt(w.activity.steps) ?? "—"}</b></div></div>
-        <p class="note">Daily averages. Calories and protein count fully logged days only.</p></div>`;
-  }
-  function viewHabits() {
-    const s = (D.series || []).slice(-RANGE), T = D.targets;
-    const blk = (title, aside, chart) => `<div class="card"><div class="card-h"><h2>${title}</h2><span class="aside">${aside}</span></div>${chart}</div>`;
-    return `<div class="row span"><span class="muted" style="font-size:var(--t-sm)">Each bar is one day. Shaded band: your target.</span>${rangeSeg()}</div>
-      ${blk("Protein", `target ${T.protein.low}–${T.protein.high} g`, bars(s, "protein", "var(--protein)", { low: T.protein.low, high: T.protein.high, floor: T.protein_floor, unit: " g" }))}
-      ${blk("Calories", `target ${fmt(T.kcal.low)}–${fmt(T.kcal.high)}`, bars(s, "kcal", "var(--kcal)", { low: T.kcal.low, high: T.kcal.high, floor: T.kcal_floor, unit: " kcal" }))}
-      ${blk("Steps", `target ${fmt(T.steps_min)}+`, bars(s, "steps", "var(--steps)", { low: T.steps_min }))}
-      ${blk("Sleep", `target ${T.sleep_min}+ h`, bars(s, "sleep", "var(--sleep)", { low: T.sleep_min, high: 9, unit: " h", nd: 1 }))}`;
+    if (rate != null && rate > 0.05 && tr.avg7 != null && D.latest.date) eta = parse(addDays(D.latest.date, Math.round(((tr.avg7 - D.goal_kg) / rate) * 7))).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
+    const sec = (title, aside, body) => `<section class="card"><div class="card-h"><h2>${title}</h2>${aside ? `<span class="aside">${aside}</span>` : ""}</div>${body}</section>`;
+    const hb = (title, aside, chart) => `<div class="subh"><span class="lbl" style="color:var(--ink)">${title}</span><span class="aside" style="font-size:var(--t-sm);color:var(--ink-2)">${aside}</span></div>${chart}`;
+    const weight = `<section class="nums" style="border-bottom:var(--rule)">${weightRow()}</section>
+      ${tr.avg7 == null ? `<section class="card"><div class="card-h"><h2>Trend line</h2><span class="aside">${n7} of 4 weigh-ins this week</span></div>
+          ${boxes(n7, 4, `${n7} of 4 weigh-ins in the last 7 days`)}
+          <p class="note">The trend line starts at 4 morning weigh-ins in 7 days. Single days swing up to 1.5 kg with water and salt, so the app waits instead of guessing.</p></section>` : ""}
+      ${weighIns >= 2 ? sec("Weight", rangeSeg(), weightChart(s) + `<p class="note">Line: 7-day average. Dots: daily scale readings.</p>`) : ""}
+      ${sec("Weekly pace", rate != null ? `<span class="pill ${inBand ? "ok" : "warn"}">${fmt(rate, 2)} kg a week, ${inBand ? "in band" : rate < band.low ? "slower than band" : "faster than band"}</span>` : "",
+        rate != null ? `<div class="band" role="img" aria-label="Weekly loss ${fmt(rate, 2)} kg against the ${band.low} to ${band.high} kg target band"><u style="left:${band.low / bmax * 100}%;width:${(band.high - band.low) / bmax * 100}%"></u><i style="left:${Math.max(0, Math.min(100, rate / bmax * 100))}%"></i></div>
+          <div class="row" style="font-size:var(--t-xs);color:var(--ink-2)"><span>0 kg</span><span>target ${band.low}–${band.high} kg a week</span><span>${bmax} kg</span></div>
+          <div class="stat3" style="margin-top:var(--s3)"><div><span class="eyebrow">Goal</span><b>${D.goal_kg} kg</b></div><div><span class="eyebrow">At this pace</span><b>${eta}</b></div><div><span class="eyebrow">Plan week</span><b>${D.plan.week ?? "—"}</b></div></div>
+          <p class="note">"At this pace" is an estimate from the current trend.</p>`
+        : `${boxes(Math.min(2, Math.max(0, (D.plan.week || 1) - 1)), 2, "Weeks of trend collected out of 2")}<p class="note">Pace compares two 7-day averages, so it starts after about 2 weeks of weigh-ins (plan week ${D.plan.week ?? 1} now). Target: ${band.low}–${band.high} kg a week.</p>`)}
+      ${sec("Last 7 days", `${w.nutrition.coverage_pct}% logged${w.nutrition.days_in_window < 7 ? `, ${w.nutrition.days_in_window} plan day${w.nutrition.days_in_window > 1 ? "s" : ""}` : ""}`,
+        `<div class="stat3"><div><span class="eyebrow">Calories</span><b>${fmt(w.nutrition.kcal) ?? "—"}</b></div><div><span class="eyebrow">Protein</span><b>${w.nutrition.protein_g != null ? fmt(w.nutrition.protein_g) + " g" : "—"}</b></div><div><span class="eyebrow">Steps</span><b>${fmt(w.activity.steps) ?? "—"}</b></div></div>
+        <p class="note">Daily averages. Calories and protein count fully logged days only.</p>`)}`;
+    const habits = sec("Habits", rangeSeg(), `<p class="note" style="margin:0">One bar per day. Hatched band: target. Red dashed line: floor. Tap a bar to read it.</p>
+      ${hb("Protein", `${T.protein.low}–${T.protein.high} g`, bars(s, "protein", "var(--ink)", { low: T.protein.low, high: T.protein.high, floor: T.protein_floor, unit: " g" }))}
+      ${hb("Calories", `${fmt(T.kcal.low)}–${fmt(T.kcal.high)}`, bars(s, "kcal", "var(--ink)", { low: T.kcal.low, high: T.kcal.high, floor: T.kcal_floor, unit: " kcal" }))}
+      ${hb("Steps", `${fmt(T.steps_min)}+`, bars(s, "steps", "var(--ink)", { low: T.steps_min }))}
+      ${hb("Sleep", `${T.sleep_min}+ h`, bars(s, "sleep", "var(--ink)", { low: T.sleep_min, high: 9, unit: " h", nd: 1 }))}`);
+    return `<div class="cols two">
+      <div class="col">${weight}${habits}</div>
+      <div class="col">${deviceTrendCard()}${watchWorkoutsCard()}${viewHealth()}</div>
+    </div>`;
   }
 
   // ---------- FOOD ----------
@@ -1128,7 +1159,7 @@ input, textarea { font: inherit; color: inherit; }
     const pl = planOf(iso), s = sessionFor(iso);
     if (pl && pl.status === "done") return "Trained: " + (progById(pl.logged) || { name: pl.logged }).name.split(" (")[0];
     if (pl && pl.status === "missed") return "Session missed";
-    if (s) return s.name.split(" (")[0] + " day";
+    if (s) return "Gym day";
     return ["Sat", "Sun"].includes(dowOf(iso)) ? "Weekend" : "Rest day";
   }
   function viewFood() {
@@ -1146,10 +1177,10 @@ input, textarea { font: inherit; color: inherit; }
       <div class="card">
         <div class="card-h"><h2>${r.day === todayL ? "Today's plan" : esc(r.day) + " plan"}</h2><span class="pill">${r.date ? esc(dayKindOf(r.date)) : gym ? "Gym day" : "Rest day"}</span></div>
         <div class="list">
-          <div class="meal"><div class="ic" style="--c:var(--kcal)">${ICON.lunch}</div><div class="nm"><b>${esc(stripId(r.lunch))}</b><span>Lunch, meal plan</span></div><div class="q"><b>${pOf(r.lunch) || "—"} g</b>protein</div></div>
-          <div class="meal"><div class="ic" style="--c:var(--steps)">${ICON.dinner}</div><div class="nm"><b>${esc(stripId(r.dinner))}</b><span>Dinner, meal plan</span></div><div class="q"><b>${pOf(r.dinner) || "—"} g</b>protein</div></div>
-          ${r.addon ? `<div class="meal"><div class="ic" style="--c:var(--protein)">${ICON.add}</div><div class="nm"><b>Protein add-on</b><span>${esc(r.addon.items)}</span></div><div class="q"><b>+${fmt(r.addon.protein - r.protein)} g</b>protein</div></div>` : ""}
-          ${gym && sup.whey ? `<div class="meal"><div class="ic" style="--c:var(--protein)">${ICON.shake}</div><div class="nm"><b>Post-workout shake</b><span>${esc(shakeTxt())}. On gym days it replaces the tuna, or 150 g of the chicken.</span></div><div class="q"><b>${sup.whey.nutrition_estimate ? "≈ " + sup.whey.nutrition_estimate.protein_g.best + " g" : "—"}</b>protein</div></div>` : ""}
+          <div class="meal"><span class="lbl" style="padding-top:3px">Lunch</span><div class="nm"><b>${esc(stripId(r.lunch))}</b><span>Lunch, meal plan</span></div><div class="q"><b>${pOf(r.lunch) || "—"} g</b>protein</div></div>
+          <div class="meal"><span class="lbl" style="padding-top:3px">Dinner</span><div class="nm"><b>${esc(stripId(r.dinner))}</b><span>Dinner, meal plan</span></div><div class="q"><b>${pOf(r.dinner) || "—"} g</b>protein</div></div>
+          ${r.addon ? `<div class="meal"><span class="lbl" style="padding-top:3px">Add-on</span><div class="nm"><b>Protein add-on</b><span>${esc(r.addon.items)}</span></div><div class="q"><b>+${fmt(r.addon.protein - r.protein)} g</b>protein</div></div>` : ""}
+          ${gym && sup.whey ? `<div class="meal"><span class="lbl" style="padding-top:3px">Shake</span><div class="nm"><b>Post-workout shake</b><span>${esc(shakeTxt())}. On gym days it replaces the tuna, or 150 g of the chicken.</span></div><div class="q"><b>${sup.whey.nutrition_estimate ? "≈ " + sup.whey.nutrition_estimate.protein_g.best + " g" : "—"}</b>protein</div></div>` : ""}
         </div>
       </div>
       <div class="card"><div class="card-h"><h2>Planned day total</h2><span class="src">Labels + estimates</span></div>
@@ -1314,8 +1345,7 @@ input, textarea { font: inherit; color: inherit; }
       </section>
       <div class="card"><div class="card-h"><h2>Strength</h2><span class="aside">estimated 1-rep max</span></div>
         ${D.lifts && D.lifts.length ? `<div class="list">${D.lifts.map((l) => `<div class="li"><div><b>${esc(nice(l.exercise))}</b><div class="muted num" style="font-size:var(--t-sm)">${fmt(l.e1rm, 1)} kg, ${l.e1rm - l.first >= 0 ? "+" : ""}${fmt(l.e1rm - l.first, 1)} since start</div></div><div style="width:110px">${spark(l.points.map((p) => p.e1rm), "var(--steps)", 110, 34)}</div></div>`).join("")}</div>`
-          : emptyBox("Appears after your first logged sessions.", 110)}</div>
-      ${watchWorkoutsCard()}`;
+          : `<p class="muted" style="margin:0">Starts with your first logged session: an estimated 1-rep max for each main lift, and its trend.</p>`}</div>`;
   }
 
   // ---------- HEALTH ----------
@@ -1323,7 +1353,7 @@ input, textarea { font: inherit; color: inherit; }
     const v = parseFloat(l.value), lo = l.ref_low !== "" ? parseFloat(l.ref_low) : 0, hi = l.ref_high !== "" ? parseFloat(l.ref_high) : null;
     const top = Math.max(v, hi ?? v) * 1.25, bot = Math.min(v, lo) * 0.75, P = (x) => ((x - bot) / (top - bot)) * 100;
     const H = l.flag === "H", c = H ? "var(--bad)" : "var(--warn)";
-    return `<div class="lab"><div class="row"><b>${esc(l.marker)}</b><span style="display:flex;align-items:center;gap:var(--s2)"><span class="v num">${esc(l.value)} <span class="muted" style="font-size:var(--t-xs)">${esc(l.unit)}</span></span><span class="pill ${H ? "bad" : "warn"}">${H ? "Above range" : "Below range"}</span></span></div>
+    return `<div class="labrow"><div class="row"><b>${esc(l.marker)}</b><span style="display:flex;align-items:center;gap:var(--s2)"><span class="v num">${esc(l.value)} <span class="muted" style="font-size:var(--t-xs)">${esc(l.unit)}</span></span><span class="pill ${H ? "bad" : "warn"}">${H ? "Above range" : "Below range"}</span></span></div>
       <div class="rtrack" role="img" aria-label="${esc(l.marker)} ${esc(l.value)} ${esc(l.unit)}, ${H ? "above" : "below"} the lab range ${l.ref_low !== "" ? esc(l.ref_low) : "0"} to ${esc(l.ref_high || "")}"><u style="left:${P(lo)}%;width:${P(hi ?? top) - P(lo)}%"></u><i style="--c:${c};left:${P(v)}%"></i></div>
       <div class="muted" style="font-size:var(--t-xs)">Lab range ${l.ref_low !== "" ? esc(l.ref_low) : "0"}–${esc(l.ref_high || "")} ${esc(l.unit)}</div></div>`;
   }
@@ -1372,16 +1402,16 @@ input, textarea { font: inherit; color: inherit; }
   // ---------- render ----------
   const wrapV = (html, cls = "") => `<div class="view ${cls}">${html}</div>`;
   const anim = () => requestAnimationFrame(() => requestAnimationFrame(animateRings));
-  function drawToday() { $("#v-today").innerHTML = wrapV(viewToday(), "cols"); anim(); }
-  function drawProgress() { $("#v-progress").innerHTML = wrapV(viewProgress(), "cols"); anim(); }
-  function drawFood() { $("#v-food").innerHTML = wrapV(viewFood(), "cols"); anim(); }
-  function drawTrain() { $("#v-train").innerHTML = wrapV(viewTrain(), LOG && TAB_LOGGING ? "narrow" : "cols"); }
+  function drawToday() { $("#v-today").innerHTML = wrapV(viewToday()); anim(); }
+  function drawProgress() { $("#v-progress").innerHTML = wrapV(viewProgress()); anim(); }
+  function drawFood() { if (!$("#pane").hidden && $("#pane").dataset.kind === "week") { const y = $("#pane-box").scrollTop; openPane("week"); $("#pane-box").scrollTop = y; anim(); } }
+  function drawTrain() { $("#v-train").innerHTML = wrapV(viewTrain(), LOG && TAB_LOGGING ? "narrow" : ""); }
   function render() {
     if (!D) return;
     const h = dubaiHour(), first = (D.name || "").split(" ")[0];
-    $("#greet").textContent = `${h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"}${first ? ", " + first : ""}`;
+    $("#greet").textContent = parse(dubaiISO()).toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", timeZone: "UTC" }).replace(",", "");
     const gen = new Date((D.generated_at || "").replace(" ", "T") + ":00+04:00"), ageH = (Date.now() - gen) / 36e5;
-    $("#dateline").innerHTML = `${esc(longDate(dubaiISO()))}, ${D.plan.week ? "plan week " + D.plan.week : "before the plan"}. <span class="${ageH > 36 ? "stale" : ""}" title="When your coach last updated your records">${ageH > 36 ? "Updated " + Math.floor(ageH / 24) + " days ago" : "Updated " + esc((D.generated_at || "").slice(11))}</span>`;
+    $("#dateline").innerHTML = `${D.plan.week ? "Plan week " + D.plan.week : "Before the plan"}. <span class="${ageH > 36 ? "stale" : ""}" title="When your coach last updated your records">${ageH > 36 ? "Updated " + Math.floor(ageH / 24) + " days ago" : "Updated " + esc((D.generated_at || "").slice(11))}</span>`;
     $("#settings").textContent = (D.name || "Cut Log").split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
     drawToday();
     drawProgress();
@@ -1395,7 +1425,6 @@ input, textarea { font: inherit; color: inherit; }
   $("#tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
   document.addEventListener("click", (e) => {
     const d = e.target.closest("[data-day]"); if (d) { SEL = d.dataset.day; drawToday(); requestAnimationFrame(() => requestAnimationFrame(animateRings)); return; }
-    const ps = e.target.closest("[data-psec]"); if (ps) { PSEC = ps.dataset.psec; try { localStorage.setItem(KEY + ".psec", PSEC); } catch {} drawProgress(); return; }
     const hit = e.target.closest(".hit"); if (hit) { showTip(hit); return; }
     const r = e.target.closest("[data-range]"); if (r) { RANGE = +r.dataset.range; drawProgress(); return; }
     const f = e.target.closest("[data-food]"); if (f) { FOODSEL = f.dataset.food; drawFood(); return; }
@@ -1405,7 +1434,7 @@ input, textarea { font: inherit; color: inherit; }
     const ex = e.target.closest("[data-explain]"); if (ex) { openPane("explain", ex.dataset.explain); return; }
     if (e.target.closest("[data-close-pane]") || e.target.id === "pane") { closePane(); return; }
     if (e.target.closest("#fab")) { openPane("log"); return; }
-    if (e.target.closest("[data-go-train]")) { showTab("train"); return; }
+    const gt = e.target.closest("[data-go-train]"); if (gt) { const i = parseInt(gt.dataset.i, 10); if (i >= 0) TRAINSEL = i; drawTrain(); showTab("train"); window.scrollTo({ top: 0 }); return; }
     if (e.target.closest("[data-setup]")) { closePane(); showSetup(); return; }
     const tsb = e.target.closest("[data-theme-set]"); if (tsb) { applyTheme(tsb.dataset.themeSet); openPane("you"); return; }
     const ask = e.target.closest("[data-ask]"); if (ask) { copyText(ask.dataset.ask + "\n(asked from Cut Log)"); return; }
@@ -1494,11 +1523,13 @@ input, textarea { font: inherit; color: inherit; }
       $("#f-pass").value = ""; $("#unlock").textContent = "Unlock"; render();
     } catch (err) { $("#unlock").textContent = "Unlock"; showSetup(err.message); }
   });
+  $("#peek").addEventListener("click", () => { const f = $("#f-pass"), show = f.type === "password"; f.type = show ? "text" : "password"; $("#peek").textContent = show ? "Hide" : "Show"; $("#peek").setAttribute("aria-pressed", String(show)); });
   $("#forget").addEventListener("click", () => { store.set({}); D = null; showSetup(); });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && store.get().key) load({ quiet: true }); });
 
   try { TAB = localStorage.getItem(KEY + ".tab") || "today"; } catch {}
   if (TAB === "trend" || TAB === "health") TAB = "progress";
+  if (TAB === "food") TAB = "today";
   applyTheme(themePref());
   if (LOG) TAB_LOGGING = true;
   const c = store.get();

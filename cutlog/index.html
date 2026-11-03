@@ -472,6 +472,27 @@ input, textarea { font: inherit; color: inherit; }
 @media (max-width: 420px) { .journey li { grid-template-columns: 26px 1fr; } .journey .jr { grid-column: 2; justify-items: start; text-align: left; } }
 
 /* ---------- responsive ---------- */
+/* ---------- days that don't go to plan: easy-day card, choice line, still to eat, add exercise, offline ---------- */
+.easy { display: grid; gap: var(--s3); border-color: color-mix(in srgb, var(--worse) 45%, var(--edge)); }
+.easy h2, .toeat h2 { margin: 0; font: 700 var(--t-lg)/1.15 var(--f-display); letter-spacing: -.01em; text-wrap: balance; }
+.easy ul { margin: var(--s1) 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.easy li { position: relative; padding-left: 14px; font-size: var(--t-sm); line-height: 1.45; }
+.easy li::before { content: ""; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: var(--worse); }
+.easy .also li { color: var(--muted); }
+.easy .also li::before { background: var(--faint); }
+.easy .acts { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); }
+.easy .acts .cta { min-height: 52px; padding: 0 10px; font-size: var(--t-base); }
+.chline { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; margin: 0; min-height: 44px; font-size: var(--t-sm); color: var(--muted); }
+.chline > span:not(.pill) { flex: 1; min-width: 0; }
+.chline .undo { min-height: 44px; padding: 0 6px; color: var(--coral-ink); font: 600 var(--t-sm) var(--f); }
+.toeat { display: grid; gap: var(--s3); }
+.toeat .li .q { font: 600 var(--t-base) var(--f-num); white-space: nowrap; text-align: right; }
+.addex { width: 100%; min-height: 56px; border: 1.5px dashed var(--edge-2); border-radius: var(--r); color: var(--coral-ink); font: 600 var(--t-base) var(--f); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.pick { display: grid; gap: var(--s1); }
+.pick button { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: 48px; padding: 0 var(--s3); border-radius: var(--r-sm); background: var(--surface); text-align: left; font: 500 var(--t-base) var(--f); }
+.pick button small { color: var(--muted); font: 500 var(--t-xs) var(--f-num); white-space: nowrap; }
+.pick button.new { color: var(--coral-ink); font-weight: 600; border: 1.5px dashed var(--edge-2); background: transparent; }
+.offpill { justify-self: start; margin-top: 2px; }
 .cols { display: grid; gap: var(--s3); }
 .col { display: grid; align-content: start; gap: var(--s3); min-width: 0; }
 @media (max-width: 370px) {
@@ -485,7 +506,7 @@ input, textarea { font: inherit; color: inherit; }
   .btn:hover, .roundbtn:hover { background: var(--edge); }
   .btn.primary:hover, .btn.train:hover { background: var(--coral); filter: brightness(1.08); }
   .cta:hover { filter: brightness(1.06); }
-  .signals button:hover, .menu .opt:hover, .tpl button:hover { background: var(--edge); }
+  .signals button:hover, .menu .opt:hover, .tpl button:hover, .pick button:hover { background: var(--edge); }
   button.nrow:hover .lbl > span:first-child { color: var(--coral-ink); }
 }
 @media (min-width: 1000px) {
@@ -515,7 +536,7 @@ input, textarea { font: inherit; color: inherit; }
 </nav>
 <div class="wrap" id="app">
   <header class="head" id="head" hidden>
-    <div class="t"><h1 id="greet">Cut Log</h1><span class="lbl" id="dateline">—</span></div>
+    <div class="t"><h1 id="greet">Cut Log</h1><span class="lbl" id="dateline">—</span><span class="pill warn offpill" id="offline" role="status" hidden></span></div>
     <button class="roundbtn" id="refresh" aria-label="Refresh data"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
     <button class="roundbtn avatar" id="settings" aria-label="You: profile, appearance and privacy">CL</button>
   </header>
@@ -595,7 +616,17 @@ input, textarea { font: inherit; color: inherit; }
   async function fetchBlob() {
     const r = await fetch(`data.enc.json?t=${Date.now()}`, { cache: "no-store" });
     if (!r.ok) throw new Error(r.status === 404 ? "No data published yet. Ask your coach to publish." : `Couldn't load (${r.status}). Try again.`);
+    // sw.js answers from its cache when the network is down and says so (x-cutlog-offline, x-cutlog-cached-at)
+    fetchBlob.last = { offline: r.headers.get("x-cutlog-offline") === "1", at: r.headers.get("x-cutlog-cached-at") };
     return r.json();
+  }
+  // offline: the shell and the last data come from this phone; say from when
+  function showOffline(on, at) {
+    const el = $("#offline"); if (!el) return;
+    el.hidden = !on; if (!on) return;
+    const d = at ? new Date(at) : null, ok = d && !Number.isNaN(+d);
+    const hm = ok ? new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit", hour12: false }).format(d) : "";
+    el.textContent = ok ? `Offline: showing data from ${hm}${dubaiISO(d) !== dubaiISO() ? ", " + longDate(dubaiISO(d)) : ""}` : "Offline: showing the last saved data";
   }
   async function load({ quiet } = {}) {
     const cfg = store.get();
@@ -611,11 +642,13 @@ input, textarea { font: inherit; color: inherit; }
       }
       try { D = await decryptBlob(blob, key); }
       catch { store.set({ cache: cfg.cache }); throw new Error("Password no longer matches. Type the current one."); }
-      store.set({ ...store.get(), key, salt: blob.salt, iter: blob.iter, cache: D });
+      const off = fetchBlob.last && fetchBlob.last.offline;
+      store.set({ ...store.get(), key, salt: blob.salt, iter: blob.iter, cache: D, cachedAt: off ? fetchBlob.last.at || store.get().cachedAt : new Date().toISOString() });
       render();
+      showOffline(off || !navigator.onLine, off ? fetchBlob.last.at : store.get().cachedAt);
     } catch (e) {
       const c = store.get();
-      if (c.cache && c.key) { D = c.cache; render(); $("#dateline").textContent = "Offline copy. " + e.message; }
+      if (c.cache && c.key) { D = c.cache; render(); $("#dateline").textContent = "Offline copy. " + e.message; showOffline(true, c.cachedAt); }
       else if (!quiet) showSetup(e.message);
     } finally { $("#refresh").classList.remove("spin"); }
   }
@@ -817,7 +850,46 @@ input, textarea { font: inherit; color: inherit; }
   // one list drives both the whole-day timeline and "Next up"; supplements, shake and session come from data
   // ---------- the day engine: preferences + menu + week plan + his changes (data/plan/overrides.yaml) ----------
   const PREF_T = { weigh_in: "07:00", lunch: "13:00", last_tea: "15:00", pre_gym: "16:30", gym: "18:00", shake: "19:30", dinner: "20:30", supplements: "21:00", wind_down: "22:30", bedtime: "23:00", caffeine_cutoff: "15:00" };
-  const dayChanges = (iso) => (D.plan_days || {})[iso] || {};
+  // his changes for a date = data/plan/overrides.yaml (data.json plan_days) + changes made on this phone (local wins;
+  // exercises merged per id, add_exercises per id). Phone changes travel to the coach as "PLAN …" lines in the next message.
+  const CH_KEY = KEY + ".changes", PL_KEY = KEY + ".planlog";
+  let LOCAL = null;
+  const allLocal = () => { if (!LOCAL) { try { LOCAL = JSON.parse(localStorage.getItem(CH_KEY)) || {}; } catch { LOCAL = {}; } } return LOCAL; };
+  const localChanges = (iso) => allLocal()[iso] || {};
+  function writeLocal(iso, c) {
+    const all = allLocal();
+    if (c.exercises && !Object.keys(c.exercises).length) delete c.exercises;
+    if (c.add_exercises && !c.add_exercises.length) delete c.add_exercises;
+    if (Object.keys(c).length) all[iso] = c; else delete all[iso];
+    try { localStorage.setItem(CH_KEY, JSON.stringify(all)); } catch {}
+  }
+  const isObj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  function mergeChanges(a, b) {
+    const out = { ...a };
+    Object.entries(b).forEach(([k, v]) => {
+      if (k === "add_exercises") { const ids = new Set(v.map((x) => x.id)); out[k] = [...(a[k] || []).filter((x) => !ids.has(x.id)), ...v]; }
+      else out[k] = isObj(v) && isObj(a[k]) ? { ...a[k], ...v } : v;
+    });
+    return out;
+  }
+  const dayChanges = (iso) => mergeChanges((D.plan_days || {})[iso] || {}, localChanges(iso));
+  // queued "PLAN <date>: …" lines; one per change key, replaced while unsent
+  const planLog = () => { try { return JSON.parse(localStorage.getItem(PL_KEY)) || []; } catch { return []; } };
+  const setPlanLog = (v) => { try { localStorage.setItem(PL_KEY, JSON.stringify(v.slice(-40))); } catch {} };
+  const planSent = (iso, key) => planLog().some((x) => x.iso === iso && x.key === key && x.sent);
+  function planChange(iso, key, text, mutate) {
+    const before = JSON.stringify(localChanges(iso)), logBefore = JSON.stringify(planLog()), cur = JSON.parse(before);
+    mutate(cur); writeLocal(iso, cur);
+    const log = planLog().filter((x) => !(x.iso === iso && x.key === key && !x.sent));
+    if (text) log.push({ iso, key, text: `PLAN ${iso}: ${text}`, at: Date.now() });
+    setPlanLog(log);
+    return () => { writeLocal(iso, JSON.parse(before)); setPlanLog(JSON.parse(logBefore)); };
+  }
+  const pendingPlan = (iso) => planLog().filter((x) => !x.sent && (!iso || x.iso === iso));
+  const markPlanSent = (xs, via) => { const at = new Set(xs.map((x) => x.at + x.key)); setPlanLog(planLog().map((x) => (at.has(x.at + x.key) ? { ...x, sent: true, via } : x))); };
+  // the fatigue rule's verdict for a gym day (spec §7 triggers; app_data.py readiness_today)
+  const readyFor = (iso) => { const R = D.readiness_today; return R && R.date === iso && R.gym_day && R.fatigue ? R : null; };
+  const catName = (id) => ((D.exercise_catalog || []).find((x) => x.id === id) || {}).name || cap(nice(id));
   const timesFor = (iso) => ({ ...PREF_T, ...((D.preferences || {}).times || {}), ...(dayChanges(iso).times || {}) });
   const minOf = (t) => { const [h, m] = String(t || "0:0").split(":").map(Number); return h * 60 + (m || 0); };
   const nowMin = () => dubaiHour() * 60 + +new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Dubai", minute: "2-digit" }).format(new Date());
@@ -830,8 +902,11 @@ input, textarea { font: inherit; color: inherit; }
       const sets = c.sets != null ? c.sets : Math.max(1, e.sets + (c.sets_delta || 0));
       return { ...e, sets, reps: c.reps || e.reps, rpe: c.rpe_cap ? `≤${c.rpe_cap}` : e.rpe, swap: c.swap || null, skip: !!c.skip, changed: !!(c.skip || c.swap || c.sets != null || c.sets_delta || c.reps || c.rpe_cap) };
     });
-    const added = (dayChanges(iso).add_exercises || []).map((x) => ({ id: x.id, sets: x.sets, reps: String(x.reps || "8-12"), rest_s: x.rest_s || 90, rpe: x.rpe || "8", alternatives: [], last: null, next: null, added: true, changed: true }));
-    return { ...s, exercises: [...ex, ...added], changed: ex.some((x) => x.changed) || added.length > 0, rpeCap: all.rpe_cap || null, setsDelta: all.sets_delta || 0 };
+    // added exercises keep their own sets (he gave them for that day); an RPE cap still applies; "skip" removes them
+    const have = new Set(ex.map((e) => e.id));
+    const added = (dayChanges(iso).add_exercises || []).filter((x) => !have.has(x.id)).map((x) => ({ id: x.id, name: x.name || catName(x.id), sets: x.sets || 3, reps: String(x.reps || "8-12"), rest_s: x.rest_s ?? 90, rpe: all.rpe_cap ? `≤${all.rpe_cap}` : String(x.rpe || "8"), alternatives: [], last: null, next: null, added: true, skip: ch[x.id] === "skip", changed: true }));
+    const R = readyFor(iso);
+    return { ...s, exercises: [...ex, ...added], changed: ex.some((x) => x.changed) || added.length > 0, rpeCap: all.rpe_cap || null, setsDelta: all.sets_delta || 0, skipCond: !!(R && (R.suggestion || {}).skip_conditioning && (dayChanges(iso).easy ?? R.chosen === "easy") === true) };
   }
   // every item of the day, in time order; src "yours" = from his change for that day
   function dayItems(iso) {
@@ -842,20 +917,20 @@ input, textarea { font: inherit; color: inherit; }
     const ate = (kind) => !!(logged && logged.items.some((x) => x.kind === kind));
     it.push({ id: "weigh", t: T.weigh_in, b: "Weigh in", s: "After the toilet, before food or drink" + (am.length ? `, then ${supNames(am)}` : ""), act: "weigh", auto: L.date === iso && L.weight != null });
     if (ch.times && ch.times.nap) { const [a, z] = ch.times.nap.split("-"); it.push({ id: "nap", t: a, b: "Nap", s: `${a}–${z}. Set an alarm for ${z}`, src: "yours" }); }
-    if (m && m.lunch) it.push({ id: "lunch", t: T.lunch, b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein, label` : "", act: "meal", src: (m.replaced || []).includes("lunch") ? "yours" : "", auto: ate("lunch") });
-    else if (!cancelledOf(m, "lunch")) it.push({ id: "lunch", t: T.lunch, b: wkend ? "Lunch out" : "Lunch", s: "Grilled protein, one carb, sauce on the side. Photo it.", act: "meal", auto: ate("lunch") });
+    if (m && m.lunch) it.push({ id: "lunch", t: T.lunch, b: "Lunch", s: stripId(m.lunch), kv: pOf(m.lunch) ? `${pOf(m.lunch)} g protein, label` : "", p: pOf(m.lunch) ? +pOf(m.lunch) : null, act: "meal", src: (m.replaced || []).includes("lunch") ? "yours" : "", auto: ate("lunch") });
+    else if (!cancelledOf(m, "lunch")) it.push({ id: "lunch", t: T.lunch, b: wkend ? "Lunch out" : "Lunch", s: "Grilled protein, one carb, sauce on the side. Photo it.", p: null, act: "meal", auto: ate("lunch") });
     it.push({ id: "caffeine", t: T.caffeine_cutoff, b: "Caffeine cutoff", s: `Nothing caffeinated after this, so you sleep by ${T.bedtime}`, src: yours("times") && ch.times.caffeine_cutoff ? "yours" : "" });
-    (ch.extras || []).forEach((x, i) => it.push({ id: "x" + i, t: x.time || T.pre_gym, b: x.kind === "snack" ? "Snack" : x.kind === "drink" ? "Drink" : "Add-on", s: x.item, kv: `${fmt(x.kcal)} kcal, ${fmt(x.protein)} g protein, ${String(x.source || "estimate").toLowerCase()}`, act: "meal", src: "yours" }));
+    (ch.extras || []).forEach((x, i) => it.push({ id: "x" + i, t: x.time || T.pre_gym, b: x.kind === "snack" ? "Snack" : x.kind === "drink" ? "Drink" : "Add-on", s: x.item, kv: `${fmt(x.kcal)} kcal, ${fmt(x.protein)} g protein, ${String(x.source || "estimate").toLowerCase()}`, p: x.protein != null ? +x.protein : null, est: x.source === "ESTIMATE", act: "meal", src: "yours" }));
     if (sp) {
-      if (!(ch.extras || []).some((x) => x.kind === "snack")) it.push({ id: "pregym", t: T.pre_gym, b: "Pre-gym snack", s: "Banana + eggs, if lunch was 5+ hours ago", act: "meal" });
+      if (!(ch.extras || []).some((x) => x.kind === "snack")) it.push({ id: "pregym", t: T.pre_gym, b: "Pre-gym snack", s: "Banana + eggs, if lunch was 5+ hours ago", p: null, act: "meal" });
       const live = sp.exercises.filter((e) => !e.skip).length, pl = planOf(iso);
-      it.push({ id: "gym", t: T.gym, b: sp.name.split(" (")[0], s: `${live} exercises, ${sp.duration} min${/upper/.test(sp.id) ? " + 20 min incline walk" : ""}${sp.rpeCap ? `. Easy today: RPE ≤${sp.rpeCap}${sp.setsDelta ? `, ${-sp.setsDelta} set less each` : ""}` : ""}`, act: "gym", src: sp.changed ? "yours" : "", auto: !!(pl && pl.status === "done") });
-      if (shake && shakeMode !== "skip") { const ne = sup.whey && sup.whey.nutrition_estimate; it.push({ id: "shake", t: T.shake, b: "Shake", s: shake + (shakeMode === "on_top" ? ". On top of the add-ons today" : ""), kv: ne ? `≈ ${ne.protein_g.best} g protein, ${ne.kcal.best} kcal, estimate` : "", act: "meal", src: ch.shake ? "yours" : "" }); }
+      it.push({ id: "gym", t: T.gym, b: sp.name.split(" (")[0], s: `${live} exercises, ${sp.duration} min${/upper/.test(sp.id) && !sp.skipCond ? " + 20 min incline walk" : ""}${sp.rpeCap ? `. Easy today: RPE ≤${sp.rpeCap}${sp.setsDelta ? `, ${-sp.setsDelta} set less each` : ""}` : ""}`, act: "gym", src: sp.changed ? "yours" : "", auto: !!(pl && pl.status === "done") });
+      if (shake && shakeMode !== "skip") { const ne = sup.whey && sup.whey.nutrition_estimate; it.push({ id: "shake", t: T.shake, b: "Shake", s: shake + (shakeMode === "on_top" ? ". On top of the add-ons today" : ""), kv: ne ? `≈ ${ne.protein_g.best} g protein, ${ne.kcal.best} kcal, estimate` : "", p: ne ? ne.protein_g.best : null, est: true, act: "meal", src: ch.shake ? "yours" : "" }); }
     } else if (!wkend) it.push({ id: "walk", t: T.gym, b: "Rest day walk", s: "10 minutes after lunch and after dinner, for steps" });
     if (m && m.dinner) {
       const withDinner = (ch.extras || []).length ? "" : m.addon ? `, plus ${m.addon.with_dinner || m.addon.items}` : "";
-      it.push({ id: "dinner", t: T.dinner, b: withDinner ? "Dinner + add-on" : "Dinner", s: stripId(m.dinner) + withDinner, kv: m.addon && !(ch.extras || []).length ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "", act: "meal", src: (m.replaced || []).includes("dinner") ? "yours" : "", auto: ate("dinner") });
-    } else if (!cancelledOf(m, "dinner")) it.push({ id: "dinner", t: T.dinner, b: wkend ? "Dinner out" : "Dinner", s: "Photo every plate; aim for 40+ g protein", act: "meal", auto: ate("dinner") });
+      it.push({ id: "dinner", t: T.dinner, b: withDinner ? "Dinner + add-on" : "Dinner", s: stripId(m.dinner) + withDinner, kv: m.addon && !(ch.extras || []).length ? `day ≈ ${fmt(m.addon.kcal)} kcal, ${m.addon.protein} g protein` : "", p: pOf(m.dinner) ? +pOf(m.dinner) + (withDinner && m.addon.protein != null && m.protein != null ? m.addon.protein - m.protein : 0) : null, est: !!withDinner, act: "meal", src: (m.replaced || []).includes("dinner") ? "yours" : "", auto: ate("dinner") });
+    } else if (!cancelledOf(m, "dinner")) it.push({ id: "dinner", t: T.dinner, b: wkend ? "Dinner out" : "Dinner", s: "Photo every plate; aim for 40+ g protein", p: null, act: "meal", auto: ate("dinner") });
     const addSup = (ch.supplements || {}).add || [];
     if (pm.length || addSup.length) it.push({ id: "supps", t: T.supplements, b: "Supplements", s: [...pm.map((x) => x.name), ...addSup].join(" + "), src: addSup.length || skipSup.size ? "yours" : "" });
     it.push({ id: "wind", t: T.wind_down, b: "Wind down", s: "Lights low, screens off" });
@@ -899,6 +974,58 @@ input, textarea { font: inherit; color: inherit; }
     toast(`${n} reminders ready: open the file to add them to your calendar`);
   }
   function timeline(iso) { return timelineHTML(iso); }
+
+  // ---------- easy-day suggestion (design §1): suggest, never apply; his choice is stored per date on this phone ----------
+  const easyText = (sg) => [sg.sets_delta ? `${-sg.sets_delta} set less` : "", sg.rpe_cap ? `RPE ≤${sg.rpe_cap}` : "", sg.skip_conditioning ? "no conditioning" : ""].filter(Boolean).join(", ");
+  function easyCard() {
+    const today = dubaiISO(), R = readyFor(today); if (!R || !sessionFor(today)) return "";
+    const lc = localChanges(today), sg = R.suggestion || {};
+    const line = (easy, undo) => `<p class="chline" role="status"><span class="pill yours">Your choice</span><span>${easy ? `Easy version today: ${esc(easyText(sg))}.` : "Training as planned today."}</span>${undo ? `<button class="undo" data-easy="undo">Undo</button>` : ""}</p>`;
+    if ("easy" in lc) return line(lc.easy === true, true);
+    if (R.chosen) return line(R.chosen === "easy", false);
+    const li = (xs) => xs.map((x) => `<li>${esc(x)}</li>`).join("");
+    return `<section class="card easy" aria-label="Easy day suggested">
+      <div class="card-h" style="margin:0"><h2>Easy day suggested</h2><span class="pill warn">Recovery</span></div>
+      <div><span class="lbl">Why</span><ul>${li(R.triggers || [])}</ul></div>
+      ${(R.context || []).length ? `<div class="also"><span class="lbl">Also</span><ul>${li(R.context)}</ul></div>` : ""}
+      <p class="note" style="margin:0">Easy version: ${esc(easyText(sg))}${sg.alt ? `, ${esc(sg.alt)}` : ""}. Poor recovery costs rep quality more than top strength, so fewer, easier sets keep the session useful. Your call.</p>
+      <div class="acts"><button class="cta pen" data-easy="easy">Use easy version</button><button class="cta ghost" data-easy="as_planned">Train as planned</button></div>
+    </section>`;
+  }
+  function chooseEasy(v) {
+    const iso = dubaiISO(), R = readyFor(iso); if (!R) return;
+    const sg = R.suggestion || {}, star = { sets_delta: sg.sets_delta ?? -1, rpe_cap: sg.rpe_cap ?? 7 };
+    if (v === "undo") planChange(iso, "easy", planSent(iso, "easy") ? "easy-day choice undone, back to the plan" : null, (c) => { delete c.easy; if (c.exercises) delete c.exercises["*"]; });
+    else if (v === "easy") planChange(iso, "easy", `easy version (${easyText({ ...sg, ...star })})`, (c) => { c.easy = true; c.exercises = { ...(c.exercises || {}), "*": star }; });
+    else planChange(iso, "easy", "train as planned (easy version declined)", (c) => { c.easy = false; if (c.exercises) delete c.exercises["*"]; });
+    syncDraft(iso);
+    const y = window.scrollY; drawToday(); drawTrain(); window.scrollTo({ top: y });
+    toast(v === "undo" ? "Choice undone" : "Saved. Goes with your next message", { label: "Send now", fn: sendPlan });
+  }
+  // copy the queued PLAN lines on their own (the Log message and the workout message also carry them)
+  function sendPlan() {
+    const xs = pendingPlan(); if (!xs.length) { toast("Nothing waiting to send"); return; }
+    const msg = xs.map((x) => x.text).join("\n") + "\n(sent from Cut Log)", ob = outbox();
+    ob.push({ at: new Date().toISOString(), date: dubaiISO(), title: "Plan change", text: msg }); setOutbox(ob); markPlanSent(xs, "plan");
+    $("#sheet-title").textContent = "Ready for your coach"; $("#sheet-text").value = msg; $("#sheet-clear").hidden = true; $("#sheet").hidden = false; copyText(msg);
+  }
+
+  // ---------- still to eat (design §4): from 15:00, the protein gap to the floor and what's left on today's plan ----------
+  function toEatCard() {
+    const today = dubaiISO(), L = D.latest, floor = D.targets.protein_floor, day = (D.meals || {})[today];
+    if (dubaiHour() < 15 || floor == null || (L.date === today && L.complete)) return "";
+    const got = L.date === today && L.protein != null ? L.protein : day ? day.items.reduce((a, x) => a + ((x.protein && x.protein.best) || 0), 0) : 0;
+    if (got >= floor) return "";
+    const tk = ticks(today), meals = dayItems(today).filter((x) => x.act === "meal" && !x.auto);
+    const left = meals.filter((x) => !tk[x.id]), ticked = meals.filter((x) => tk[x.id]);
+    const gap = Math.ceil(floor - got), planned = left.reduce((a, x) => a + (x.p || 0), 0), unknown = left.some((x) => x.p == null);
+    const pq = (x) => (x.p == null ? "—" : `${x.est ? "≈ " : ""}${fmt(x.p)} g`);
+    return `<section class="card toeat" aria-label="Still to eat">
+      <h2>Still to eat: ${fmt(gap)} g protein to your ${fmt(floor)} g floor</h2>
+      ${left.length ? `<div class="list">${left.map((x) => `<div class="li"><span><b>${esc(x.b)}</b></span><span class="q">${pq(x)}</span><span class="sub">${esc(x.t)} · ${esc(x.s)}</span></div>`).join("")}</div>` : `<p class="muted" style="margin:0">Nothing left on today's plan: add a protein item (eggs, Greek yoghurt, tuna, chicken).</p>`}
+      <p class="note" style="margin:0">Logged so far ${fmt(got)} g. ${left.length ? `Planned items left add ${fmt(planned)} g${unknown ? " plus the ones without a number" : ""}: ${planned >= gap ? "enough to clear the floor if you eat them" : `${fmt(gap - planned)} g short, so add a protein item`}.` : ""}${ticked.length ? ` Ticked here, not in your records yet: ${ticked.map((x) => `${x.b} ${pq(x)}`).join(", ")}.` : ""}</p>
+    </section>`;
+  }
 
   // ---------- brief, one thing, explanations ----------
   const coachFresh = () => { const c = D.coach; if (!c || !c.written_at) return null; const t = new Date(c.written_at.replace(" ", "T") + ":00+04:00"); return (Date.now() - t) / 36e5 <= 36 ? c : null; };
@@ -998,7 +1125,7 @@ input, textarea { font: inherit; color: inherit; }
     let nextS = null; for (let i = 1; i < 14 && !nextS; i++) { const iso = addDays(today, i); if (sessionFor(iso)) nextS = { iso, s: sessionFor(iso) }; }
     const train = pl && pl.status === "done"
       ? `<p style="margin:0;font-weight:600">Trained today: ${esc((progById(pl.logged) || { name: pl.logged }).name.split(" (")[0])}. Logged.</p>`
-      : sp ? `<div class="exlist" style="margin-top:0">${sp.exercises.map((e, i) => `<div class="ex ${e.skip ? "skip" : ""}"><span class="n">${i + 1}</span><span style="font-weight:600">${esc(cap(nice(e.swap || e.id)))}${e.swap ? `<span class="muted" style="font-weight:400;font-size:var(--t-xs)"> instead of ${esc(nice(e.id))}</span>` : ""}</span><span class="m">${e.skip ? "skipped" : `${e.sets}×${esc(e.reps)}${e.rpe ? ` · RPE ${esc(e.rpe)}` : ""}`}</span></div>`).join("")}</div>
+      : sp ? `<div class="exlist" style="margin-top:0">${sp.exercises.map((e, i) => `<div class="ex ${e.skip ? "skip" : ""}"><span class="n">${i + 1}</span><span style="font-weight:600">${esc(e.added ? e.name : cap(nice(e.swap || e.id)))}${e.swap ? `<span class="muted" style="font-weight:400;font-size:var(--t-xs)"> instead of ${esc(nice(e.id))}</span>` : ""}</span><span class="m">${e.skip ? "skipped" : `${e.sets}×${esc(e.reps)}${e.rpe ? ` · RPE ${esc(e.rpe)}` : ""}`}</span></div>`).join("")}</div>
           ${sp.changed ? `<p class="note"><span class="pill yours">Your change</span> ${sp.rpeCap ? `RPE ≤${sp.rpeCap}` : ""}${sp.setsDelta ? `, ${-sp.setsDelta} set less per exercise` : ""}.</p>` : ""}
           <button class="cta pen" data-go-train data-i="${si}" style="width:100%;margin-top:var(--s3)">${draftFor(sp.id) ? "Resume workout" : "Start workout"}</button>`
       : `<p style="margin:0">Rest day. Walk 10 minutes after lunch and dinner.${nextS ? ` Next: <b>${esc(nextS.s.name.split(" (")[0])}</b>, ${esc(longDate(nextS.iso))}.` : ""}</p>`;
@@ -1023,6 +1150,8 @@ input, textarea { font: inherit; color: inherit; }
           <p>${esc(brief.body || "")}</p>
           <div class="one"><span class="t"><span class="lbl">One thing</span><span>${esc(one.text)}</span></span>${one.act === "log" ? `<button class="btn" data-open-pane="log" data-mode="${/weigh/i.test(one.text) ? "weigh" : "meal"}">Log</button>` : "<span></span>"}</div>
         </section>
+        ${easyCard()}
+        ${toEatCard()}
         ${vitalsPanel()}
         <section class="card nums" aria-label="Weight and today's food numbers">
           ${weightRow()}
@@ -1167,6 +1296,8 @@ input, textarea { font: inherit; color: inherit; }
     // ticked plan items not yet sent: the coach records them
     const tk = ticks(today), sentT = new Set(d.sentTicks || []), its = dayItems(today).filter((x) => tk[x.id] && !x.auto && !sentT.has(x.id));
     if (its.length) lines.push(`DONE ${today}`, ...its.map((x) => `- ${x.t} ${x.b}: ${x.s}`));
+    // plan changes made on this phone (easy version, added exercises …), not sent yet
+    lines.push(...pendingPlan().map((x) => x.text));
     return lines.length ? lines.join("\n") + "\n(sent from Cut Log)" : "";
   }
   function entriesPane() {
@@ -1207,7 +1338,7 @@ input, textarea { font: inherit; color: inherit; }
   function openPane(kind, arg) {
     const html = kind === "report" ? reportPane(arg) : kind === "plates" ? platesPane(arg) : kind === "cues" ? cuesPane(arg) : kind === "lift" ? liftPane(arg) : kind === "week" ? `<div class="grab"></div><div class="ph"><h2>This week's menu</h2><button class="btn" data-close-pane>Close</button></div><div class="view">${viewFood()}</div>`
       : kind === "meals" ? `<div class="grab"></div><div class="ph"><h2>Logged today</h2><button class="btn" data-close-pane>Close</button></div>${loggedCard(dubaiISO()).replace('<div class="card-h"><h2>Logged today</h2>', '<div class="card-h"><h2 class="lab" style="font-size:var(--t-sm);color:var(--muted)">From your records</h2>')}`
-      : kind === "log" ? logPane(arg) : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : youPane();
+      : kind === "log" ? logPane(arg) : kind === "explain" ? explainPane(arg) : kind === "entries" ? entriesPane() : kind === "day" ? dayPane() : kind === "templates" ? templatesPane() : kind === "watch" ? watchPane() : kind === "addex" ? addexPane() : youPane();
     const wasOpen = !$("#pane").hidden;
     if (!wasOpen) openPane.ret = document.activeElement;
     $("#pane-box").innerHTML = html; $("#pane").hidden = false; $("#pane").dataset.kind = kind; $("#pane-box").scrollTop = 0;
@@ -1423,28 +1554,61 @@ input, textarea { font: inherit; color: inherit; }
   const draftFor = (sid) => { const d = loadDraft(); return d && d.sid === sid ? d : null; };
   let LOG = loadDraft(), WAKE = null;
   const num = (v) => String(v ?? "").trim().replace(",", ".");
-  const exOf = (id) => D.program.find((p) => p.id === LOG.sid).exercises.find((e) => e.id === id);
+  // one lookup for the logger: a program exercise (with today's reps / RPE from the plan) or one added for the day
+  const sessOf = () => D.program.find((p) => p.id === LOG.sid);
+  const exOf = (id) => {
+    const p = sessOf().exercises.find((e) => e.id === id); if (p) return { ...p, ...((LOG.tune || {})[id] || {}) };
+    const x = (LOG.extra || {})[id]; return x ? { id, alternatives: [], last: null, next: null, ...x, added: true } : null;
+  };
+  const exList = () => (LOG.order || []).map(exOf).filter(Boolean);
   const cap = (t) => (t ? t[0].toUpperCase() + t.slice(1) : t);
-  const nameOf = (id) => cap(nice(LOG.swap && LOG.swap[id] ? LOG.swap[id] : id));
+  const nameOf = (id) => (LOG.swap && LOG.swap[id] ? catName(LOG.swap[id]) : LOG.extra && LOG.extra[id] ? LOG.extra[id].name : cap(nice(id)));
   const working = (id) => LOG.ex[id].filter((x) => !x.warm);
   const exDone = (id) => (LOG.skip && LOG.skip[id]) || (working(id).length > 0 && working(id).every((x) => x.done));
   async function keepAwake() { try { if ("wakeLock" in navigator && !WAKE) { WAKE = await navigator.wakeLock.request("screen"); WAKE.addEventListener("release", () => (WAKE = null)); } } catch {} }
+  const blankSet = (kg = "") => ({ kg, reps: "", rpe: "", done: false, warm: false });
+  const startKg = (e) => (e.next && e.next.kg != null ? e.next.kg : e.last && e.last.sets.length ? Math.max(...e.last.sets.map((x) => x.kg || 0)) : "");
+  // the logger follows today's session plan (program + overrides + phone changes), added exercises included
+  const todaysPlan = (s) => { const today = dubaiISO(); return sessionFor(today) === s ? sessionPlan(today) : null; };
   function startLog(i) {
     const s = D.program[i]; if (!s) return;
     if (!draftFor(s.id)) {
-      // today's changes (data/plan/overrides.yaml): skip / swap / sets / rpe cap, applied when this is today's session
-      const today = dubaiISO(), sp = sessionFor(today) === s ? sessionPlan(today) : null, pe = Object.fromEntries(((sp && sp.exercises) || []).map((e) => [e.id, e]));
-      LOG = { sid: s.id, i, date: today, start: Date.now(), sessRpe: "", cardio: /upper/.test(s.id) ? "incline walk 20 min" : "", pain: "none", shake: !(dayChanges(today).shake === "skip"), swap: {}, skip: {}, open: {}, prs: {}, rpeCap: sp && sp.rpeCap,
-        ex: Object.fromEntries(s.exercises.map((e) => {
-          const kg = e.next && e.next.kg != null ? e.next.kg : e.last && e.last.sets.length ? Math.max(...e.last.sets.map((x) => x.kg || 0)) : "";
-          const n = pe[e.id] ? pe[e.id].sets : e.sets;
-          return [e.id, Array.from({ length: n }, () => ({ kg, reps: "", rpe: "", done: false, warm: false }))];
-        })) };
-      Object.values(pe).forEach((e) => { if (e.skip) LOG.skip[e.id] = true; if (e.swap) LOG.swap[e.id] = e.swap; });
+      const today = dubaiISO(), sp = todaysPlan(s), plan = sp ? sp.exercises : s.exercises;
+      LOG = { sid: s.id, i, date: today, start: Date.now(), sessRpe: "", cardio: /upper/.test(s.id) && !(sp && sp.skipCond) ? "incline walk 20 min" : "", pain: "none", shake: !(dayChanges(today).shake === "skip"), swap: {}, skip: {}, open: {}, prs: {}, rpeCap: sp && sp.rpeCap,
+        order: [], extra: {}, tune: {}, ex: {} };
+      plan.forEach((e) => {
+        if (LOG.ex[e.id] || (e.added && e.skip)) return;
+        LOG.order.push(e.id);
+        if (e.added) LOG.extra[e.id] = { name: e.name || catName(e.id), sets: e.sets, reps: e.reps, rest_s: e.rest_s, rpe: e.rpe, added: true };
+        else if (sp) LOG.tune[e.id] = { reps: e.reps, rpe: e.rpe };
+        if (e.skip) LOG.skip[e.id] = true; if (e.swap) LOG.swap[e.id] = e.swap;
+        LOG.ex[e.id] = Array.from({ length: e.sets }, () => blankSet(e.added ? "" : startKg(e)));
+      });
       saveDraft(LOG);
     } else LOG = draftFor(s.id);
-    LOG.swap = LOG.swap || {}; LOG.skip = LOG.skip || {}; LOG.open = LOG.open || {}; LOG.prs = LOG.prs || {};
+    migrateLog();
     keepAwake(); redrawLog(); window.scrollTo({ top: 0 });
+  }
+  // drafts from older versions: no order / extra / tune (program order then)
+  function migrateLog() {
+    LOG.swap = LOG.swap || {}; LOG.skip = LOG.skip || {}; LOG.open = LOG.open || {}; LOG.prs = LOG.prs || {}; LOG.extra = LOG.extra || {}; LOG.tune = LOG.tune || {};
+    const s = sessOf(); if (!s) return;
+    if (!Array.isArray(LOG.order)) LOG.order = [...s.exercises.map((e) => e.id).filter((id) => LOG.ex[id]), ...Object.keys(LOG.extra)];
+    LOG.order.forEach((id) => { if (!LOG.ex[id]) LOG.ex[id] = Array.from({ length: (exOf(id) || {}).sets || 3 }, () => blankSet()); });
+  }
+  // his easy-day choice after the workout started: working sets not done yet follow the new plan, RPE cap updates
+  function syncDraft(iso) {
+    if (!LOG || LOG.date !== iso || !D.program.find((p) => p.id === LOG.sid)) return;
+    const sp = todaysPlan(sessOf()); if (!sp) return;
+    migrateLog(); LOG.rpeCap = sp.rpeCap;
+    sp.exercises.forEach((e) => {
+      const arr = LOG.ex[e.id]; if (!arr || e.added) return;
+      LOG.tune[e.id] = { reps: e.reps, rpe: e.rpe };
+      const work = () => arr.filter((x) => !x.warm);
+      while (work().length > e.sets && !work()[work().length - 1].done && work().length > 1) arr.splice(arr.lastIndexOf(work()[work().length - 1]), 1);
+      while (work().length < e.sets) { const prev = work()[work().length - 1] || {}; arr.push(blankSet(prev.kg ?? "")); }
+    });
+    saveDraft(LOG);
   }
   const BARBELL = new Set(["bench_press", "back_squat", "overhead_press", "romanian_deadlift", "deadlift", "barbell_row", "front_squat", "incline_bench_press", "hip_thrust"]);
   const e1rm = (kg, reps) => { kg = parseFloat(num(kg)); reps = parseInt(num(reps), 10); return kg > 0 && reps > 0 && reps <= 10 ? kg * (1 + reps / 30) : null; };
@@ -1493,19 +1657,20 @@ input, textarea { font: inherit; color: inherit; }
       ${prev ? `<span class="prev">last ${esc(prev.kg ?? "—")} × ${esc(prev.reps ?? "—")}${prev.rpe ? " @" + esc(prev.rpe) : ""}</span>` : ""}</div>`;
   }
   function viewLogger() {
-    const s = D.program.find((p) => p.id === LOG.sid), mins = Math.round((Date.now() - LOG.start) / 60000);
-    const doneN = s.exercises.filter((e) => exDone(e.id)).length;
+    migrateLog();
+    const s = sessOf(), list = exList(), mins = Math.round((Date.now() - LOG.start) / 60000);
+    const doneN = list.filter((e) => exDone(e.id)).length;
     return `
       <section class="card session" aria-label="Workout in progress"><div class="row" style="align-items:flex-start"><div style="display:grid;gap:2px"><span class="eyebrow">Logging, ${longDate(LOG.date)}</span>
         <h3>${esc(s.name.split(" (")[0])}</h3></div>
         <span style="display:flex;gap:var(--s2);align-items:center"><span class="pill num" id="elapsed">${mins} min</span><button class="btn" data-logback>Plan</button></span></div>
-        <div class="goalbar" style="margin-top:var(--s3)" role="progressbar" aria-valuemin="0" aria-valuemax="${s.exercises.length}" aria-valuenow="${doneN}" aria-label="Exercises done"><i style="width:${(doneN / s.exercises.length) * 100}%"></i></div>
+        <div class="goalbar" style="margin-top:var(--s3)" role="progressbar" aria-valuemin="0" aria-valuemax="${list.length}" aria-valuenow="${doneN}" aria-label="Exercises done"><i style="width:${(doneN / Math.max(1, list.length)) * 100}%"></i></div>
         ${LOG.rpeCap ? `<p class="note" style="margin:var(--s2) 0 0"><span class="pill yours">Your change</span> Easy day: RPE ≤${LOG.rpeCap} on every set.</p>` : ""}
-        <p class="note" style="margin-top:var(--s1)">${doneN} of ${s.exercises.length} exercises done. Tap a set number for warm-up, copy or delete; the dots menu swaps or skips.</p></section>
-      ${s.exercises.map((e) => {
+        <p class="note" style="margin-top:var(--s1)">${doneN} of ${list.length} exercises done. Tap a set number for warm-up, copy or delete; the dots menu swaps or skips. Finish any time: what you didn't do is reported as not done.</p></section>
+      ${list.map((e) => {
         const rr = rrOf(e.reps), skipped = LOG.skip[e.id], swapped = LOG.swap[e.id];
         const collapsed = !skipped && exDone(e.id) && !LOG.open[e.id];
-        const head = `<div class="exh"><b>${esc(nameOf(e.id))}${swapped ? `<span class="muted" style="display:block;font-weight:400;font-size:var(--t-sm)">instead of ${esc(nice(e.id))}</span>` : ""}</b>
+        const head = `<div class="exh"><b>${esc(nameOf(e.id))}${e.added ? ` <span class="pill yours" style="vertical-align:middle">Added</span>` : ""}${swapped ? `<span class="muted" style="display:block;font-weight:400;font-size:var(--t-sm)">instead of ${esc(nice(e.id))}</span>` : ""}</b>
           <span class="tools">${BARBELL.has(LOG.swap[e.id] || e.id) ? `<button class="tool" data-plates="${e.id}">Plates</button>` : ""}${(D.cues || {})[LOG.swap[e.id] || e.id] ? `<button class="tool" data-cues="${LOG.swap[e.id] || e.id}">Cues</button>` : ""}<span class="muted num" style="font-size:var(--t-xs)">${e.rest_s}s</span><button class="more" data-exmenu="${e.id}" aria-label="${esc(nameOf(e.id))} options"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></span></div>`;
         if (skipped) return `<div class="card lgx skipped" data-ex="${e.id}">${head}<span class="muted" style="font-size:var(--t-sm)">Skipped. Open the dots menu to bring it back.</span></div>`;
         if (collapsed) {
@@ -1515,12 +1680,13 @@ input, textarea { font: inherit; color: inherit; }
             <span class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></span></button></div>`;
         }
         return `<div class="card lgx" data-ex="${e.id}">${head}
-          <div class="tgt">${swapped ? `<span class="pill">New exercise: find your weight</span>` : e.next ? `<span class="pill ${e.next.action === "add" ? "ok" : e.next.action === "reduce" ? "warn" : ""}">${e.next.kg ? "Target " + e.next.kg + " kg × " + esc(rr) : e.next.action === "start" ? "Find your weight: " + esc(rr) + " reps @ RPE 7" : esc(rr)}</span>` : ""}${!swapped && e.last ? `<span class="pill">Last ${esc(e.last.text)}</span>` : ""}</div>
+          <div class="tgt">${swapped || e.added ? `<span class="pill">${e.added ? `${esc(rrOf(e.reps))} reps${e.rpe ? ` @ RPE ${esc(e.rpe)}` : ""}. Find your weight` : "New exercise: find your weight"}</span>` : e.next ? `<span class="pill ${e.next.action === "add" ? "ok" : e.next.action === "reduce" ? "warn" : ""}">${e.next.kg ? "Target " + e.next.kg + " kg × " + esc(rr) : e.next.action === "start" ? "Find your weight: " + esc(rr) + " reps @ RPE 7" : esc(rr)}</span>` : ""}${!swapped && e.last ? `<span class="pill">Last ${esc(e.last.text)}</span>` : ""}</div>
           <div class="colh"><span>Set</span><span>kg</span><span>Reps</span><span>RPE</span><span></span></div>
           ${LOG.ex[e.id].map((st, k) => setRow(e, st, k, rr)).join("")}
           <button class="addset" data-addset="${e.id}">+ Add set</button>
         </div>`;
       }).join("")}
+      <button class="addex" data-addex><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round"><path d="M12 5v14M5 12h14"/></svg>Add exercise</button>
       <div class="card" style="display:grid;gap:var(--s3)">
         <h2 class="h2">Finish up</h2>
         <div class="field2"><label for="lg-cardio">Cardio (type, minutes, avg HR)</label><input id="lg-cardio" data-top="cardio" value="${esc(LOG.cardio)}"></div>
@@ -1532,17 +1698,21 @@ input, textarea { font: inherit; color: inherit; }
       </div>`;
   }
   function logMessage() {
-    const s = D.program.find((p) => p.id === LOG.sid), mins = Math.round((Date.now() - LOG.start) / 60000);
+    const s = sessOf(), mins = Math.round((Date.now() - LOG.start) / 60000);
     const lines = [`GYM ${LOG.date} · ${s.name.split(" (")[0]}`, `Duration (min): ${mins}`, `Session RPE (1-10): ${LOG.sessRpe}`];
     const fmtSet = (x) => `${num(x.kg)}x${num(x.reps)}${x.rpe !== "" ? " @" + num(x.rpe) : ""}`;
-    s.exercises.forEach((e) => {
-      const label = LOG.swap[e.id] ? `${nice(LOG.swap[e.id])} (instead of ${nice(e.id)})` : nice(e.id);
+    exList().forEach((e) => {
+      const label = LOG.swap[e.id] ? `${nice(LOG.swap[e.id])} (instead of ${nice(e.id)})` : e.added ? `${nameOf(e.id)} (added)` : nice(e.id);
       if (LOG.skip[e.id]) return lines.push(`${label}: skipped`);
       const sets = LOG.ex[e.id].filter((x) => num(x.reps) !== "");
       const warm = sets.filter((x) => x.warm), work = sets.filter((x) => !x.warm);
       lines.push(`${label}: ${warm.length ? "warm-up " + warm.map(fmtSet).join(", ") + "; " : ""}${work.map(fmtSet).join(", ") || "not done"}`);
     });
-    lines.push(`Cardio (type, min, avg HR): ${LOG.cardio}`, `Pain (where, 0-10): ${LOG.pain}`, `Shake (${shakeTxt() || "protein"}): ${LOG.shake ? "yes" : "no"}`, "(logged in Cut Log)");
+    lines.push(`Cardio (type, min, avg HR): ${LOG.cardio}`, `Pain (where, 0-10): ${LOG.pain}`, `Shake (${shakeTxt() || "protein"}): ${LOG.shake ? "yes" : "no"}`);
+    // plan changes made on the phone for that day (easy version, added / removed exercises)
+    const pl = planLog().filter((x) => x.iso === LOG.date && (!x.sent || x.via === LOG.start)).map((x) => x.text);
+    if (pl.length) lines.push("", ...pl);
+    lines.push("(logged in Cut Log)");
     return lines.join("\n");
   }
   // rest timer with -15 / +15 / skip
@@ -1571,12 +1741,57 @@ input, textarea { font: inherit; color: inherit; }
   }
   function exMenu(id) {
     const e = exOf(id), opts = [];
+    if (e.added) {
+      opts.push({ label: "Add a warm-up set", hint: "goes first", fn: () => { LOG.ex[id].unshift({ ...blankSet(), warm: true }); } });
+      if (exDone(id)) opts.push({ label: "Edit sets", fn: () => { LOG.open[id] = true; } });
+      opts.push({ label: "Remove", hint: "added today", danger: true, fn: () => removeEx(id) });
+      return openMenu(nameOf(id), opts);
+    }
     (e.alternatives || []).forEach((alt) => { if (alt !== LOG.swap[id]) opts.push({ label: `Swap for ${nice(alt)}`, hint: "busy or pain", fn: () => { LOG.swap[id] = alt; LOG.ex[id].forEach((x) => { x.kg = ""; x.done = false; }); } }); });
     if (LOG.swap[id]) opts.push({ label: `Back to ${nice(id)}`, fn: () => { delete LOG.swap[id]; } });
     opts.push({ label: "Add a warm-up set", hint: "goes first", fn: () => { const first = LOG.ex[id][0] || {}; const w = parseFloat(num(first.kg)); LOG.ex[id].unshift({ kg: Number.isFinite(w) ? Math.round((w * 0.5) / 2.5) * 2.5 : "", reps: "", rpe: "", done: false, warm: true }); } });
     if (exDone(id) && !LOG.skip[id]) opts.push({ label: "Edit sets", fn: () => { LOG.open[id] = true; } });
     opts.push(LOG.skip[id] ? { label: "Bring it back", fn: () => { delete LOG.skip[id]; } } : { label: "Skip this exercise", danger: true, fn: () => { LOG.skip[id] = true; } });
     openMenu(nameOf(id), opts);
+  }
+
+  // add / remove an exercise for the day: the logger changes now, the plan change goes to the coach as a PLAN line
+  const slug = (t) => String(t).toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40) || "exercise";
+  function addexPane() {
+    return `<div class="grab"></div><div class="ph"><h2>Add exercise</h2><button class="btn" data-close-pane>Close</button></div>
+      <input class="inp" id="addex-q" type="search" placeholder="Search: fly, row, leg press…" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Search exercises" aria-controls="addex-list">
+      <div class="pick" id="addex-list">${addexList("")}</div>
+      <p class="note" style="margin:0">Adds 3 sets of 8–12, 90 s rest, RPE ${esc(addRpe())}. Add or delete sets in the logger.</p>`;
+  }
+  const addRpe = () => (LOG && LOG.rpeCap && LOG.rpeCap < 8 ? `≤${LOG.rpeCap}` : "8");
+  function addexList(q) {
+    const t = q.trim().toLowerCase(), have = new Set(LOG.order), cat = (D.exercise_catalog || []).filter((x) => !have.has(x.id));
+    const words = t.split(/\s+/).filter(Boolean), hits = cat.filter((x) => words.every((w) => x.name.toLowerCase().includes(w) || x.id.includes(w))).slice(0, 30);
+    const exact = cat.some((x) => x.name.toLowerCase() === t || x.id === slug(t));
+    return hits.map((x) => `<button data-addex-id="${esc(x.id)}"><span>${esc(x.name)}</span><small>3 × 8–12</small></button>`).join("")
+      + (t && !exact ? `<button class="new" data-addex-new="${esc(q.trim())}">Add “${esc(q.trim())}” as a new exercise</button>` : "")
+      + (!hits.length && !t ? `<p class="muted" style="margin:0">No exercise list in your data yet: type a name.</p>` : "");
+  }
+  function addExercise(id, name, custom) {
+    if (LOG.ex[id] && LOG.order.includes(id)) { toast(`${name} is already in this workout`); return; }
+    const rpe = addRpe(), base = { sets: 3, reps: "8-12", rest_s: 90 };
+    LOG.order.push(id); LOG.extra[id] = { name, ...base, rpe, added: true, custom: !!custom };
+    LOG.ex[id] = Array.from({ length: 3 }, () => blankSet()); delete LOG.skip[id];
+    planChange(LOG.date, "add:" + id, `added ${name.toLowerCase()} 3x8-12${custom ? " (new exercise, not in the list yet)" : ""}`, (c) => {
+      c.add_exercises = [...(c.add_exercises || []).filter((x) => x.id !== id), { id, ...base, rpe: rpe.replace("≤", ""), ...(custom ? { name } : {}) }];
+      if (c.exercises && c.exercises[id] === "skip") delete c.exercises[id];
+    });
+    saveDraft(LOG); closePane(); redrawLog(); toast(`Added ${name}`);
+    const el = document.querySelector(`[data-ex="${CSS.escape(id)}"]`); if (el) el.scrollIntoView({ block: "center" });
+  }
+  function removeEx(id) {
+    const k = LOG.order.indexOf(id), snap = { ex: LOG.ex[id], extra: LOG.extra[id] }, iso = LOG.date;
+    const fromPhone = (localChanges(iso).add_exercises || []).some((x) => x.id === id);
+    LOG.order.splice(k, 1); delete LOG.ex[id]; delete LOG.extra[id];
+    const undo = planChange(iso, "add:" + id, fromPhone && !planSent(iso, "add:" + id) ? null : `removed ${snap.extra.name.toLowerCase()} (added exercise)`, (c) => {
+      if (fromPhone) c.add_exercises = (c.add_exercises || []).filter((x) => x.id !== id); else c.exercises = { ...(c.exercises || {}), [id]: "skip" };
+    });
+    toast(`${snap.extra.name} removed`, { label: "Undo", fn: () => { LOG.order.splice(k, 0, id); LOG.ex[id] = snap.ex; LOG.extra[id] = snap.extra; undo(); saveDraft(LOG); redrawLog(); } });
   }
 
   function viewTrain() {
@@ -1603,11 +1818,12 @@ input, textarea { font: inherit; color: inherit; }
     return `
       <div class="span" style="display:grid;gap:var(--s2)"><div class="daychips" role="group" aria-label="Sessions this week">${prog.map((p, i) => `<button data-sess="${i}" aria-pressed="${i === TRAINSEL}" aria-label="${esc(p.name.split(" (")[0])}: ${esc(when[i].label || "not scheduled")}"><span class="l">${esc(when[i].label || "—")}</span><span class="nm">${esc(p.name.split(" (")[0])}</span></button>`).join("")}</div>
         ${note ? `<p class="insight" style="margin:0">Re-planned by your coach: ${esc(note)}</p>` : ""}</div>
+      ${shown !== s ? easyCard() : ""}
       <section class="card session" aria-label="Session plan">
         <span class="eyebrow">${w.up ? (w.up === today ? "Today, after 18:00" : "Next: " + longDate(w.up) + ", after 18:00") : w.done ? "Done " + longDate(w.iso) + ". Not planned again this week" : "Not planned this week. You can still log it"}</span>
         <h3>${esc(s.name.split(" (")[0])}</h3>
-        <span class="muted" style="font-size:var(--t-sm)">${sub ? esc(sub[0].toUpperCase() + sub.slice(1)) + ". " : ""}${s.exercises.length} exercises, ${esc(s.duration)} min${/upper/.test(s.id) ? ", then a 20 min incline walk" : ""}</span>
-        <ol class="exlist" style="list-style:none;margin:var(--s2) 0 0;padding:0">${shown.exercises.map((e, i) => `<li class="ex ${e.skip ? "skip" : ""}"><span class="n">${i + 1}</span><span style="font-weight:600">${esc(nice(e.id)[0].toUpperCase() + nice(e.id).slice(1))}</span><span class="m num">${e.skip ? "skipped today" : `${e.sets} × ${esc(e.reps)}${e.rpe ? `, RPE ${esc(e.rpe)}` : ""}`}</span>${e.next ? `<span class="x">${e.last ? "last " + esc(e.last.text) + ", " : ""}${nextTxt(e)}</span>` : ""}</li>`).join("")}</ol>
+        <span class="muted" style="font-size:var(--t-sm)">${sub ? esc(sub[0].toUpperCase() + sub.slice(1)) + ". " : ""}${shown.exercises.filter((e) => !e.skip).length} exercises, ${esc(s.duration)} min${/upper/.test(s.id) && !shown.skipCond ? ", then a 20 min incline walk" : ""}</span>
+        <ol class="exlist" style="list-style:none;margin:var(--s2) 0 0;padding:0">${shown.exercises.map((e, i) => `<li class="ex ${e.skip ? "skip" : ""}"><span class="n">${i + 1}</span><span style="font-weight:600">${esc(e.added ? e.name : cap(nice(e.id)))}${e.added ? ` <span class="pill yours">Added</span>` : ""}</span><span class="m num">${e.skip ? "skipped today" : `${e.sets} × ${esc(e.reps)}${e.rpe ? `, RPE ${esc(e.rpe)}` : ""}`}</span>${e.next ? `<span class="x">${e.last ? "last " + esc(e.last.text) + ", " : ""}${nextTxt(e)}</span>` : ""}</li>`).join("")}</ol>
         ${shown !== s && shown.changed ? `<p class="note"><span class="pill yours">Your change</span> Today${shown.rpeCap ? `: RPE ≤${shown.rpeCap}` : ""}${shown.setsDelta ? `, ${-shown.setsDelta} set less per exercise` : ""}.</p>` : ""}
         <p class="note">Progression: when every set reaches the top of the rep range at RPE 8 or easier, add weight next time.</p>
         <button class="cta pen" data-logstart="${TRAINSEL}" style="width:100%;margin-top:var(--s2)">${draftFor(s.id) ? "Resume workout" : "Start workout"}</button>
@@ -1720,11 +1936,17 @@ input, textarea { font: inherit; color: inherit; }
     if (e.target.closest("[data-ld-send]")) {
       const msg = ldMessage(); if (!msg) { toast("Nothing to send yet"); return; }
       const w = parseFloat(num(LD.weight)); if (LD.weight && !(w >= 40 && w <= 200)) { toast("Weight looks off: check the number"); return; }
-      const ob = outbox(); ob.push({ at: new Date().toISOString(), date: dubaiISO(), title: [LD.weight && "Weigh-in " + num(LD.weight) + " kg", LD.ate && (LD.meal === "lunch" ? "Lunch" : "Dinner") + " · " + LD.ate, LD.water && "Water", LD.free && "Note"].filter(Boolean).join(" · ") || "Entry", text: msg }); setOutbox(ob);
+      const pend = pendingPlan();
+      const ob = outbox(); ob.push({ at: new Date().toISOString(), date: dubaiISO(), title: [LD.weight && "Weigh-in " + num(LD.weight) + " kg", LD.ate && (LD.meal === "lunch" ? "Lunch" : "Dinner") + " · " + LD.ate, LD.water && "Water", LD.free && "Note", pend.length && "Plan change"].filter(Boolean).join(" · ") || "Entry", text: msg }); setOutbox(ob);
+      markPlanSent(pend, "log");
       const sentTicks = Object.keys(ticks(dubaiISO())); LD = { ...ld(), meal: LD.meal, sentTicks }; saveLd(LD);
       closePane(); $("#sheet-title").textContent = "Ready for your coach"; $("#sheet-text").value = msg; $("#sheet-clear").hidden = true; $("#sheet").hidden = false; copyText(msg);
       drawToday(); return;
     }
+    const eb = e.target.closest("[data-easy]"); if (eb) { chooseEasy(eb.dataset.easy); return; }
+    if (e.target.closest("[data-addex]")) { openPane("addex"); const q = $("#addex-q"); if (q) q.focus(); return; }
+    const ai = e.target.closest("[data-addex-id]"); if (ai) { addExercise(ai.dataset.addexId, catName(ai.dataset.addexId), false); return; }
+    const an = e.target.closest("[data-addex-new]"); if (an) { const nm = cap(an.dataset.addexNew.trim()), id = slug(nm), known = (D.exercise_catalog || []).find((x) => x.id === id); addExercise(id, known ? known.name : nm, !known); return; }
     const ls = e.target.closest("[data-logstart]"); if (ls) { TAB_LOGGING = true; startLog(+ls.dataset.logstart); return; }
     const dn = e.target.closest("[data-done]"); if (dn) {
       const [id, k] = dn.dataset.done.split(":"), st = LOG.ex[id][+k], row = dn.closest(".setrow");
@@ -1747,13 +1969,14 @@ input, textarea { font: inherit; color: inherit; }
     const oe = e.target.closest("[data-open]"); if (oe) { LOG.open[oe.dataset.open] = true; saveDraft(LOG); redrawLog(); return; }
     const sh = e.target.closest("[data-shake]"); if (sh) { LOG.shake = !LOG.shake; sh.setAttribute("aria-pressed", String(LOG.shake)); saveDraft(LOG); return; }
     if (e.target.closest("[data-finish]")) {
-      const s = D.program.find((p) => p.id === LOG.sid), empty = s.exercises.filter((x) => !LOG.skip[x.id] && !LOG.ex[x.id].some((y) => !y.warm && num(y.reps) !== ""));
+      const list = exList(), empty = list.filter((x) => !LOG.skip[x.id] && !LOG.ex[x.id].some((y) => !y.warm && num(y.reps) !== ""));
       // session summary: working sets, volume (kg x reps), new bests, time
-      const work = s.exercises.filter((x) => !LOG.skip[x.id]).flatMap((x) => LOG.ex[x.id].filter((y) => !y.warm && num(y.reps) !== ""));
+      const work = list.filter((x) => !LOG.skip[x.id]).flatMap((x) => LOG.ex[x.id].filter((y) => !y.warm && num(y.reps) !== ""));
       const vol = work.reduce((a, y) => a + (parseFloat(num(y.kg)) || 0) * (parseInt(num(y.reps), 10) || 0), 0);
-      const prs = s.exercises.filter((x) => LOG.ex[x.id].some((y) => y.pr)).length, mins = Math.round((Date.now() - LOG.start) / 60000);
+      const prs = list.filter((x) => LOG.ex[x.id].some((y) => y.pr)).length, mins = Math.round((Date.now() - LOG.start) / 60000);
       $("#sheet-title").textContent = `${work.length} set${work.length === 1 ? "" : "s"}, ${fmt(vol)} kg moved, ${mins} min${prs ? `, ${prs} new best${prs > 1 ? "s" : ""}` : ""}${empty.length ? `. ${empty.length} not done` : ""}`;
-      $("#sheet-text").value = logMessage(); $("#sheet-clear").hidden = false; $("#sheet").hidden = false; copyText(logMessage()); return;
+      markPlanSent(planLog().filter((x) => x.iso === LOG.date && !x.sent), LOG.start);
+      const msg = logMessage(); $("#sheet-text").value = msg; $("#sheet-clear").hidden = false; $("#sheet").hidden = false; copyText(msg); return;
     }
     if (e.target.closest("[data-discard]")) { const bt = e.target.closest("[data-discard]"); if (bt.dataset.sure) { clearLog(); } else { bt.dataset.sure = "1"; bt.textContent = "Tap again to discard"; } return; }
     if (e.target.closest("[data-logback]")) { TAB_LOGGING = false; drawTrain(); return; }
@@ -1769,6 +1992,7 @@ input, textarea { font: inherit; color: inherit; }
   });
   document.addEventListener("input", (e) => {
     if (e.target.dataset && e.target.dataset.ldi && LD) { LD[e.target.dataset.ldi] = e.target.value; saveLd(LD); return; }
+    if (e.target.id === "addex-q") { $("#addex-list").innerHTML = addexList(e.target.value); return; }
     if (!LOG) return;
     const f = e.target.dataset.f, top = e.target.dataset.top;
     if (f) { const id = e.target.closest("[data-ex]").dataset.ex, k = +e.target.closest("[data-set]").dataset.set; LOG.ex[id][k][f] = e.target.value.trim(); saveDraft(LOG); }
@@ -1805,7 +2029,7 @@ input, textarea { font: inherit; color: inherit; }
       const blob = await fetchBlob();
       const key = await deriveKey(pass, blob.salt, blob.iter);
       try { D = await decryptBlob(blob, key); } catch { $("#unlock").textContent = "Unlock"; return showSetup("Wrong password. Check it and try again."); }
-      store.set({ key, salt: blob.salt, iter: blob.iter, cache: D });
+      store.set({ key, salt: blob.salt, iter: blob.iter, cache: D, cachedAt: new Date().toISOString() });
       $("#f-pass").value = ""; $("#unlock").textContent = "Unlock"; render();
     } catch (err) { $("#unlock").textContent = "Unlock"; showSetup(err.message); }
   });
@@ -1819,8 +2043,12 @@ input, textarea { font: inherit; color: inherit; }
   applyTheme(themePref());
   if (LOG) TAB_LOGGING = true;
   const c = store.get();
-  if (c.cache) { D = c.cache; render(); }
+  if (c.cache) { D = c.cache; render(); if (!navigator.onLine) showOffline(true, c.cachedAt); }
   load();
+  window.addEventListener("offline", () => showOffline(true, store.get().cachedAt));
+  window.addEventListener("online", () => { showOffline(false); if (store.get().key) load({ quiet: true }); });
+  // offline shell (sw.js): only on https or this computer
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname))) navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(() => {});
 })();
 </script>
 </body>
